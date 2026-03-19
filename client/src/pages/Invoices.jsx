@@ -1,0 +1,495 @@
+import { useState, useEffect, useRef } from "react"
+import api from "../lib/api"
+import toast from "react-hot-toast"
+
+const STATUS_COLORS = {
+  draft: { bg: "rgba(255,184,0,0.15)", color: "#ffb800", border: "rgba(255,184,0,0.3)", label: "Draft" },
+  sent: { bg: "rgba(108,99,255,0.15)", color: "#6c63ff", border: "rgba(108,99,255,0.3)", label: "Sent" },
+  paid: { bg: "rgba(0,217,126,0.15)", color: "#00d97e", border: "rgba(0,217,126,0.3)", label: "Paid" },
+  overdue: { bg: "rgba(255,77,109,0.15)", color: "#ff4d6d", border: "rgba(255,77,109,0.3)", label: "Overdue" },
+}
+
+const EMPTY_ITEM = { description: "", hours: "", rate: "", amount: 0 }
+
+async function downloadInvoicePdf(inv) {
+  const id = inv?._id || inv?.id
+  if (!id) { toast.error("Invoice not found."); return }
+  if (String(id).startsWith("local_")) { toast.error("Invoice is still syncing, please wait a moment and try again."); return }
+  try {
+    toast.loading("Generating PDF...", { id: "pdf" })
+    const res = await api.get(`/invoices/${id}/pdf`, { responseType: "blob" })
+    const blob = new Blob([res.data], { type: "application/pdf" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `invoice-${inv.invoiceNumber || id}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    toast.success("PDF downloaded!", { id: "pdf" })
+  } catch (e) {
+    toast.error(e?.response?.data?.error || "Failed to download PDF", { id: "pdf" })
+  }
+}
+
+function InvoiceCard({ invoice }) {
+  const st = STATUS_COLORS[invoice.status] || STATUS_COLORS.draft
+  return (
+    <div id="invoice-card" style={{ width: "480px", background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)", borderRadius: "20px", padding: "32px", fontFamily: "Arial,sans-serif", color: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+        <div>
+          <div style={{ fontSize: "22px", fontWeight: 800, background: "linear-gradient(135deg,#6c63ff,#ff6584)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>💼 FreelanceFlow</div>
+          <div style={{ fontSize: "11px", color: "#a78bfa", marginTop: "3px" }}>Professional Invoice</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "11px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.1em" }}>Invoice</div>
+          <div style={{ fontSize: "16px", fontWeight: 700, color: "#e0e0ff" }}>{invoice.invoiceNumber}</div>
+        </div>
+      </div>
+      <div style={{ height: "1px", background: "linear-gradient(90deg,#6c63ff,#ff6584,transparent)", marginBottom: "24px" }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
+        <div>
+          <div style={{ fontSize: "11px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>Billed To</div>
+          <div style={{ fontSize: "20px", fontWeight: 800 }}>{invoice.client?.name}</div>
+          {invoice.client?.company && <div style={{ fontSize: "13px", color: "#c4b5fd", marginTop: "3px" }}>{invoice.client.company}</div>}
+          {invoice.client?.email && <div style={{ fontSize: "12px", color: "#8b9cc8", marginTop: "2px" }}>{invoice.client.email}</div>}
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "11px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>Total Amount</div>
+          <div style={{ fontSize: "32px", fontWeight: 800, color: "#00d97e" }}>₹{invoice.total?.toLocaleString()}</div>
+        </div>
+      </div>
+      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "12px", padding: "16px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", marginBottom: "10px", fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <span>Service</span><span style={{ textAlign: "center" }}>Hrs</span><span style={{ textAlign: "center" }}>Rate</span><span style={{ textAlign: "right" }}>Amount</span>
+        </div>
+        {invoice.items?.map((item, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: "13px" }}>
+            <span style={{ color: "#e0e0ff" }}>{item.description}</span>
+            <span style={{ textAlign: "center", color: "#c4b5fd" }}>{item.hours}</span>
+            <span style={{ textAlign: "center", color: "#c4b5fd" }}>₹{item.rate}</span>
+            <span style={{ textAlign: "right", fontWeight: 700, color: "#fff" }}>₹{item.amount?.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#8b9cc8" }}>
+          <span>Subtotal</span><span>₹{invoice.subtotal?.toLocaleString()}</span>
+        </div>
+        {invoice.taxRate > 0 && (
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#8b9cc8" }}>
+            <span>GST ({invoice.taxRate}%)</span><span>₹{invoice.taxAmount?.toLocaleString()}</span>
+          </div>
+        )}
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "10px 0" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px", fontWeight: 800 }}>
+          <span style={{ color: "#fff" }}>Total Due</span>
+          <span style={{ color: "#00d97e" }}>₹{invoice.total?.toLocaleString()}</span>
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "rgba(108,99,255,0.15)", borderRadius: "10px", border: "1px solid rgba(108,99,255,0.3)" }}>
+        <div>
+          <div style={{ fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em" }}>Due Date</div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: invoice.status === "overdue" ? "#ff4d6d" : "#fff", marginTop: "2px" }}>
+            {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "N/A"}
+          </div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</div>
+          <div style={{ marginTop: "4px", padding: "3px 12px", borderRadius: "99px", background: st.bg, border: "1px solid " + st.border, color: st.color, fontSize: "12px", fontWeight: 700 }}>{st.label}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em" }}>Date Issued</div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff", marginTop: "2px" }}>
+            {new Date(invoice.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+          </div>
+        </div>
+      </div>
+      {invoice.notes && (
+        <div style={{ marginTop: "14px", padding: "12px 16px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Notes</div>
+          <div style={{ fontSize: "12px", color: "#c4b5fd", lineHeight: "1.5" }}>{invoice.notes}</div>
+        </div>
+      )}
+      <div style={{ marginTop: "20px", textAlign: "center", fontSize: "11px", color: "#4a5568" }}>
+        Generated by FreelanceFlow · freelanceflow.app
+      </div>
+    </div>
+  )
+}
+
+function ShareModal({ invoice, onClose }) {
+  const cardRef = useRef(null)
+  const [downloading, setDownloading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  if (!invoice) return null
+
+  const downloadCardAsImage = async () => {
+    setDownloading(true)
+    try {
+      if (!window.html2canvas) {
+        const script = document.createElement("script")
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        document.head.appendChild(script)
+        await new Promise(resolve => script.onload = resolve)
+      }
+      const element = document.getElementById("invoice-card")
+      const canvas = await window.html2canvas(element, { scale: 2, backgroundColor: null, useCORS: true })
+      const link = document.createElement("a")
+      link.download = `${invoice.invoiceNumber}.png`
+      link.href = canvas.toDataURL("image/png")
+      link.click()
+      toast.success("Invoice card downloaded! Now share it on WhatsApp 🎉")
+    } catch (e) {
+      toast.error("Download failed, try Copy Text instead")
+    }
+    setDownloading(false)
+  }
+
+  const whatsappText = `Hi ${invoice.client?.name}! 👋\n\nYour invoice is ready:\n\n🧾 *${invoice.invoiceNumber}*\n💰 Amount: *₹${invoice.total?.toLocaleString()}*\n📅 Due: *${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("en-IN") : "N/A"}*\n\n${invoice.items?.map(i => `• ${i.description}: ₹${i.amount?.toLocaleString()}`).join("\n")}\n\nThank you for your business! 🙏\n— FreelanceFlow`
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", overflowY: "auto" }}>
+      <div style={{ width: "100%", maxWidth: "900px", display: "flex", gap: "24px", alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ flex: "0 0 auto" }}>
+          <div style={{ fontSize: "12px", color: "#a78bfa", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>Invoice Card Preview</div>
+          <div ref={cardRef}><InvoiceCard invoice={invoice} /></div>
+        </div>
+        <div style={{ flex: 1, minWidth: "280px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div>
+              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#fff", marginBottom: "4px" }}>Share Invoice</h2>
+              <p style={{ fontSize: "13px", color: "#a78bfa" }}>{invoice.invoiceNumber} · ₹{invoice.total?.toLocaleString()}</p>
+            </div>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", cursor: "pointer", fontSize: "18px", width: "36px", height: "36px", borderRadius: "50%" }}>×</button>
+          </div>
+          <button onClick={downloadCardAsImage} disabled={downloading}
+            style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "12px", color: "#fff", fontWeight: 700, fontSize: "15px", cursor: downloading ? "not-allowed" : "pointer", marginBottom: "12px", opacity: downloading ? 0.7 : 1 }}>
+            {downloading ? "⏳ Generating..." : "⬇️ Download Invoice Card (PNG)"}
+          </button>
+          <p style={{ fontSize: "11px", color: "#6b7280", textAlign: "center", marginBottom: "20px" }}>Download as image → share on WhatsApp, Instagram, anywhere!</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "16px" }}>
+            {[
+              { icon: "💬", label: "WhatsApp", color: "#25D366", action: () => window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`) },
+              { icon: "📧", label: "Email", color: "#6c63ff", action: () => window.open(`mailto:${invoice.client?.email || ""}?subject=Invoice ${invoice.invoiceNumber} - ₹${invoice.total}&body=${encodeURIComponent(whatsappText)}`) },
+              { icon: "📲", label: "Telegram", color: "#2CA5E0", action: () => window.open(`https://t.me/share/url?text=${encodeURIComponent(whatsappText)}`) },
+              { icon: "📱", label: "SMS", color: "#ff6584", action: () => window.open(`sms:?body=${encodeURIComponent(whatsappText)}`) },
+            ].map(opt => (
+              <button key={opt.label} onClick={opt.action}
+                style={{ padding: "12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", fontWeight: 600, transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = opt.color + "25"; e.currentTarget.style.borderColor = opt.color }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)" }}>
+                <span style={{ fontSize: "20px" }}>{opt.icon}</span>{opt.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => { navigator.clipboard.writeText(whatsappText); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+            style={{ width: "100%", padding: "12px", background: copied ? "rgba(0,217,126,0.15)" : "rgba(255,255,255,0.05)", border: "1px solid " + (copied ? "rgba(0,217,126,0.4)" : "rgba(255,255,255,0.1)"), borderRadius: "10px", color: copied ? "#00d97e" : "#fff", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}>
+            {copied ? "✅ Copied to clipboard!" : "📋 Copy Formatted Message"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Invoices() {
+  const [invoices, setInvoices] = useState([])
+  const [clients, setClients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [showPreview, setShowPreview] = useState(null)
+  const [shareInvoice, setShareInvoice] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [filterStatus, setFilterStatus] = useState("all")
+  const [search, setSearch] = useState("")
+  const [form, setForm] = useState({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
+
+  useEffect(() => { fetchAll() }, [])
+
+  const fetchAll = async () => {
+    try {
+      const [inv, cli] = await Promise.all([api.get("/invoices"), api.get("/clients")])
+      setInvoices(inv.data.invoices || [])
+      setClients(cli.data.clients || [])
+    } catch { toast.error("Failed to load") }
+    finally { setLoading(false) }
+  }
+
+  const updateItem = (i, field, val) => {
+    setForm(f => {
+      const items = [...f.items]
+      items[i] = { ...items[i], [field]: val }
+      if (field === "hours" || field === "rate") {
+        items[i].amount = (parseFloat(items[i].hours) || 0) * (parseFloat(items[i].rate) || 0)
+      }
+      return { ...f, items }
+    })
+  }
+
+  const addItem = () => setForm(f => ({ ...f, items: [...f.items, { ...EMPTY_ITEM }] }))
+  const removeItem = (i) => setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }))
+
+  const subtotal = form.items.reduce((s, i) => s + (i.amount || 0), 0)
+  const taxAmount = subtotal * ((parseFloat(form.taxRate) || 0) / 100)
+  const total = subtotal + taxAmount
+
+  const handleCreate = async () => {
+    if (!form.clientId) { toast.error("Please select a client"); return }
+    const validItems = form.items.filter(item => item.description && (item.hours || item.rate)).map(item => ({
+      description: item.description, hours: Number(item.hours || 0), rate: Number(item.rate || 0)
+    }))
+    if (validItems.length === 0) { toast.error("Add at least one valid item"); return }
+    setSaving(true)
+    try {
+      const { data } = await api.post("/invoices", {
+        clientId: form.clientId, projectId: form.projectId || null,
+        items: validItems, taxRate: Number(form.taxRate || 0),
+        dueDate: form.dueDate || null, notes: form.notes || ""
+      })
+      setInvoices(prev => [data.invoice, ...prev])
+      toast.success("Invoice created! 🎉")
+      setShowModal(false)
+      setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Failed to create invoice")
+    } finally { setSaving(false) }
+  }
+
+  const markPaid = async (id) => {
+    try {
+      const { data } = await api.put(`/invoices/${id}/pay`)
+      setInvoices(inv => inv.map(i => i._id === id ? data.invoice : i))
+      toast.success("Marked as paid! 🎉")
+    } catch { toast.error("Failed to update") }
+  }
+
+  const deleteInvoice = async (id) => {
+    if (!window.confirm("Delete this invoice?")) return
+    try {
+      await api.delete(`/invoices/${id}`)
+      setInvoices(inv => inv.filter(i => i._id !== id))
+      toast.success("Deleted")
+    } catch { toast.error("Failed to delete") }
+  }
+
+  const filtered = invoices.filter(inv => {
+    const matchStatus = filterStatus === "all" || inv.status === filterStatus
+    const matchSearch = !search || inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) || inv.client?.name?.toLowerCase().includes(search.toLowerCase())
+    return matchStatus && matchSearch
+  })
+
+  const totalRevenue = invoices.filter(i => i.status === "paid").reduce((s, i) => s + (i.total || 0), 0)
+  const totalPending = invoices.filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0)
+  const totalOverdue = invoices.filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0)
+
+  return (
+    <div style={{ maxWidth: "1100px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+        <div>
+          <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Invoices</h1>
+          <p style={{ color: "var(--text2)", fontSize: "14px" }}>{invoices.length} total invoice{invoices.length !== 1 ? "s" : ""}</p>
+        </div>
+        <button onClick={() => setShowModal(true)} style={{ padding: "11px 22px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ New Invoice</button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+        {[
+          { label: "Total Invoices", value: invoices.length, icon: "🧾", color: "#6c63ff" },
+          { label: "Revenue Collected", value: "₹" + totalRevenue.toLocaleString(), icon: "💰", color: "#00d97e" },
+          { label: "Pending Payment", value: "₹" + totalPending.toLocaleString(), icon: "⏳", color: "#ffb800" },
+          { label: "Overdue", value: "₹" + totalOverdue.toLocaleString(), icon: "⚠️", color: "#ff4d6d" },
+        ].map(s => (
+          <div key={s.label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px", padding: "18px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: s.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: "20px", fontWeight: 800 }}>{s.value}</div>
+              <div style={{ fontSize: "11px", color: "var(--text2)" }}>{s.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
+          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }}>🔍</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search invoices..." style={{ width: "100%", padding: "9px 12px 9px 34px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+        </div>
+        <div style={{ display: "flex", gap: "6px" }}>
+          {["all", "draft", "sent", "paid", "overdue"].map(s => (
+            <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: filterStatus === s ? "var(--accent)" : "var(--surface)", color: filterStatus === s ? "#fff" : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600, textTransform: "capitalize" }}>{s === "all" ? "All" : STATUS_COLORS[s]?.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "80px", color: "var(--text2)" }}>Loading invoices...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "80px", color: "var(--text2)", background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🧾</div>
+          <p style={{ fontSize: "16px", fontWeight: 600, marginBottom: "8px" }}>No invoices yet</p>
+          <p style={{ fontSize: "14px", marginBottom: "24px" }}>Create your first invoice to start getting paid</p>
+          <button onClick={() => setShowModal(true)} style={{ padding: "10px 24px", background: "var(--accent)", border: "none", borderRadius: "8px", color: "#fff", fontWeight: 600, cursor: "pointer" }}>+ Create Invoice</button>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span>Invoice #</span><span>Client</span><span>Amount</span><span>Due Date</span><span>Status</span><span>Actions</span>
+          </div>
+          {filtered.map(inv => {
+            const st = STATUS_COLORS[inv.status] || STATUS_COLORS.draft
+            return (
+              <div key={inv._id} style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s" }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
+                <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--accent)" }}>{inv.invoiceNumber}</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "14px" }}>{inv.client?.name || "—"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--text2)" }}>{inv.client?.company || inv.client?.email || ""}</div>
+                </div>
+                <div style={{ fontWeight: 800, fontSize: "15px" }}>₹{(inv.total || 0).toLocaleString()}</div>
+                <div style={{ fontSize: "13px", color: inv.status === "overdue" ? "var(--danger)" : "var(--text2)" }}>
+                  {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                </div>
+                <div><span style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
+                <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+                  <button onClick={() => setShowPreview(inv)} title="Preview" style={{ padding: "6px 8px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text)", cursor: "pointer", fontSize: "12px" }}>👁️</button>
+                  <button onClick={() => downloadInvoicePdf(inv)} title="Download PDF" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>📄 PDF</button>
+                  <button onClick={() => setShareInvoice(inv)} title="Share as Card" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>🔗</button>
+                  {inv.status !== "paid" && (
+                    <button onClick={() => markPaid(inv._id)} title="Mark Paid" style={{ padding: "6px 8px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "6px", color: "#00d97e", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>✓</button>
+                  )}
+                  <button onClick={() => deleteInvoice(inv._id)} title="Delete" style={{ padding: "6px 8px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "680px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div><h2 style={{ fontSize: "20px", fontWeight: 800 }}>Create Invoice</h2><p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>Fill in the details below</p></div>
+              <button onClick={() => setShowModal(false)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+            </div>
+            <div style={{ padding: "24px 28px" }}>
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Client *</label>
+                <select value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }}>
+                  <option value="">Select a client...</option>
+                  {clients.map(c => <option key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ""}</option>)}
+                </select>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "18px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Due Date</label>
+                  <input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>GST/Tax Rate (%)</label>
+                  <input type="number" value={form.taxRate} onChange={e => setForm(f => ({ ...f, taxRate: e.target.value }))} placeholder="18" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+              </div>
+              <div style={{ marginBottom: "18px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Line Items *</label>
+                  <button onClick={addItem} style={{ fontSize: "12px", color: "var(--accent)", background: "transparent", border: "1px solid var(--accent)", borderRadius: "6px", padding: "4px 10px", cursor: "pointer", fontWeight: 600 }}>+ Add Item</button>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 32px", gap: "8px", padding: "6px 0", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase" }}>
+                  <span>Description</span><span>Hours</span><span>Rate (₹)</span><span>Amount</span><span></span>
+                </div>
+                {form.items.map((item, i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 32px", gap: "8px", marginBottom: "8px", alignItems: "center" }}>
+                    <input value={item.description} onChange={e => updateItem(i, "description", e.target.value)} placeholder="Service description..." style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
+                    <input type="number" value={item.hours} onChange={e => updateItem(i, "hours", e.target.value)} placeholder="0" style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
+                    <input type="number" value={item.rate} onChange={e => updateItem(i, "rate", e.target.value)} placeholder="0" style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
+                    <div style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "13px", fontWeight: 700, color: "var(--success)" }}>₹{(item.amount || 0).toLocaleString()}</div>
+                    {form.items.length > 1 && <button onClick={() => removeItem(i)} style={{ background: "rgba(255,77,109,0.1)", border: "none", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "16px", padding: "4px", height: "32px", width: "32px" }}>×</button>}
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "var(--surface2)", borderRadius: "12px", padding: "16px 20px", marginBottom: "18px", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}><span style={{ fontSize: "13px", color: "var(--text2)" }}>Subtotal</span><span style={{ fontSize: "13px", fontWeight: 600 }}>₹{subtotal.toLocaleString()}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}><span style={{ fontSize: "13px", color: "var(--text2)" }}>GST ({form.taxRate || 0}%)</span><span style={{ fontSize: "13px", fontWeight: 600 }}>₹{taxAmount.toLocaleString()}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: "10px" }}><span style={{ fontSize: "15px", fontWeight: 800 }}>Total</span><span style={{ fontSize: "18px", fontWeight: 800, color: "var(--success)" }}>₹{total.toLocaleString()}</span></div>
+              </div>
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Notes</label>
+                <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Payment terms, UPI ID, bank details..." rows={3} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
+                <button onClick={handleCreate} disabled={saving} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: saving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "15px", opacity: saving ? 0.7 : 1 }}>{saving ? "Creating..." : "Create Invoice"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "#fff", borderRadius: "16px", width: "100%", maxWidth: "600px", maxHeight: "90vh", overflowY: "auto", color: "#111" }}>
+            <div style={{ background: "linear-gradient(135deg,#1a1a2e,#16213e)", padding: "32px", borderRadius: "16px 16px 0 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div><div style={{ fontSize: "24px", fontWeight: 800, color: "#7c3aed" }}>💼 FreelanceFlow</div><div style={{ fontSize: "12px", color: "#a78bfa", marginTop: "4px" }}>Professional Freelance Management</div></div>
+                <div style={{ textAlign: "right" }}><div style={{ fontSize: "28px", fontWeight: 800, color: "#fff" }}>INVOICE</div><div style={{ fontSize: "14px", color: "#a78bfa", marginTop: "4px" }}>{showPreview.invoiceNumber}</div></div>
+              </div>
+            </div>
+            <div style={{ padding: "28px 32px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "28px" }}>
+                <div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>Bill To</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700 }}>{showPreview.client?.name}</div>
+                  {showPreview.client?.company && <div style={{ fontSize: "13px", color: "#374151", marginTop: "2px" }}>{showPreview.client.company}</div>}
+                  {showPreview.client?.email && <div style={{ fontSize: "13px", color: "#374151" }}>{showPreview.client.email}</div>}
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>Invoice Details</div>
+                  <div style={{ fontSize: "13px", color: "#374151" }}>Date: {new Date(showPreview.createdAt).toLocaleDateString("en-IN")}</div>
+                  {showPreview.dueDate && <div style={{ fontSize: "13px", color: "#dc2626", marginTop: "2px" }}>Due: {new Date(showPreview.dueDate).toLocaleDateString("en-IN")}</div>}
+                  <div style={{ marginTop: "8px" }}><span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "99px", background: STATUS_COLORS[showPreview.status]?.bg, color: STATUS_COLORS[showPreview.status]?.color, border: "1px solid " + STATUS_COLORS[showPreview.status]?.border, fontWeight: 700 }}>{STATUS_COLORS[showPreview.status]?.label}</span></div>
+                </div>
+              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
+                <thead><tr style={{ background: "#f3f4f6" }}>
+                  <th style={{ padding: "10px 12px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase" }}>Description</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase" }}>Hours</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase" }}>Rate</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase" }}>Amount</th>
+                </tr></thead>
+                <tbody>{showPreview.items?.map((item, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                    <td style={{ padding: "12px", fontSize: "13px" }}>{item.description}</td>
+                    <td style={{ padding: "12px", textAlign: "right", fontSize: "13px" }}>{item.hours}h</td>
+                    <td style={{ padding: "12px", textAlign: "right", fontSize: "13px" }}>₹{item.rate}</td>
+                    <td style={{ padding: "12px", textAlign: "right", fontSize: "13px", fontWeight: 600 }}>₹{item.amount?.toLocaleString()}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px", marginBottom: "20px" }}>
+                <div style={{ display: "flex", gap: "40px" }}><span style={{ fontSize: "13px", color: "#6b7280" }}>Subtotal</span><span style={{ fontSize: "13px", fontWeight: 600 }}>₹{showPreview.subtotal?.toLocaleString()}</span></div>
+                {showPreview.taxRate > 0 && <div style={{ display: "flex", gap: "40px" }}><span style={{ fontSize: "13px", color: "#6b7280" }}>GST ({showPreview.taxRate}%)</span><span style={{ fontSize: "13px", fontWeight: 600 }}>₹{showPreview.taxAmount?.toLocaleString()}</span></div>}
+                <div style={{ display: "flex", gap: "40px", background: "#1a1a2e", padding: "10px 16px", borderRadius: "8px" }}><span style={{ fontSize: "15px", fontWeight: 800, color: "#fff" }}>Total Due</span><span style={{ fontSize: "18px", fontWeight: 800, color: "#00d97e" }}>₹{showPreview.total?.toLocaleString()}</span></div>
+              </div>
+              {showPreview.notes && <div style={{ background: "#f9fafb", padding: "14px", borderRadius: "8px", marginBottom: "20px" }}><div style={{ fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", marginBottom: "4px" }}>Notes</div><div style={{ fontSize: "13px", color: "#374151" }}>{showPreview.notes}</div></div>}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => setShowPreview(null)} style={{ flex: 1, padding: "11px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: "8px", color: "#374151", cursor: "pointer", fontWeight: 600 }}>Close</button>
+                <button onClick={() => downloadInvoicePdf(showPreview)} style={{ flex: 1, padding: "11px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "8px", color: "#6c63ff", cursor: "pointer", fontWeight: 700 }}>📄 Download PDF</button>
+                <button onClick={() => { setShareInvoice(showPreview); setShowPreview(null) }} style={{ flex: 1, padding: "11px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "8px", color: "#6c63ff", cursor: "pointer", fontWeight: 700 }}>🔗 Share Card</button>
+                {showPreview.status !== "paid" && <button onClick={() => { markPaid(showPreview._id); setShowPreview(null) }} style={{ flex: 1, padding: "11px", background: "#00d97e", border: "none", borderRadius: "8px", color: "#fff", cursor: "pointer", fontWeight: 700 }}>✓ Mark Paid</button>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ShareModal invoice={shareInvoice} onClose={() => setShareInvoice(null)} />
+    </div>
+  )
+}
