@@ -47,13 +47,19 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 10,
+  max: 50,
   message: { error: 'Too many login attempts. Please try again later.' }
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many registration attempts. Please try again later.' }
 });
 
 app.use('/api/', globalLimiter);
 app.use('/api/v1/auth/login', authLimiter);
-app.use('/api/v1/auth/register', authLimiter);
+app.use('/api/v1/auth/register', registerLimiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/clients', clientRoutes);

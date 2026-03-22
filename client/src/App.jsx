@@ -18,6 +18,10 @@ import Contracts from "./pages/Contracts"
 import Tasks from "./pages/Tasks"
 import Reports from "./pages/Reports"
 import Settings from "./pages/Settings"
+import Calendar from "./pages/Calendar"
+import Meetings from "./pages/Meetings"
+import ClientPortal from "./pages/ClientPortal"
+import Help from "./pages/Help"
 import Layout from "./components/Layout"
 import GlobalSearch from "./components/GlobalSearch"
 
@@ -56,18 +60,18 @@ export default function App() {
           <Route path="contracts" element={<Contracts />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="reports" element={<Reports />} />
-          <Route path="calendar" element={<ComingSoon title="Calendar" />} />
+          <Route path="calendar" element={<Calendar />} />
           <Route path="kanban" element={<Projects />} />
-          <Route path="meetings" element={<ComingSoon title="Meetings" />} />
+          <Route path="meetings" element={<Meetings />} />
           <Route path="marketplace" element={<ComingSoon title="Find Projects" />} />
           <Route path="analytics" element={<Reports />} />
-          <Route path="clients-portal" element={<ComingSoon title="Client Portal" />} />
+          <Route path="clients-portal" element={<ClientPortal />} />
           <Route path="documents" element={<ComingSoon title="Documents" />} />
           <Route path="templates" element={<ComingSoon title="Templates" />} />
           <Route path="automations" element={<ComingSoon title="Automations" />} />
           <Route path="integrations" element={<ComingSoon title="Integrations" />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="help" element={<ComingSoon title="Help & Support" />} />
+          <Route path="help" element={<Help />} />
         </Route>
       </Routes>
       <GlobalSearch />

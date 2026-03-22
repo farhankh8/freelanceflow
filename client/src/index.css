@@ -695,3 +695,107 @@ tr:hover td {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* ============================================
+   MOBILE RESPONSIVENESS
+   ============================================ */
+
+/* Tablet and Mobile */
+@media (max-width: 1024px) {
+  /* Adjust sidebar */
+  .sidebar {
+    width: 60px !important;
+  }
+  
+  /* Grid adjustments */
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  /* Hide sidebar on mobile */
+  .sidebar-hidden {
+    transform: translateX(-100%);
+  }
+  
+  /* Mobile navigation */
+  .mobile-nav {
+    display: flex !important;
+  }
+  
+  /* Grid adjustments */
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Stats cards */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Table responsiveness */
+  .table-responsive {
+    overflow-x: auto;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  /* Full width cards */
+  .card-full {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Single column layout */
+  .single-column {
+    flex-direction: column !important;
+  }
+  
+  /* Stats - single column */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Hide text labels on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  /* Adjust padding */
+  .mobile-padding {
+    padding: 12px !important;
+  }
+  
+  /* Modal full screen on mobile */
+  .modal-mobile {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch */
+  .no-hover:hover {
+    transform: none !important;
+    background: inherit !important;
+  }
+  
+  /* Larger touch targets */
+  .touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .landscape-adjust {
+    min-height: auto !important;
+  }
+}
