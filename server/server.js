@@ -92,7 +92,7 @@ app.use((req, res) =>
   res.status(404).json({ error: 'Route not found', path: req.path })
 );
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error("SERVER ERROR:", err);
   
   if (err.name === 'ValidationError') {
@@ -105,7 +105,7 @@ app.use((err, req, res, next) => {
     return res.status(409).json({ error: 'Duplicate entry' });
   }
   
-  res.status(500).json({ error: 'Internal Server Error', message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!' });
+  res.status(500).json({ error: 'Internal Server Error', message: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 5000;
