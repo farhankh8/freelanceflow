@@ -1,0 +1,233 @@
+# FreelanceFlow - Project Presentation
+
+## Student Details
+- **Name:** Mohammad Farhan KH
+- **Contact:** 9108386969
+- **Email:** mohammadfarhankh.08@gmail.com
+- **Domain:** Web Development
+- **Date:** March 2026
+
+---
+
+## 1. Project Overview
+
+**Project Title:** FreelanceFlow - Freelancer Management SaaS Application
+
+**Problem Statement:**
+Freelancers struggle with administrative chaos - using multiple tools for client management, time tracking, invoicing, and finances. FreelanceFlow consolidates all these into a single, professional dashboard.
+
+**Solution:**
+A comprehensive B2B SaaS application that helps freelancers manage clients, projects, time, invoices, and finances in one place.
+
+---
+
+## 2. Objectives
+
+1. Build a complete CRUD system for Clients, Projects, and Tasks
+2. Implement real-time time tracking with stopwatch functionality
+3. Create professional invoice generation with PDF download
+4. Develop financial reports with charts (Revenue, Expenses, Profit)
+5. Ensure strict data isolation between users (Multi-tenancy)
+6. Implement tiered access (Free: 2 clients, Pro: Unlimited)
+
+---
+
+## 3. Features Implemented
+
+### Client & Project CRM ✅
+- Full CRUD for clients with contact info, company details, hourly rates
+- Project management linked to clients with status tracking
+- Task management with priority and due dates
+- Clean dashboard with quick stats
+
+### Time Tracking Engine ✅
+- Real-time stopwatch component
+- Manual time entry option
+- Time logs with StartTime, EndTime, Duration
+- Budget burn rate calculation
+
+### Financial & Invoicing ✅
+- Professional invoice generator
+- Line items with Hours × Rate = Amount
+- GST/Tax calculation
+- **PDF Download** (jsPDF library)
+- Payment tracking
+
+### Reports & Analytics ✅
+- Revenue charts (Monthly)
+- Expense breakdown by category
+- Profit/Loss calculation
+- Client-wise revenue distribution
+
+### Security ✅
+- JWT Authentication
+- Password hashing (bcrypt)
+- User data isolation
+- Tiered access control
+
+---
+
+## 4. Technology Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React.js, Vite, CSS |
+| State Management | Zustand |
+| Charts | Recharts |
+| PDF Generation | jsPDF |
+| Backend | Node.js, Express.js |
+| Database | MongoDB (Atlas) |
+| Authentication | JWT |
+| Deployment | Vercel + Render |
+
+---
+
+## 5. Data Flow Architecture
+
+```
+User Browser (React)
+       ↓ HTTP Requests
+Vercel (Static Hosting)
+       ↓ API Calls
+Render (Node.js API)
+       ↓ MongoDB Queries
+MongoDB Atlas (Database)
+```
+
+---
+
+## 6. Database Schema
+
+### User
+- name, email, password, plan (free/pro)
+
+### Client
+- user_id, name, email, phone, company, industry, hourlyRate
+
+### Project
+- user_id, client_id, title, description, status, budget, deadline
+
+### TimeLog
+- user_id, project_id, description, duration, startTime, endTime
+
+### Invoice
+- user_id, client_id, items[], subtotal, taxRate, total, status
+
+---
+
+## 7. Mathematical Logic
+
+### Invoice Calculation
+```
+Subtotal = Σ (Hours × Rate) for each item
+Tax Amount = Subtotal × (Tax Rate / 100)
+Total = Subtotal + Tax Amount
+```
+
+### Time × Rate = Earnings
+```
+Project Earnings = Σ (Time Log Duration × Hourly Rate)
+```
+
+### Project Burn Rate
+```
+Burn Rate = Total Hours Logged × Hourly Rate
+Remaining Budget = Budget - Burn Rate
+```
+
+---
+
+## 8. Key Code Snippet - Invoice Calculation
+
+```javascript
+const subtotal = items.reduce((sum, item) => {
+  return sum + (item.hours * item.rate);
+}, 0);
+
+const taxAmount = subtotal * (taxRate / 100);
+const total = subtotal + taxAmount;
+```
+
+---
+
+## 9. Security Implementation
+
+### Data Isolation
+Every MongoDB query includes `user: req.user.id`:
+```javascript
+const clients = await Client.find({ user: req.user.id });
+```
+
+### JWT Tokens
+- Access Token: 15 minutes expiry
+- Refresh Token: 7 days expiry
+
+---
+
+## 10. Screenshots/Flow
+
+1. **Login/Register** - User authentication
+2. **Dashboard** - Overview stats, quick actions
+3. **Clients Page** - Grid/List view, add/edit
+4. **Projects Page** - Status tracking
+5. **Time Logs** - Stopwatch + manual entry
+6. **Invoice Creation** - Line items, PDF download
+7. **Reports** - Charts and analytics
+
+---
+
+## 11. Deployment URLs
+
+- **Frontend:** https://freelanceflow-blue-delta.vercel.app
+- **Backend:** https://freelanceflow-api-80zc.onrender.com
+
+---
+
+## 12. Challenges Faced
+
+1. **Timer Persistence** - Used localStorage to persist timer across page navigation
+2. **PDF Generation** - Implemented client-side PDF using jsPDF library
+3. **Data Isolation** - Ensured all queries scoped to user_id
+4. **CORS Issues** - Configured proper CORS headers for production
+
+---
+
+## 13. Future Scope
+
+- Email notifications for invoice reminders
+- Stripe payment integration
+- Client portal for customers
+- Mobile app (React Native)
+- Advanced reporting with filters
+- CSV/Excel export
+
+---
+
+## 14. Conclusion
+
+FreelanceFlow successfully demonstrates full-stack MERN development with:
+- Professional UI/UX design
+- Complete CRUD operations
+- Real-time features
+- PDF generation
+- Data visualization
+- Secure authentication
+- Cloud deployment
+
+The application is production-ready and can be used by real freelancers to manage their business operations.
+
+---
+
+## 15. References
+
+1. React Documentation - https://react.dev
+2. Node.js Documentation - https://nodejs.org
+3. MongoDB Atlas - https://www.mongodb.com/atlas
+4. Vercel Deployment - https://vercel.com
+5. Render Hosting - https://render.com
+6. jsPDF Library - https://github.com/parallax/jsPDF
+
+---
+
+**Submitted by:** Mohammad Farhan KH  
+**Date:** March 2026

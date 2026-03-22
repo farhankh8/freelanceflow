@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreelanceFlow - Project Presentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(108, 99, 255, 0.8); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: rgba(108, 99, 255, 0.3); }
+            50% { border-color: rgba(108, 99, 255, 0.8); }
+        }
+
+        .gradient-bg {
+            background: linear-gradient(-45deg, #0a0a0f, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .title-slide {
+            background: linear-gradient(-45deg, #0a0a0f, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .title-slide h1 {
+            font-size: 72px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 20%, #6c63ff 50%, #ff6584 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .title-slide .subtitle {
+            font-size: 28px;
+            color: #a78bfa;
+            margin-bottom: 40px;
+        }
+
+        .title-slide .badge {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #6c63ff, #ff6584);
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .student-info {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+
+        .student-info span {
+            padding: 8px 16px;
+            background: rgba(108, 99, 255, 0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        h2 {
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: #fff;
+            text-align: center;
+        }
+
+        h2::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #6c63ff, #ff6584);
+            margin: 20px auto 0;
+            border-radius: 2px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            max-width: 1200px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(108, 99, 255, 0.2);
+        }
+
+        .feature-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #6c63ff;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+
+        .tech-stack {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tech-item {
+            text-align: center;
+            padding: 30px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        .tech-item .emoji {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .tech-item h4 {
+            font-size: 18px;
+            color: #6c63ff;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .flow-box {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #6c63ff, #ff6584);
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            font-size: 30px;
+            color: #6c63ff;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            max-width: 1000px;
+        }
+
+        .stat-card {
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d97e, #6c63ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card h4 {
+            margin-top: 10px;
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+
+        .code-block {
+            padding: 30px;
+            background: #1a1a2e;
+            border-radius: 15px;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            font-family: 'Consolas', monospace;
+            font-size: 16px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .code-block .comment {
+            color: #6c63ff;
+        }
+
+        .code-block .keyword {
+            color: #ff6584;
+        }
+
+        .code-block .string {
+            color: #00d97e;
+        }
+
+        .highlight {
+            color: #ffb800;
+        }
+
+        .live-links {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .live-link {
+            padding: 20px 40px;
+            background: rgba(0, 217, 126, 0.1);
+            border: 2px solid #00d97e;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .live-link:hover {
+            background: rgba(0, 217, 126, 0.2);
+            transform: scale(1.05);
+        }
+
+        .live-link h4 {
+            color: #00d97e;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .live-link a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .timeline {
+            display: flex;
+            gap: 30px;
+            max-width: 1100px;
+        }
+
+        .timeline-item {
+            flex: 1;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border-left: 4px solid #6c63ff;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: -12px;
+            width: 20px;
+            height: 20px;
+            background: #6c63ff;
+            border-radius: 50%;
+        }
+
+        .timeline-item h4 {
+            color: #6c63ff;
+            margin-bottom: 10px;
+        }
+
+        .timeline-item ul {
+            list-style: none;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+
+        .timeline-item li::before {
+            content: '✓ ';
+            color: #00d97e;
+        }
+
+        .thank-you {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .thank-you-text {
+            font-size: 48px;
+            background: linear-gradient(135deg, #6c63ff, #ff6584);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            font-size: 14px;
+            color: #52525b;
+        }
+
+        .section-badge {
+            padding: 8px 20px;
+            background: rgba(108, 99, 255, 0.2);
+            border-radius: 20px;
+            font-size: 12px;
+            color: #6c63ff;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .problem-solution {
+            display: flex;
+            gap: 40px;
+            max-width: 1100px;
+        }
+
+        .ps-card {
+            flex: 1;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .ps-card.problem {
+            background: rgba(255, 77, 109, 0.1);
+            border: 2px solid rgba(255, 77, 109, 0.3);
+        }
+
+        .ps-card.solution {
+            background: rgba(0, 217, 126, 0.1);
+            border: 2px solid rgba(0, 217, 126, 0.3);
+        }
+
+        .ps-card .emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .ps-card h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .ps-card.problem h3 { color: #ff4d6d; }
+        .ps-card.solution h3 { color: #00d97e; }
+
+        .ps-card ul {
+            list-style: none;
+            text-align: left;
+            font-size: 16px;
+            color: #a1a1aa;
+        }
+
+        .ps-card li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .ps-card.problem li::before {
+            content: '✗';
+            position: absolute;
+            left: 0;
+            color: #ff4d6d;
+        }
+
+        .ps-card.solution li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00d97e;
+        }
+
+        @media print {
+            .slide {
+                page-break-after: always;
+                height: 100vh;
+                width: 100vw;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Slide 1: Title -->
+    <div class="slide title-slide">
+        <h1 class="floating">🚀 FreelanceFlow</h1>
+        <p class="subtitle">Freelancer Management SaaS Application</p>
+        <div class="badge">Web Development Domain</div>
+        <div class="student-info">
+            <span>👤 Mohammad Farhan KH</span>
+            <span>📧 mohammadfarhankh.08@gmail.com</span>
+            <span>📱 9108386969</span>
+            <span>📅 March 2026</span>
+        </div>
+        <div class="page-number">1 / 14</div>
+    </div>
+
+    <!-- Slide 2: Problem Statement -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Introduction</span>
+        <h2>The Problem We Solve</h2>
+        <div class="problem-solution">
+            <div class="ps-card problem">
+                <div class="emoji">😰</div>
+                <h3>Before</h3>
+                <ul>
+                    <li>Excel for finances</li>
+                    <li>Trello for tasks</li>
+                    <li>Word for invoices</li>
+                    <li>Multiple apps for business</li>
+                    <li>Chaotic workflow</li>
+                </ul>
+            </div>
+            <div class="ps-card solution">
+                <div class="emoji">🚀</div>
+                <h3>After</h3>
+                <ul>
+                    <li>Single dashboard</li>
+                    <li>All-in-one solution</li>
+                    <li>Professional invoices</li>
+                    <li>Time & project tracking</li>
+                    <li>Streamlined workflow</li>
+                </ul>
+            </div>
+        </div>
+        <div class="page-number">2 / 14</div>
+    </div>
+
+    <!-- Slide 3: Objectives -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Objectives</span>
+        <h2>Project Objectives</h2>
+        <div class="feature-grid">
+            <div class="feature-card floating" style="animation-delay: 0s;">
+                <div class="icon">👥</div>
+                <h3>Client CRM</h3>
+                <p>Manage clients with full CRUD operations</p>
+            </div>
+            <div class="feature-card floating" style="animation-delay: 0.2s;">
+                <div class="icon">⏱️</div>
+                <h3>Time Tracking</h3>
+                <p>Real-time stopwatch & manual entry</p>
+            </div>
+            <div class="feature-card floating" style="animation-delay: 0.4s;">
+                <div class="icon">🧾</div>
+                <h3>Invoicing</h3>
+                <p>Generate invoices with PDF download</p>
+            </div>
+            <div class="feature-card floating" style="animation-delay: 0.6s;">
+                <div class="icon">📊</div>
+                <h3>Reports</h3>
+                <p>Financial charts & analytics</p>
+            </div>
+            <div class="feature-card floating" style="animation-delay: 0.8s;">
+                <div class="icon">🔐</div>
+                <h3>Security</h3>
+                <p>Data isolation & JWT auth</p>
+            </div>
+            <div class="feature-card floating" style="animation-delay: 1s;">
+                <div class="icon">📱</div>
+                <h3>Responsive UI</h3>
+                <p>Works on all devices</p>
+            </div>
+        </div>
+        <div class="page-number">3 / 14</div>
+    </div>
+
+    <!-- Slide 4: Features Overview -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Features</span>
+        <h2>Key Features Implemented</h2>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="number">15+</div>
+                <h4>Pages</h4>
+            </div>
+            <div class="stat-card">
+                <div class="number">8</div>
+                <h4>API Routes</h4>
+            </div>
+            <div class="stat-card">
+                <div class="number">6</div>
+                <h4>Models</h4>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <h4>Responsive</h4>
+            </div>
+        </div>
+        <div class="feature-grid" style="margin-top: 40px;">
+            <div class="feature-card">
+                <div class="icon">📇</div>
+                <h3>Contacts</h3>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📝</div>
+                <h3>Proposals</h3>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📜</div>
+                <h3>Contracts</h3>
+            </div>
+        </div>
+        <div class="page-number">4 / 14</div>
+    </div>
+
+    <!-- Slide 5: Tech Stack -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Technology</span>
+        <h2>Technology Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">
+                <div class="emoji">⚛️</div>
+                <h4>React.js</h4>
+                <p>Frontend</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🚀</div>
+                <h4>Node.js</h4>
+                <p>Backend</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🍃</div>
+                <h4>MongoDB</h4>
+                <p>Database</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">⚡</div>
+                <h4>Express</h4>
+                <p>API Framework</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🔷</div>
+                <h4>TypeScript</h4>
+                <p>Language</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🎨</div>
+                <h4>CSS3</h4>
+                <p>Styling</p>
+            </div>
+        </div>
+        <div class="tech-stack" style="margin-top: 30px;">
+            <div class="tech-item">
+                <div class="emoji">📊</div>
+                <h4>Recharts</h4>
+                <p>Charts</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">📄</div>
+                <h4>jsPDF</h4>
+                <p>PDF Gen</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🔑</div>
+                <h4>JWT</h4>
+                <p>Auth</p>
+            </div>
+            <div class="tech-item">
+                <div class="emoji">🌐</div>
+                <h4>Vercel</h4>
+                <p>Hosting</p>
+            </div>
+        </div>
+        <div class="page-number">5 / 14</div>
+    </div>
+
+    <!-- Slide 6: Architecture -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Architecture</span>
+        <h2>System Architecture</h2>
+        <div class="flow-diagram">
+            <div class="flow-box">👤 User<br>Browser</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">🌐 Vercel<br>Frontend</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">⚡ Render<br>API Server</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">🍃 MongoDB<br>Atlas</div>
+        </div>
+        <div class="feature-grid" style="margin-top: 50px;">
+            <div class="feature-card">
+                <h3>Frontend (Client)</h3>
+                <p>React.js + Vite<br>Vercel Deployment<br>Recharts, jsPDF</p>
+            </div>
+            <div class="feature-card">
+                <h3>Backend (Server)</h3>
+                <p>Node.js + Express<br>RESTful API<br>JWT Authentication</p>
+            </div>
+            <div class="feature-card">
+                <h3>Database</h3>
+                <p>MongoDB Atlas<br>Mongoose ODM<br>Cloud Hosted</p>
+            </div>
+        </div>
+        <div class="page-number">6 / 14</div>
+    </div>
+
+    <!-- Slide 7: Database Schema -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Database</span>
+        <h2>Database Schema</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3 style="color: #6c63ff;">User</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • name<br>
+                    • email<br>
+                    • password<br>
+                    • plan (free/pro)
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 style="color: #00d97e;">Client</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • user_id<br>
+                    • name, email, phone<br>
+                    • company, industry<br>
+                    • hourlyRate
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 style="color: #ff6584;">Project</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • client_id<br>
+                    • title, description<br>
+                    • status, budget<br>
+                    • deadline
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 style="color: #ffb800;">TimeLog</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • project_id<br>
+                    • description<br>
+                    • duration<br>
+                    • startTime, endTime
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 style="color: #2CA5E0;">Invoice</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • client_id<br>
+                    • items[]<br>
+                    • subtotal, tax, total<br>
+                    • status
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 style="color: #a78bfa;">Payment</h3>
+                <p style="font-size: 13px; color: #a1a1aa; text-align: left; margin-top: 10px;">
+                    • invoice_id<br>
+                    • amount<br>
+                    • status<br>
+                    • date
+                </p>
+            </div>
+        </div>
+        <div class="page-number">7 / 14</div>
+    </div>
+
+    <!-- Slide 8: Mathematical Logic -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Logic</span>
+        <h2>Mathematical Logic</h2>
+        <div class="feature-grid">
+            <div class="feature-card" style="grid-column: span 2;">
+                <h3 style="color: #00d97e;">Invoice Calculation</h3>
+                <div class="code-block" style="text-align: left; margin-top: 15px;">
+                    <span class="comment">// Calculate Invoice Total</span><br>
+                    <span class="keyword">const</span> subtotal = items.<span class="highlight">reduce</span>((sum, item) =><br>
+                    &nbsp;&nbsp;sum + (item.hours * item.rate), <span class="string">0</span>);<br><br>
+                    taxAmount = subtotal * (taxRate / <span class="string">100</span>);<br>
+                    <span class="highlight">total</span> = subtotal + taxAmount;
+                </div>
+            </div>
+            <div class="feature-card" style="grid-column: span 1;">
+                <h3 style="color: #ff6584;">Time × Rate</h3>
+                <p style="font-size: 28px; margin-top: 20px; color: #00d97e;">
+                    10 hrs × ₹100 = ₹1000
+                </p>
+            </div>
+            <div class="feature-card" style="grid-column: span 1;">
+                <h3 style="color: #ffb800;">Burn Rate</h3>
+                <p style="font-size: 28px; margin-top: 20px; color: #00d97e;">
+                    50 hrs × ₹85 = ₹4250 spent
+                </p>
+            </div>
+        </div>
+        <div class="page-number">8 / 14</div>
+    </div>
+
+    <!-- Slide 9: Security -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Security</span>
+        <h2>Security Implementation</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">🔒</div>
+                <h3>Data Isolation</h3>
+                <p>Every query includes user_id</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔑</div>
+                <h3>JWT Tokens</h3>
+                <p>Access (15min) + Refresh (7days)</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔐</div>
+                <h3>Password Hashing</h3>
+                <p>bcrypt with 12 salt rounds</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌐</div>
+                <h3>CORS Protection</h3>
+                <p>Configured for production</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⚡</div>
+                <h3>Rate Limiting</h3>
+                <p>Prevents brute force</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💳</div>
+                <h3>Tiered Access</h3>
+                <p>Free (2 clients) / Pro (unlimited)</p>
+            </div>
+        </div>
+        <div class="code-block" style="margin-top: 30px; text-align: left;">
+            <span class="comment">// Data Isolation Example</span><br>
+            <span class="keyword">const</span> clients = <span class="highlight">await Client.find</span>({ user: req.user.id });
+        </div>
+        <div class="page-number">9 / 14</div>
+    </div>
+
+    <!-- Slide 10: Timeline -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Development</span>
+        <h2>Development Timeline</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>Week 1: CRM Core</h4>
+                <ul>
+                    <li>Authentication System</li>
+                    <li>Client CRUD</li>
+                    <li>Project CRUD</li>
+                    <li>Task Management</li>
+                    <li>Data Isolation</li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 2: Time Tracking</h4>
+                <ul>
+                    <li>Stopwatch Component</li>
+                    <li>Manual Time Entry</li>
+                    <li>Time Log Backend</li>
+                    <li>Budget Calculations</li>
+                    <li>Hours per Project</li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 3: Invoicing</h4>
+                <ul>
+                    <li>Invoice Creation Wizard</li>
+                    <li>PDF Generation (jsPDF)</li>
+                    <li>Mark as Billed</li>
+                    <li>Payment Tracking</li>
+                    <li>GST Calculations</li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 4: Polish</h4>
+                <ul>
+                    <li>Financial Charts</li>
+                    <li>Reports Page</li>
+                    <li>Dashboard Stats</li>
+                    <li>Responsive Design</li>
+                    <li>Cloud Deployment</li>
+                </ul>
+            </div>
+        </div>
+        <div class="page-number">10 / 14</div>
+    </div>
+
+    <!-- Slide 11: Challenges -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Challenges</span>
+        <h2>Challenges Faced & Solutions</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">⏱️</div>
+                <h3>Timer Persistence</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>Used localStorage to persist timer across page navigation</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📄</div>
+                <h3>PDF Generation</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>Implemented client-side PDF using jsPDF library</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔒</div>
+                <h3>Data Isolation</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>Scoped all queries to req.user.id middleware</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌐</div>
+                <h3>CORS Issues</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>Configured proper CORS headers for production</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⌨️</div>
+                <h3>Typing in Forms</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>Used React Portals for modals, removed double state updates</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📱</div>
+                <h3>Responsive Design</h3>
+                <p style="color: #00d97e; margin-top: 10px;">Solution:</p>
+                <p>CSS Grid + Flexbox with media queries</p>
+            </div>
+        </div>
+        <div class="page-number">11 / 14</div>
+    </div>
+
+    <!-- Slide 12: Screenshots -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Screenshots</span>
+        <h2>Application Screenshots</h2>
+        <div class="feature-grid">
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">📊</div>
+                <h3>Dashboard</h3>
+                <p style="margin-top: 15px;">Overview stats, charts, quick actions</p>
+            </div>
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">👥</div>
+                <h3>Clients Page</h3>
+                <p style="margin-top: 15px;">Grid/List view, add/edit/delete</p>
+            </div>
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">🧾</div>
+                <h3>Invoices</h3>
+                <p style="margin-top: 15px;">Line items, calculations, PDF download</p>
+            </div>
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">⏱️</div>
+                <h3>Time Tracking</h3>
+                <p style="margin-top: 15px;">Stopwatch, manual entry, logs</p>
+            </div>
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">📈</div>
+                <h3>Reports</h3>
+                <p style="margin-top: 15px;">Revenue charts, expense breakdown</p>
+            </div>
+            <div class="feature-card" style="padding: 40px;">
+                <div class="icon">🚀</div>
+                <h3>Projects</h3>
+                <p style="margin-top: 15px;">Status tracking, budget management</p>
+            </div>
+        </div>
+        <div class="page-number">12 / 14</div>
+    </div>
+
+    <!-- Slide 13: Live Demo -->
+    <div class="slide gradient-bg">
+        <span class="section-badge">Live Demo</span>
+        <h2>Live URLs</h2>
+        <div class="live-links">
+            <div class="live-link">
+                <h4>🌐 Frontend (Vercel)</h4>
+                <a href="https://freelanceflow-blue-delta.vercel.app" target="_blank">
+                    freelanceflow-blue-delta.vercel.app
+                </a>
+            </div>
+            <div class="live-link">
+                <h4>⚡ Backend API (Render)</h4>
+                <a href="https://freelanceflow-api-80zc.onrender.com" target="_blank">
+                    freelanceflow-api-80zc.onrender.com
+                </a>
+            </div>
+        </div>
+        <div style="margin-top: 50px; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(108,99,255,0.3); max-width: 800px;">
+            <h3 style="color: #6c63ff; margin-bottom: 20px;">📋 Quick Test Guide</h3>
+            <ol style="color: #a1a1aa; font-size: 16px; line-height: 2; text-align: left; padding-left: 20px;">
+                <li>Open the frontend URL</li>
+                <li>Register a new account</li>
+                <li>Click "Load Sample Data" on Dashboard</li>
+                <li>Explore Clients, Projects, Invoices</li>
+                <li>Download an Invoice as PDF</li>
+                <li>View Reports with Charts</li>
+            </ol>
+        </div>
+        <div class="page-number">13 / 14</div>
+    </div>
+
+    <!-- Slide 14: Thank You -->
+    <div class="slide title-slide">
+        <div class="thank-you">🎉</div>
+        <h1 class="thank-you-text">Thank You!</h1>
+        <p style="font-size: 24px; color: #a1a1aa; margin-bottom: 40px;">
+            Questions & Discussion
+        </p>
+        <div class="student-info" style="flex-direction: column; gap: 15px; align-items: center;">
+            <span style="font-size: 18px;">👤 Mohammad Farhan KH</span>
+            <span style="font-size: 16px;">📧 mohammadfarhankh.08@gmail.com</span>
+            <span style="font-size: 16px;">📱 9108386969</span>
+            <span style="font-size: 16px;">💻 GitHub: github.com/farhankh8/freelanceflow</span>
+        </div>
+        <div style="margin-top: 50px; padding: 20px 40px; background: rgba(0,217,126,0.1); border-radius: 15px; border: 1px solid rgba(0,217,126,0.3);">
+            <p style="color: #00d97e; font-size: 18px;">
+                🚀 Full-Stack MERN Application | Production Deployed | Ready to Use
+            </p>
+        </div>
+        <div class="page-number">14 / 14</div>
+    </div>
+
+    <script>
+        // Add smooth scrolling between slides
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                currentSlide = Math.min(currentSlide + 1, slides.length - 1);
+                slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                e.preventDefault();
+                currentSlide = Math.max(currentSlide - 1, 0);
+                slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>

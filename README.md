@@ -24,7 +24,7 @@
 
 *[Manage clients. Track time. Generate GST invoices. Grow your business.]*
 
-**[Live Demo](https://freelanceflow-gules.vercel.app)** • **[Documentation](#-features)** • **[Get Started](#-quick-start)**
+**[Live Demo](https://freelanceflow-blue-delta.vercel.app)** • **[Documentation](#-features)** • **[Get Started](#-quick-start)**
 
 </div>
 
@@ -383,6 +383,10 @@ VITE_ANTHROPIC_API_KEY=
 
 ## 🚢 Deployment
 
+### Live URLs
+- **Frontend:** https://freelanceflow-blue-delta.vercel.app
+- **Backend API:** https://freelanceflow-api-80zc.onrender.com
+
 ### Vercel (Frontend)
 
 1. Go to [vercel.com](https://vercel.com)
@@ -434,7 +438,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Built with ❤️ for Indian Freelancers 🇮🇳
 
-**[FreelanceFlow](https://freelanceflow-gules.vercel.app)** - Your AI-Powered Freelance Operating System
+**[FreelanceFlow](https://freelanceflow-blue-delta.vercel.app)** - Your AI-Powered Freelance Operating System
 
 *"Stop managing chaos. Start building empires."*
 

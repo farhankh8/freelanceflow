@@ -1,0 +1,17 @@
+FREELANCEFLOW - LIVE LINKS
+=============================
+
+FRONTEND (User Interface):
+https://freelanceflow-blue-delta.vercel.app
+
+BACKEND API (Server):
+https://freelanceflow-api-80zc.onrender.com
+
+GITHUB REPOSITORY:
+https://github.com/farhankh8/freelanceflow
+
+DEVELOPER CONTACT:
+Email: mohammadfarhankh.08@gmail.com
+Phone: 9108386969
+
+================================
