@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
+import useAuthStore from "../store/authStore"
 
 const INDUSTRIES = ["Technology", "Design", "Marketing", "E-commerce", "Education", "Healthcare", "Finance", "Real Estate", "Media", "Retail", "Other"]
 const STATUSES = {
@@ -9,8 +10,11 @@ const STATUSES = {
   prospect: { label: "Prospect", color: "#ffb800", bg: "rgba(255,184,0,0.15)", border: "rgba(255,184,0,0.3)" },
 }
 const COLORS = ["#6c63ff","#ff6584","#00d97e","#ffb800","#2CA5E0","#ff4d6d","#a78bfa","#00c9a7"]
+const FREE_CLIENT_LIMIT = 2
 
 export default function Clients() {
+  const { user } = useAuthStore()
+  const isPro = user?.plan === "pro"
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState("grid")
@@ -36,6 +40,13 @@ export default function Clients() {
 
   const handleSave = async () => {
     if (!form.name || !form.email) { toast.error("Name and email are required"); return }
+    
+    // Free tier limit check
+    if (!isPro && !editMode && clients.length >= FREE_CLIENT_LIMIT) {
+      toast.error(`Free plan limited to ${FREE_CLIENT_LIMIT} clients. Upgrade to Pro for unlimited!`, { duration: 5000 })
+      return
+    }
+    
     setSaving(true)
     try {
       if (editMode && showDetail) {
@@ -182,6 +193,14 @@ export default function Clients() {
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Clients</h1>
           <p style={{ color: "var(--text2)", fontSize: "14px" }}>{clients.length} total · {activeCount} active</p>
+          {!isPro && (
+            <div style={{ marginTop: "8px", padding: "8px 12px", background: clients.length >= FREE_CLIENT_LIMIT ? "rgba(255,77,109,0.15)" : "rgba(255,184,0,0.15)", borderRadius: "8px", border: "1px solid " + (clients.length >= FREE_CLIENT_LIMIT ? "rgba(255,77,109,0.3)" : "rgba(255,184,0,0.3)") }}>
+              <span style={{ fontSize: "12px", color: clients.length >= FREE_CLIENT_LIMIT ? "#ff4d6d" : "#ffb800" }}>
+                {clients.length}/{FREE_CLIENT_LIMIT} clients used
+                {clients.length >= FREE_CLIENT_LIMIT ? " · Upgrade to Pro for unlimited" : " · " + (FREE_CLIENT_LIMIT - clients.length) + " remaining"}
+              </span>
+            </div>
+          )}
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", overflow: "hidden" }}>
@@ -189,7 +208,13 @@ export default function Clients() {
               <button key={v.id} onClick={() => setView(v.id)} style={{ padding: "8px 14px", border: "none", background: view === v.id ? "var(--accent)" : "transparent", color: view === v.id ? "#fff" : "var(--text2)", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>{v.label}</button>
             ))}
           </div>
-          <button onClick={() => { setShowModal(true); setForm(emptyForm); setEditMode(false) }} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ Add Client</button>
+          <button onClick={() => { 
+            if (!isPro && clients.length >= FREE_CLIENT_LIMIT) {
+              toast.error(`Free plan limited to ${FREE_CLIENT_LIMIT} clients. Upgrade to Pro for unlimited!`)
+              return
+            }
+            setShowModal(true); setForm(emptyForm); setEditMode(false) 
+          }} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ Add Client</button>
         </div>
       </div>
 

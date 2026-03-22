@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import api from "../lib/api"
+import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [timelogs, setTimelogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [time, setTime] = useState(new Date())
+  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
@@ -71,6 +73,33 @@ export default function Dashboard() {
       setTimelogs(timelogsData)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
+  }
+
+  const loadSampleData = async () => {
+    if (!window.confirm("This will add sample data (clients, projects, invoices). Continue?")) return
+    setSeeding(true)
+    try {
+      toast.loading("Loading sample data...", { id: "seed" })
+      const { data } = await api.post("/seed/sample")
+      toast.success(data.message || "Sample data loaded!", { id: "seed" })
+      fetchAll()
+    } catch (e) {
+      toast.error(e?.response?.data?.error || "Failed to load sample data", { id: "seed" })
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  const clearAllData = async () => {
+    if (!window.confirm("This will DELETE all your data (clients, projects, invoices). Are you sure?")) return
+    try {
+      toast.loading("Clearing data...", { id: "clear" })
+      await api.delete("/seed/clear")
+      toast.success("All data cleared!", { id: "clear" })
+      fetchAll()
+    } catch (e) {
+      toast.error("Failed to clear data", { id: "clear" })
+    }
   }
 
   const hour = time.getHours()
@@ -138,6 +167,14 @@ export default function Dashboard() {
           </p>
         </div>
         <button onClick={fetchAll} style={{ padding: "9px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>🔄 Refresh</button>
+        <button onClick={loadSampleData} disabled={seeding} style={{ padding: "9px 18px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "10px", color: "#6c63ff", cursor: seeding ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: seeding ? 0.7 : 1 }}>
+          {seeding ? "⏳ Loading..." : "📊 Load Sample Data"}
+        </button>
+        {stats.clients > 0 && (
+          <button onClick={clearAllData} style={{ padding: "9px 18px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
+            🗑️ Clear Data
+          </button>
+        )}
       </div>
 
       {/* Stats Row 1 */}

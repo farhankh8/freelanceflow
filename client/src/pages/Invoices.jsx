@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react"
+import { jsPDF } from "jspdf"
+import autoTable from "jspdf-autotable"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 
@@ -12,24 +14,132 @@ const STATUS_COLORS = {
 const EMPTY_ITEM = { description: "", hours: "", rate: "", amount: 0 }
 
 async function downloadInvoicePdf(inv) {
-  const id = inv?._id || inv?.id
-  if (!id) { toast.error("Invoice not found."); return }
-  if (String(id).startsWith("local_")) { toast.error("Invoice is still syncing, please wait a moment and try again."); return }
   try {
     toast.loading("Generating PDF...", { id: "pdf" })
-    const res = await api.get(`/invoices/${id}/pdf`, { responseType: "blob" })
-    const blob = new Blob([res.data], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `invoice-${inv.invoiceNumber || id}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
+    
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    
+    // Header - Invoice Title
+    doc.setFillColor(108, 99, 255)
+    doc.rect(0, 0, pageWidth, 40, "F")
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(28)
+    doc.setFont("helvetica", "bold")
+    doc.text("INVOICE", 20, 25)
+    doc.setFontSize(12)
+    doc.setFont("helvetica", "normal")
+    doc.text("FreelanceFlow", 20, 33)
+    doc.text("Professional Freelancer Management", 20, 38)
+    
+    // Invoice Details (Right side)
+    doc.setFontSize(10)
+    doc.text(`Invoice #: ${inv.invoiceNumber || "N/A"}`, pageWidth - 60, 15)
+    doc.text(`Date: ${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}`, pageWidth - 60, 22)
+    doc.text(`Due: ${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : "N/A"}`, pageWidth - 60, 29)
+    doc.text(`Status: ${inv.status?.toUpperCase() || "DRAFT"}`, pageWidth - 60, 36)
+    
+    // From/To Section
+    let y = 55
+    doc.setTextColor(100, 100, 100)
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "bold")
+    doc.text("FROM:", 20, y)
+    doc.text("BILL TO:", 110, y)
+    y += 7
+    
+    doc.setTextColor(40, 40, 40)
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(11)
+    doc.text("FreelanceFlow", 20, y)
+    y += 5
+    doc.setFontSize(10)
+    doc.text("Your Business Address", 20, y)
+    y += 5
+    doc.text("your@email.com", 20, y)
+    y += 5
+    doc.text("+91 XXXXX XXXXX", 20, y)
+    
+    // Client info (right side)
+    y = 62
+    doc.setFontSize(11)
+    doc.setFont("helvetica", "bold")
+    doc.text(inv.client?.name || "Client Name", 110, y)
+    y += 5
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "normal")
+    if (inv.client?.company) { doc.text(inv.client.company, 110, y); y += 5 }
+    if (inv.client?.email) { doc.text(inv.client.email, 110, y); y += 5 }
+    if (inv.client?.phone) { doc.text(inv.client.phone, 110, y); y += 5 }
+    if (inv.client?.address) { doc.text(inv.client.address, 110, y); y += 5 }
+    
+    // Items Table
+    y = 100
+    const tableData = (inv.items || []).map(item => [
+      item.description || "Service",
+      item.hours ? `${item.hours} hrs` : "-",
+      item.rate ? `₹${Number(item.rate).toLocaleString()}` : "-",
+      `₹${(item.amount || 0).toLocaleString()}`
+    ])
+    
+    autoTable(doc, {
+      startY: y,
+      head: [["Description", "Hours", "Rate", "Amount"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: [108, 99, 255], textColor: 255, fontStyle: "bold" },
+      styles: { fontSize: 10, cellPadding: 5 },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 30, halign: "center" }, 2: { cellWidth: 35, halign: "right" }, 3: { cellWidth: 35, halign: "right" } },
+      margin: { left: 20, right: 20 }
+    })
+    
+    // Totals
+    y = doc.lastAutoTable.finalY + 15
+    doc.setDrawColor(200, 200, 200)
+    doc.line(110, y, pageWidth - 20, y)
+    y += 10
+    
+    doc.setFontSize(11)
+    doc.text("Subtotal:", 130, y)
+    doc.text(`₹${(inv.subtotal || 0).toLocaleString()}`, pageWidth - 20, y, { align: "right" })
+    y += 7
+    
+    if (inv.taxRate > 0) {
+      const taxLabel = inv.isGstInvoice ? `GST (${inv.taxRate}%):` : `Tax (${inv.taxRate}%):`
+      doc.text(taxLabel, 130, y)
+      doc.text(`₹${(inv.taxAmount || 0).toLocaleString()}`, pageWidth - 20, y, { align: "right" })
+      y += 7
+    }
+    
+    // Total
+    y += 5
+    doc.setFillColor(108, 99, 255)
+    doc.rect(125, y - 5, pageWidth - 145, 12, "F")
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.text("TOTAL:", 130, y + 4)
+    doc.text(`₹${(inv.total || 0).toLocaleString()}`, pageWidth - 20, y + 4, { align: "right" })
+    
+    // Footer
+    doc.setTextColor(100, 100, 100)
+    doc.setFontSize(9)
+    doc.setFont("helvetica", "normal")
+    y = doc.internal.pageSize.getHeight() - 30
+    doc.line(20, y, pageWidth - 20, y)
+    y += 8
+    doc.text("Payment Terms: Net 30 days", 20, y)
+    y += 5
+    doc.text("Thank you for your business!", 20, y)
+    y += 5
+    doc.text("Generated by FreelanceFlow - Manage · Invoice · Grow", 20, y)
+    
+    // Save
+    doc.save(`Invoice-${inv.invoiceNumber || "draft"}.pdf`)
     toast.success("PDF downloaded!", { id: "pdf" })
   } catch (e) {
-    toast.error(e?.response?.data?.error || "Failed to download PDF", { id: "pdf" })
+    console.error("PDF Error:", e)
+    toast.error("Failed to generate PDF", { id: "pdf" })
   }
 }
 
