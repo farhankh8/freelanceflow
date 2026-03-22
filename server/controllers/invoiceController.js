@@ -70,31 +70,6 @@ const createInvoice = async (req, res) => {
     res.status(500).json({ error: "Server error", message: error.message });
   }
 };
-    });
-
-    const invoice = await Invoice.create({
-      user: req.user.id,
-      client: clientId,
-      project: projectId || null,
-      items: processedItems,
-      taxRate: Number(taxRate) || 0,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      notes: notes || "",
-    });
-
-    const populated = await invoice.populate([
-      { path: "client", select: "name email company" },
-      { path: "project", select: "title" },
-    ]);
-
-    console.log("INVOICE CREATED:", invoice.invoiceNumber);
-    res.status(201).json({ success: true, invoice: populated });
-  } catch (error) {
-    console.error("CREATE INVOICE ERROR:", error.message);
-    console.error(error.stack);
-    res.status(500).json({ error: "Server error", message: error.message });
-  }
-};
 
 const updateInvoice = async (req, res) => {
   try {
