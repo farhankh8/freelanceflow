@@ -44,7 +44,7 @@ invoiceSchema.index({ invoiceNumber: 1 })
 invoiceSchema.index({ dueDate: 1 })
 invoiceSchema.index({ status: 1, dueDate: 1 })
 
-invoiceSchema.pre('save', function (next) {
+invoiceSchema.pre('save', async function() {
   if (!this.invoiceNumber) {
     const year = new Date().getFullYear()
     this.invoiceNumber = 'FF-' + year + '-' + Date.now()
@@ -62,7 +62,6 @@ invoiceSchema.pre('save', function (next) {
     this.igstAmount = 0
   }
   this.total = parseFloat((this.subtotal + this.taxAmount + this.cgstAmount + this.sgstAmount + this.igstAmount).toFixed(2))
-  next()
 })
 
 module.exports = mongoose.model('Invoice', invoiceSchema)

@@ -67,18 +67,22 @@ export default function GlobalSearch({ isOpen, onClose }) {
   }, [query])
 
   useEffect(() => {
+    if (!isOpen) return
+    
     const handleKey = (e) => {
-      if (!isOpen) return
+      const tag = e.target.tagName
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA'
+      if (isInput && e.key !== 'Escape') return
       
       if (e.key === "Escape") {
         onClose()
-      } else if (e.key === "ArrowDown") {
+      } else if (e.key === "ArrowDown" && !isInput) {
         e.preventDefault()
         setSelectedIndex(i => Math.min(i + 1, results.length - 1))
-      } else if (e.key === "ArrowUp") {
+      } else if (e.key === "ArrowUp" && !isInput) {
         e.preventDefault()
         setSelectedIndex(i => Math.max(i - 1, 0))
-      } else if (e.key === "Enter" && results[selectedIndex]) {
+      } else if (e.key === "Enter" && results[selectedIndex] && !isInput) {
         e.preventDefault()
         handleSelect(results[selectedIndex])
       }
@@ -86,7 +90,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
     
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [isOpen, results, selectedIndex])
+  }, [isOpen, results, selectedIndex, onClose])
 
   const search = async (q) => {
     setLoading(true)

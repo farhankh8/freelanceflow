@@ -27,10 +27,13 @@ const createInvoice = async (req, res) => {
   try {
     const { _id, id, clientId, projectId, items, taxRate, dueDate, notes, isGstInvoice, clientGstin, placeOfSupply, upiTransactionId, paymentMethod } = req.body;
 
+    console.log('CREATE INVOICE REQUEST:', { clientId, items: items?.length, userId: req.user?.id });
+
     if (!clientId) return res.status(400).json({ error: "Client is required" });
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: "At least one item is required" });
 
     const client = await Client.findOne({ _id: clientId, user: req.user.id });
+    console.log('CLIENT FOUND:', client?._id);
     if (!client) return res.status(404).json({ error: "Client not found" });
 
     const processedItems = items.map(item => {
@@ -59,6 +62,8 @@ const createInvoice = async (req, res) => {
       paymentMethod: paymentMethod || "upi",
     });
 
+    console.log('INVOICE CREATED:', invoice._id);
+
     const populated = await invoice.populate([
       { path: "client", select: "name email company phone gstin address" },
       { path: "project", select: "title" },
@@ -66,7 +71,7 @@ const createInvoice = async (req, res) => {
 
     res.status(201).json({ success: true, invoice: populated });
   } catch (error) {
-    console.error("CREATE INVOICE ERROR:", error.message);
+    console.error("CREATE INVOICE ERROR:", error.message, error.stack);
     res.status(500).json({ error: "Server error", message: error.message });
   }
 };

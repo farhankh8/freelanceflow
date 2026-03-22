@@ -1,11 +1,12 @@
-const r = require('express').Router();
-const { protect } = require('../middleware/auth');
+const express = require('express')
+const router = express.Router()
+const { protect } = require('../middleware/auth')
+const { getAll, create, update, remove } = require('../controllers/contractController')
 
-r.use(protect);
+router.use(protect)
+router.get('/', getAll)
+router.post('/', create)
+router.put('/:id', update)
+router.delete('/:id', remove)
 
-// Temporary route to prevent 404
-r.get('/', (req, res) => {
-  res.json([]);
-});
-
-module.exports = r;
+module.exports = router

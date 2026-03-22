@@ -5,11 +5,33 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* Focus fix for inputs */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Prevent any overlay from capturing focus */
+[role="dialog"]:focus {
+  outline: none;
+}
+
+/* Ensure inputs maintain focus when typing */
+input, textarea, select {
+  transition: none;
+}
+
+/* Ensure modals don't interfere with typing */
+.ReactModal__Body--open {
+  overflow: auto;
+}
+
 /* ============================================
    CSS CUSTOM PROPERTIES (Design Tokens)
    ============================================ */
 :root {
   /* Colors - Dark Theme */
+  --bg: #09090b;
   --bg-primary: #09090b;
   --bg-secondary: #18181b;
   --bg-tertiary: #27272a;
@@ -17,6 +39,7 @@
   
   /* Surface Colors */
   --surface: #111118;
+  --surface2: #1a1a24;
   --surface-raised: #1a1a24;
   --surface-overlay: #242430;
   --surface-hover: rgba(255, 255, 255, 0.04);
@@ -47,6 +70,7 @@
   --info-muted: rgba(59, 130, 246, 0.15);
   
   /* Text Colors */
+  --text: #fafafa;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;

@@ -23,7 +23,6 @@ import Meetings from "./pages/Meetings"
 import ClientPortal from "./pages/ClientPortal"
 import Help from "./pages/Help"
 import Layout from "./components/Layout"
-import GlobalSearch from "./components/GlobalSearch"
 
 const PrivateRoute = ({ children }) => {
   const { accessToken } = useAuthStore()
@@ -41,7 +40,18 @@ const ComingSoon = ({ title }) => (
 export default function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ style: { background: "#1a1a24", color: "#f0f0f8", border: "1px solid #2a2a3a" } }} />
+      <Toaster 
+        position="top-right" 
+        toastOptions={{ 
+          style: { background: "#1a1a24", color: "#f0f0f8", border: "1px solid #2a2a3a", zIndex: 999999 },
+          duration: 3000,
+        }} 
+        containerStyle={{
+          top: 20,
+          right: 20,
+          zIndex: 999999,
+        }}
+      />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -63,18 +73,16 @@ export default function App() {
           <Route path="calendar" element={<Calendar />} />
           <Route path="kanban" element={<Projects />} />
           <Route path="meetings" element={<Meetings />} />
-          <Route path="marketplace" element={<ComingSoon title="Find Projects" />} />
-          <Route path="analytics" element={<Reports />} />
           <Route path="clients-portal" element={<ClientPortal />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="help" element={<Help />} />
+          <Route path="marketplace" element={<ComingSoon title="Find Projects" />} />
           <Route path="documents" element={<ComingSoon title="Documents" />} />
           <Route path="templates" element={<ComingSoon title="Templates" />} />
           <Route path="automations" element={<ComingSoon title="Automations" />} />
           <Route path="integrations" element={<ComingSoon title="Integrations" />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="help" element={<Help />} />
         </Route>
       </Routes>
-      <GlobalSearch />
     </BrowserRouter>
   )
 }

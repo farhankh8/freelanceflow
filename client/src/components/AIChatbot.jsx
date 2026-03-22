@@ -160,7 +160,7 @@ Be concise, helpful, and friendly. Use emojis sparingly. Focus on actionable adv
 
   return (
     <>
-      <div onClick={() => setOpen(o => !o)} style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 9000, width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "24px", boxShadow: "0 4px 24px rgba(108,99,255,0.5)", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} title="AI Assistant — Ask anything!">
+      <div onClick={() => setOpen(o => !o)} style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 9000, width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "24px", boxShadow: "0 4px 24px rgba(108,99,255,0.5)", transition: "transform 0.2s", pointerEvents: "auto" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} title="AI Assistant — Ask anything!">
         {open ? "×" : "🤖"}
       </div>
 
