@@ -24,11 +24,15 @@ export default function Register() {
     setLoading(true)
     try {
       const response = await api.post('/auth/register', { name, email, password })
+      console.log('SUCCESS - Response:', response.status, response.data)
       setAuth(response.data.user, response.data.accessToken, response.data.refreshToken)
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
       navigate('/app')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed')
+      console.log('ERROR - Status:', err.response?.status)
+      console.log('ERROR - Data:', err.response?.data)
+      console.log('ERROR - Message:', err.message)
+      toast.error(err.response?.data?.error || err.message || 'Registration failed')
       submittedRef.current = false
     } finally {
       setLoading(false)
