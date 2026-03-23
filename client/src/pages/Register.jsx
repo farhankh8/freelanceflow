@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
@@ -13,19 +13,23 @@ export default function Register() {
   const [showPass, setShowPass] = useState(false)
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
+  const submittedRef = useRef(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submittedRef.current) return
     if (password !== confirm) { toast.error('Passwords do not match!'); return }
     if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    submittedRef.current = true
     setLoading(true)
     try {
-      const { data } = await api.post('/auth/register', { name, email, password })
-      setAuth(data.user, data.accessToken, data.refreshToken)
-      toast.success(`Welcome to FreelanceFlow, ${name}! 🎉`)
+      const response = await api.post('/auth/register', { name, email, password })
+      setAuth(response.data.user, response.data.accessToken, response.data.refreshToken)
+      toast.success(`Welcome to FreelanceFlow, ${name}!`)
       navigate('/app')
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed')
+      submittedRef.current = false
     } finally {
       setLoading(false)
     }
@@ -109,7 +113,7 @@ export default function Register() {
                 {confirm && confirm !== password && <p style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>Passwords do not match</p>}
               </div>
 
-              <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(108,99,255,0.5)' : 'linear-gradient(135deg,#6c63ff,#ff6584)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'opacity 0.2s' }}>
+              <button type="submit" disabled={loading} onClick={(e) => { if (loading) e.preventDefault() }} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(108,99,255,0.5)' : 'linear-gradient(135deg,#6c63ff,#ff6584)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'opacity 0.2s' }}>
                 {loading ? '⏳ Creating account...' : 'Create Free Account →'}
               </button>
             </form>

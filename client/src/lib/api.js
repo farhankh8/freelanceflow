@@ -11,6 +11,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
     const token = useAuthStore.getState().accessToken
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -21,8 +22,12 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`API Response: ${response.status} ${response.config.url}`)
+    return response
+  },
   async (error) => {
+    console.log(`API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data)
     const originalRequest = error.config
     
     if (error.response?.status === 401 && !originalRequest._retry) {

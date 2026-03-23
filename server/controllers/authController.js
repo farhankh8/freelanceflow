@@ -8,26 +8,33 @@ const generateRefreshToken = (id) => jwt.sign({ id }, process.env.JWT_REFRESH_SE
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    console.log('Registration attempt:', { name, email });
-    if (!name || !email || !password) return res.status(400).json({ error: 'All fields are required' });
+    console.log('Registration attempt:', { name, email, passwordLength: password?.length });
+    
+    if (!name || !email || !password) {
+      console.log('Missing fields');
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    if (existingUser) {
+      console.log('User exists:', email);
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
     const user = await User.create({ name, email, password });
     console.log('User created:', user._id);
+    
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
-    try {
-      await sendWelcomeEmail(name, email);
-    } catch (e) {
-      console.error('Welcome email error:', e.message);
-    }
-    try {
-      await sendOwnerNotification(name, email);
-    } catch (e) {
-      console.error('Owner notification error:', e.message);
-    }
+    
+    await Promise.all([
+      sendWelcomeEmail(name, email).catch(e => console.error('Welcome email error:', e.message)),
+      sendOwnerNotification(name, email).catch(e => console.error('Owner notification error:', e.message))
+    ]);
+    
+    console.log('Sending success response');
     res.status(201).json({ success: true, accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, plan: user.plan } });
   } catch (error) {
     console.error('REGISTER ERROR:', error);
