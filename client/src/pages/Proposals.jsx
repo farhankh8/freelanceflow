@@ -172,34 +172,52 @@ export default function Proposals() {
     api.get("/proposals").then(({ data }) => setProposals(data.proposals || data.data || [])).catch(() => {})
   }, [])
 
-  const handleCreate = (formData) => {
-    const newProposal = { ...formData, _id: "local_" + Date.now(), createdAt: new Date().toISOString().split("T")[0] }
-    setProposals(prev => [newProposal, ...prev])
-    toast.success("Proposal created! 📝")
-    setShowModal(false)
+  const handleCreate = async (formData) => {
+    try {
+      const { data } = await api.post("/proposals", formData)
+      setProposals(prev => [data.data, ...prev])
+      toast.success("Proposal created! 📝")
+      setShowModal(false)
+    } catch (e) {
+      toast.error("Failed to create proposal")
+    }
   }
 
-  const handleEdit = (formData) => {
+  const handleEdit = async (formData) => {
     if (!editProposal) return
-    const updated = { ...editProposal, ...formData }
-    setProposals(prev => prev.map(p => p._id === editProposal._id ? updated : p))
-    setViewProposal(updated)
-    toast.success("Proposal updated!")
-    setShowModal(false)
-    setEditProposal(null)
+    try {
+      const { data } = await api.put(`/proposals/${editProposal._id}`, formData)
+      setProposals(prev => prev.map(p => p._id === editProposal._id ? data.data : p))
+      setViewProposal(data.data)
+      toast.success("Proposal updated!")
+      setShowModal(false)
+      setEditProposal(null)
+    } catch (e) {
+      toast.error("Failed to update proposal")
+    }
   }
 
-  const updateStatus = (id, status) => {
-    setProposals(prev => prev.map(p => p._id === id ? { ...p, status } : p))
-    setViewProposal(prev => prev?._id === id ? { ...prev, status } : prev)
-    toast.success(status === "accepted" ? "🎉 Accepted!" : "Status updated!")
+  const updateStatus = async (id, status) => {
+    try {
+      const { data } = await api.put(`/proposals/${id}`, { status })
+      setProposals(prev => prev.map(p => p._id === id ? data.data : p))
+      setViewProposal(prev => prev?._id === id ? data.data : prev)
+      toast.success(status === "accepted" ? "🎉 Accepted!" : "Status updated!")
+    } catch (e) {
+      toast.error("Failed to update status")
+    }
   }
 
-  const deleteProposal = (id) => {
+  const deleteProposal = async (id) => {
     if (!window.confirm("Delete this proposal?")) return
-    setProposals(prev => prev.filter(p => p._id !== id))
-    setViewProposal(null)
-    toast.success("Deleted")
+    try {
+      await api.delete(`/proposals/${id}`)
+      setProposals(prev => prev.filter(p => p._id !== id))
+      setViewProposal(null)
+      toast.success("Deleted")
+    } catch (e) {
+      toast.error("Failed to delete")
+    }
   }
 
   const filtered = useMemo(() => proposals.filter(p => {

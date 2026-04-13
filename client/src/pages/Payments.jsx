@@ -10,11 +10,11 @@ const STATUS = {
 }
 
 const METHODS = {
-  upi:        { label: "UPI",         icon: "📱", color: "#00d97e" },
-  card:       { label: "Card",        icon: "💳", color: "#6c63ff" },
-  netbanking: { label: "Net Banking", icon: "🏦", color: "#2CA5E0" },
-  cash:       { label: "Cash",        icon: "💵", color: "#ffb800" },
-  cheque:     { label: "Cheque",      icon: "📄", color: "#ff6584" },
+  upi:           { label: "UPI",         icon: "📱", color: "#00d97e" },
+  card:          { label: "Card",        icon: "💳", color: "#6c63ff" },
+  bank_transfer:  { label: "Net Banking", icon: "🏦", color: "#2CA5E0" },
+  cash:          { label: "Cash",        icon: "💵", color: "#ffb800" },
+  check:         { label: "Cheque",      icon: "📄", color: "#ff6584" },
 }
 
 const LS_KEY = "freelanceflow_payments"
@@ -79,7 +79,19 @@ export default function Payments() {
 
   const handleCreate = async () => {
     if (!form.client || !form.amount) { toast.error("Client and amount required"); return }
-    const payload = { ...form, amount: Number(form.amount) }
+    
+    // Map frontend field names to backend field names
+    const methodMap = { netbanking: 'bank_transfer', cheque: 'check' }
+    const payload = {
+      client: form.client,
+      invoiceNumber: form.invoiceNo,
+      amount: Number(form.amount),
+      method: methodMap[form.method] || form.method,
+      status: form.status,
+      date: form.date,
+      transactionId: form.txnId,
+      notes: form.notes
+    }
 
     // ✅ Optimistically add to UI & localStorage FIRST — never lost even if API fails
     const tempId = "local_" + Date.now()
@@ -92,7 +104,7 @@ export default function Payments() {
     // Then try to save to API and replace temp ID with real one
     try {
       const { data } = await api.post("/payments", payload)
-      const saved = data?.payment || data?.data
+      const saved = data?.data
       if (saved?._id) {
         // Replace temp entry with the real API entry
         updatePayments(prev => prev.map(p => p._id === tempId ? saved : p))
@@ -222,7 +234,7 @@ export default function Payments() {
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Invoice No</label><input value={form.invoiceNo} onChange={e => setForm(f => ({ ...f, invoiceNo: e.target.value }))} placeholder="FF-2026-001" style={inp} /></div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Amount (₹) *</label><input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="0" style={inp} /></div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Date</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={inp} /></div>
-                <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Method</label><select value={form.method} onChange={e => setForm(f => ({ ...f, method: e.target.value }))} style={inp}>{Object.entries(METHODS).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}</select></div>
+                <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Method</label><select value={form.method} onChange={e => setForm(f => ({ ...f, method: e.target.value }))} style={inp}><option value="upi">📱 UPI</option><option value="bank_transfer">🏦 Net Banking</option><option value="card">💳 Card</option><option value="cash">💵 Cash</option><option value="check">📄 Cheque</option></select></div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Status</label><select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={inp}>{Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
               </div>
               <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Transaction ID</label><input value={form.txnId} onChange={e => setForm(f => ({ ...f, txnId: e.target.value }))} placeholder="UPI/Card txn ID" style={inp} /></div>

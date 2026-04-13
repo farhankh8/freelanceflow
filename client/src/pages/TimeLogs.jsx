@@ -164,7 +164,7 @@ export default function TimeLogs() {
         project: timerProject, task: timerTask, duration: mins,
         date: newLog.date, rate: timerRate, notes: "", billed: false,
       })
-      const saved = data?.timelog || data?.data
+      const saved = data?.data
       if (saved?._id) {
         updateLogs(prev => prev.map(l => l._id === tempId ? saved : l))
       }
@@ -193,7 +193,7 @@ export default function TimeLogs() {
 
     try {
       const { data } = await api.post("/timelogs", { ...form, duration: mins, rate: Number(form.rate), billed: false })
-      const saved = data?.timelog || data?.data
+      const saved = data?.data
       if (saved?._id) {
         updateLogs(prev => prev.map(l => l._id === tempId ? saved : l))
       }

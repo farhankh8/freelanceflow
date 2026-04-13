@@ -218,35 +218,53 @@ export default function Contracts() {
     api.get("/contracts").then(({ data }) => setContracts(data?.contracts || data?.data || [])).catch(() => {})
   }, [])
 
-  const handleCreate = (formData) => {
-    const newContract = { ...formData, _id: "local_" + Date.now(), createdAt: new Date().toISOString().split("T")[0] }
-    setContracts(prev => [newContract, ...prev])
-    toast.success("Contract created!")
-    setShowModal(false)
+  const handleCreate = async (formData) => {
+    try {
+      const { data } = await api.post("/contracts", formData)
+      setContracts(prev => [data.data, ...prev])
+      toast.success("Contract created!")
+      setShowModal(false)
+    } catch (e) {
+      toast.error("Failed to create contract")
+    }
   }
 
-  const handleEdit = (formData) => {
+  const handleEdit = async (formData) => {
     if (!editContract) return
-    const updated = { ...editContract, ...formData }
-    setContracts(prev => prev.map(c => c._id === editContract._id ? updated : c))
-    setViewContract(updated)
-    toast.success("Contract updated!")
-    setShowModal(false)
-    setEditContract(null)
+    try {
+      const { data } = await api.put(`/contracts/${editContract._id}`, formData)
+      setContracts(prev => prev.map(c => c._id === editContract._id ? data.data : c))
+      setViewContract(data.data)
+      toast.success("Contract updated!")
+      setShowModal(false)
+      setEditContract(null)
+    } catch (e) {
+      toast.error("Failed to update contract")
+    }
   }
 
-  const updateStatus = (id, status) => {
+  const updateStatus = async (id, status) => {
     const extra = status === "signed" ? { signedDate: new Date().toISOString().split("T")[0] } : {}
-    setContracts(prev => prev.map(c => c._id === id ? { ...c, status, ...extra } : c))
-    setViewContract(prev => prev?._id === id ? { ...prev, status, ...extra } : prev)
-    toast.success(status === "signed" ? "Contract signed!" : "Status updated!")
+    try {
+      const { data } = await api.put(`/contracts/${id}`, { status, ...extra })
+      setContracts(prev => prev.map(c => c._id === id ? data.data : c))
+      setViewContract(prev => prev?._id === id ? data.data : prev)
+      toast.success(status === "signed" ? "Contract signed!" : "Status updated!")
+    } catch (e) {
+      toast.error("Failed to update status")
+    }
   }
 
-  const deleteContract = (id) => {
+  const deleteContract = async (id) => {
     if (!window.confirm("Delete this contract? This cannot be undone.")) return
-    setContracts(prev => prev.filter(c => c._id !== id))
-    setViewContract(null)
-    toast.success("Contract deleted")
+    try {
+      await api.delete(`/contracts/${id}`)
+      setContracts(prev => prev.filter(c => c._id !== id))
+      setViewContract(null)
+      toast.success("Contract deleted")
+    } catch (e) {
+      toast.error("Failed to delete")
+    }
   }
 
   const filtered = useMemo(() => contracts.filter(c => {
