@@ -90,7 +90,7 @@ export default function Clients() {
     if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt)
     if (sortBy === "oldest") return new Date(a.createdAt) - new Date(b.createdAt)
     if (sortBy === "name") return a.name?.localeCompare(b.name)
-    if (sortBy === "rate") return (b.hourlyRate || 0) - (a.hourlyRate || 0)
+    if (sortBy === "rate") return (b.defaultHourlyRate || 0) - (a.defaultHourlyRate || 0)
     return 0
   })
 
@@ -224,7 +224,7 @@ export default function Clients() {
           { label: "Total Clients", value: clients.length, icon: "👥", color: "#6c63ff" },
           { label: "Active", value: activeCount, icon: "✅", color: "#00d97e" },
           { label: "Prospects", value: clients.filter(c => c.status === "prospect").length, icon: "🎯", color: "#ffb800" },
-          { label: "Avg Rate", value: clients.length ? "₹" + Math.round(clients.reduce((s, c) => s + (c.hourlyRate || 0), 0) / clients.length) + "/hr" : "—", icon: "💰", color: "#ff6584" },
+          { label: "Avg Rate", value: clients.length ? "₹" + Math.round(clients.reduce((s, c) => s + (c.defaultHourlyRate || 0), 0) / clients.length) + "/hr" : "—", icon: "💰", color: "#ff6584" },
         ].map(s => (
           <div key={s.label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px", padding: "18px 20px", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: 0, right: 0, width: "60px", height: "60px", borderRadius: "0 14px 0 60px", background: s.color + "15" }} />
@@ -294,7 +294,7 @@ export default function Clients() {
                   <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "5px" }}>
                     {c.email && <div style={{ fontSize: "11px", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📧 {c.email}</div>}
                     {c.phone && <div style={{ fontSize: "11px", color: "var(--text2)" }}>📱 {c.phone}</div>}
-                    {c.hourlyRate && <div style={{ fontSize: "12px", fontWeight: 700, color: "#00d97e" }}>💰 ₹{c.hourlyRate}/hr</div>}
+                    {c.defaultHourlyRate && <div style={{ fontSize: "12px", fontWeight: 700, color: "#00d97e" }}>💰 ₹{c.defaultHourlyRate}/hr</div>}
                   </div>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function Clients() {
                 <div style={{ fontSize: "12px", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.email}</div>
                 <div style={{ fontSize: "12px", color: "var(--text2)" }}>{c.company || "—"}</div>
                 <div><span style={{ fontSize: "11px", padding: "3px 9px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: c.hourlyRate ? "#00d97e" : "var(--text2)" }}>{c.hourlyRate ? "₹" + c.hourlyRate + "/hr" : "—"}</div>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: c.defaultHourlyRate ? "#00d97e" : "var(--text2)" }}>{c.defaultHourlyRate ? "₹" + c.defaultHourlyRate + "/hr" : "—"}</div>
                 <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
                   <button onClick={() => { openEdit(c); setShowDetail(c) }} style={{ padding: "5px 10px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Edit</button>
                   <button onClick={() => deleteClient(c._id)} style={{ padding: "5px 10px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
@@ -384,7 +384,7 @@ export default function Clients() {
                         { label: "Phone", value: showDetail.phone || "—", icon: "📱" },
                         { label: "Company", value: showDetail.company || "—", icon: "🏢" },
                         { label: "Industry", value: showDetail.industry || "—", icon: "🏭" },
-                        { label: "Hourly Rate", value: showDetail.hourlyRate ? "₹" + showDetail.hourlyRate + "/hr" : "—", icon: "💰" },
+                        { label: "Hourly Rate", value: showDetail.defaultHourlyRate ? "₹" + showDetail.defaultHourlyRate + "/hr" : "—", icon: "💰" },
                         { label: "Website", value: showDetail.website || "—", icon: "🌐" },
                         { label: "Address", value: showDetail.address || "—", icon: "📍" },
                         { label: "Member Since", value: new Date(showDetail.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }), icon: "📅" },

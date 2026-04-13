@@ -11,9 +11,21 @@ const getClients = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    const { name, email, phone, company, address, notes } = req.body;
+    const { name, email, phone, company, address, notes, industry, hourlyRate, website, status } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    const client = await Client.create({ user: req.user.id, name, email, phone, company, address, notes });
+    const client = await Client.create({ 
+      user: req.user.id, 
+      name, 
+      email, 
+      phone, 
+      company, 
+      address, 
+      notes,
+      industry,
+      website,
+      defaultHourlyRate: hourlyRate ? Number(hourlyRate) : 0,
+      status: status || 'active'
+    });
     res.status(201).json({ success: true, client });
   } catch (error) {
     res.status(500).json({ error: 'Server error', message: error.message });
@@ -32,7 +44,14 @@ const getClient = async (req, res) => {
 
 const updateClient = async (req, res) => {
   try {
-    const client = await Client.findOneAndUpdate({ _id: req.params.id, user: req.user.id }, req.body, { new: true, runValidators: true });
+    const { hourlyRate, industry, website, ...otherFields } = req.body;
+    const updateData = {
+      ...otherFields,
+      ...(hourlyRate !== undefined && { defaultHourlyRate: Number(hourlyRate) || 0 }),
+      ...(industry !== undefined && { industry }),
+      ...(website !== undefined && { website })
+    };
+    const client = await Client.findOneAndUpdate({ _id: req.params.id, user: req.user.id }, updateData, { new: true, runValidators: true });
     if (!client) return res.status(404).json({ error: 'Client not found' });
     res.status(200).json({ success: true, client });
   } catch (error) {
