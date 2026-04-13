@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
@@ -11,6 +11,8 @@ const STATUSES = {
 }
 const COLORS = ["#6c63ff","#ff6584","#00d97e","#ffb800","#2CA5E0","#ff4d6d","#a78bfa","#00c9a7"]
 const FREE_CLIENT_LIMIT = 2
+const EMPTY_FORM = { name: "", email: "", phone: "", company: "", industry: "Technology", status: "active", hourlyRate: "", address: "", website: "", notes: "" }
+const INPUT_STYLE = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }
 
 export default function Clients() {
   const { user } = useAuthStore()
@@ -25,8 +27,7 @@ export default function Clients() {
   const [filterStatus, setFilterStatus] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
   const [saving, setSaving] = useState(false)
-  const emptyForm = { name: "", email: "", phone: "", company: "", industry: "Technology", status: "active", hourlyRate: "", address: "", website: "", notes: "" }
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(EMPTY_FORM)
 
   useEffect(() => { fetchClients() }, [])
 
@@ -61,7 +62,7 @@ export default function Clients() {
         setShowModal(false)
       }
       setEditMode(false)
-      setForm(emptyForm)
+      setForm(EMPTY_FORM)
     } catch (e) {
       toast.error(e.response?.data?.message || "Failed to save")
     } finally { setSaving(false) }
@@ -97,8 +98,6 @@ export default function Clients() {
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
 
-  const inp = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }
-
   const Modal = ({ isEdit }) => (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto" }}>
@@ -107,7 +106,7 @@ export default function Clients() {
             <h2 style={{ fontSize: "20px", fontWeight: 800 }}>{isEdit ? "Edit Client" : "Add New Client"}</h2>
             <p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>{isEdit ? "Update client information" : "Fill in client details"}</p>
           </div>
-          <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(emptyForm) }} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+          <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(EMPTY_FORM) }} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
         </div>
         <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
           {/* Avatar Preview */}
@@ -124,59 +123,59 @@ export default function Clients() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Full Name *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" style={inp}
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" style={INPUT_STYLE}
                  />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email *</label>
-              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" style={inp}
+              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" style={INPUT_STYLE}
                  />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Phone</label>
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="9876543210" style={inp}
+              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="9876543210" style={INPUT_STYLE}
                  />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company</label>
-              <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Company name" style={inp}
+              <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Company name" style={INPUT_STYLE}
                  />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Industry</label>
-              <select value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} style={inp}>
+              <select value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} style={INPUT_STYLE}>
                 {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</label>
-              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={inp}>
+              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={INPUT_STYLE}>
                 {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Hourly Rate (₹)</label>
-              <input type="number" value={form.hourlyRate} onChange={e => setForm(f => ({ ...f, hourlyRate: e.target.value }))} placeholder="1500" style={inp}
+              <input type="number" value={form.hourlyRate} onChange={e => setForm(f => ({ ...f, hourlyRate: e.target.value }))} placeholder="1500" style={INPUT_STYLE}
                  />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Website</label>
-              <input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://example.com" style={inp}
+              <input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://example.com" style={INPUT_STYLE}
                  />
             </div>
           </div>
           <div>
             <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Address</label>
-            <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="City, State, Country" style={inp}
+            <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="City, State, Country" style={INPUT_STYLE}
                />
           </div>
           <div>
             <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} placeholder="Any important notes about this client..." style={{ ...inp, resize: "vertical" }}
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} placeholder="Any important notes about this client..." style={{ ...INPUT_STYLE, resize: "vertical" }}
                />
           </div>
           <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
-            <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(emptyForm) }} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
+            <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(EMPTY_FORM) }} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
             <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "12px", background: saving ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: saving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "15px" }}>
               {saving ? "Saving..." : isEdit ? "Save Changes ✅" : "Add Client 🎉"}
             </button>
@@ -213,7 +212,7 @@ export default function Clients() {
               toast.error(`Free plan limited to ${FREE_CLIENT_LIMIT} clients. Upgrade to Pro for unlimited!`)
               return
             }
-            setShowModal(true); setForm(emptyForm); setEditMode(false) 
+            setShowModal(true); setForm(EMPTY_FORM); setEditMode(false) 
           }} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ Add Client</button>
         </div>
       </div>
@@ -337,10 +336,10 @@ export default function Clients() {
       )}
 
       {/* ADD MODAL */}
-      {showModal && !editMode && <Modal isEdit={false} />}
+      {showModal && !editMode && <Modal key="add" isEdit={false} />}
 
       {/* EDIT MODAL */}
-      {editMode && showDetail && <Modal isEdit={true} />}
+      {editMode && showDetail && <Modal key={`edit-${showDetail._id}`} isEdit={true} />}
 
       {/* DETAIL DRAWER */}
       {showDetail && !editMode && (

@@ -177,43 +177,56 @@ export default function Contacts() {
   const [editContact, setEditContact] = useState(null)
 
   useEffect(() => {
-    api.get("/clients").then(({ data }) => setContacts(data.clients || [])).catch(() => {})
+    api.get("/contacts").then(({ data }) => setContacts(data.data || [])).catch(() => {})
   }, [])
 
-  const handleCreate = (formData) => {
-    const color = COLORS[Math.floor(Math.random() * COLORS.length)]
-    const newContact = {
-      _id: "local_" + Date.now(),
-      ...formData,
-      avatar: formData.name.trim()[0].toUpperCase(),
-      color,
-      starred: false,
+  const handleCreate = async (formData) => {
+    try {
+      const { data } = await api.post("/contacts", formData)
+      setContacts(prev => [data.data, ...prev])
+      toast.success("Contact added! 📇")
+      setShowForm(false)
+    } catch (e) {
+      toast.error("Failed to add contact")
     }
-    setContacts(prev => [newContact, ...prev])
-    toast.success("Contact added! 📇")
-    setShowForm(false)
   }
 
-  const handleEdit = (formData) => {
+  const handleEdit = async (formData) => {
     if (!selected) return
-    const updated = { ...selected, ...formData, avatar: formData.name.trim()[0].toUpperCase() }
-    setContacts(prev => prev.map(c => c._id === selected._id ? updated : c))
-    setSelected(updated)
-    toast.success("Contact updated! ✏️")
-    setShowForm(false)
-    setEditContact(null)
+    try {
+      const { data } = await api.put(`/contacts/${selected._id}`, formData)
+      setContacts(prev => prev.map(c => c._id === selected._id ? data.data : c))
+      setSelected(data.data)
+      toast.success("Contact updated! ✏️")
+      setShowForm(false)
+      setEditContact(null)
+    } catch (e) {
+      toast.error("Failed to update contact")
+    }
   }
 
-  const toggleStar = (id) => {
-    setContacts(prev => prev.map(c => c._id === id ? { ...c, starred: !c.starred } : c))
-    setSelected(s => s?._id === id ? { ...s, starred: !s.starred } : s)
+  const toggleStar = async (id) => {
+    const contact = contacts.find(c => c._id === id)
+    if (!contact) return
+    try {
+      const { data } = await api.put(`/contacts/${id}`, { starred: !contact.starred })
+      setContacts(prev => prev.map(c => c._id === id ? data.data : c))
+      setSelected(s => s?._id === id ? data.data : s)
+    } catch (e) {
+      toast.error("Failed to update")
+    }
   }
 
-  const deleteContact = (id) => {
+  const deleteContact = async (id) => {
     if (!window.confirm("Delete this contact?")) return
-    setContacts(prev => prev.filter(c => c._id !== id))
-    setSelected(null)
-    toast.success("Contact deleted")
+    try {
+      await api.delete(`/contacts/${id}`)
+      setContacts(prev => prev.filter(c => c._id !== id))
+      setSelected(null)
+      toast.success("Contact deleted")
+    } catch (e) {
+      toast.error("Failed to delete")
+    }
   }
 
   const filtered = useMemo(() => contacts.filter(c => {
