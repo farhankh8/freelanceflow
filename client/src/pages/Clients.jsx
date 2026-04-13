@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
@@ -83,7 +83,7 @@ export default function Clients() {
     setEditMode(true)
   }
 
-  const filtered = clients.filter(c => {
+  const filtered = useMemo(() => clients.filter(c => {
     const matchSearch = !search || c.name?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase()) || c.company?.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus === "all" || c.status === filterStatus
     return matchSearch && matchStatus
@@ -93,7 +93,7 @@ export default function Clients() {
     if (sortBy === "name") return a.name?.localeCompare(b.name)
     if (sortBy === "rate") return (b.defaultHourlyRate || 0) - (a.defaultHourlyRate || 0)
     return 0
-  })
+  }), [clients, search, filterStatus, sortBy])
 
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
@@ -108,7 +108,7 @@ export default function Clients() {
     setForm(EMPTY_FORM)
   }, [])
 
-  const ModalContent = useMemo(() => ({ isEdit }) => {
+  const ModalContent = memo(({ isEdit }) => {
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto" }}>
@@ -185,7 +185,7 @@ export default function Clients() {
         </div>
       </div>
     )
-  }, [form, saving, handleFormChange, handleCloseModal])
+  })
 
   return (
     <div style={{ maxWidth: "1300px" }}>
