@@ -239,7 +239,7 @@ export default function Clients() {
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 1, minWidth: "220px" }}>
           <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "14px" }}>🔍</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, company..." style={{ ...inp, padding: "10px 12px 10px 36px" }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, company..." style={{ ...INPUT_STYLE, padding: "10px 12px 10px 36px" }} />
         </div>
         <div style={{ display: "flex", gap: "6px" }}>
           <button onClick={() => setFilterStatus("all")} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: filterStatus === "all" ? "var(--accent)" : "var(--surface)", color: filterStatus === "all" ? "#fff" : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>All</button>
@@ -247,7 +247,7 @@ export default function Clients() {
             <button key={k} onClick={() => setFilterStatus(k)} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid " + (filterStatus === k ? v.color : "var(--border)"), background: filterStatus === k ? v.bg : "var(--surface)", color: filterStatus === k ? v.color : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>{v.label}</button>
           ))}
         </div>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...inp, width: "auto", padding: "8px 14px" }}>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...INPUT_STYLE, width: "auto", padding: "8px 14px" }}>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="name">Name A-Z</option>
