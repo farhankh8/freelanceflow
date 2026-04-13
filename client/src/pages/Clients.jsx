@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
@@ -98,92 +98,94 @@ export default function Clients() {
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
 
-  const Modal = ({ isEdit }) => (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <h2 style={{ fontSize: "20px", fontWeight: 800 }}>{isEdit ? "Edit Client" : "Add New Client"}</h2>
-            <p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>{isEdit ? "Update client information" : "Fill in client details"}</p>
-          </div>
-          <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(EMPTY_FORM) }} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
-        </div>
-        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
-          {/* Avatar Preview */}
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px", background: "var(--surface2)", borderRadius: "12px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
-              {form.name?.[0]?.toUpperCase() || "?"}
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: "15px" }}>{form.name || "Client Name"}</div>
-              <div style={{ fontSize: "12px", color: "var(--text2)" }}>{form.company || "Company"} · {form.industry}</div>
-            </div>
-          </div>
+  const handleFormChange = useCallback((field, value) => {
+    setForm(f => ({ ...f, [field]: value }))
+  }, [])
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false)
+    setEditMode(false)
+    setForm(EMPTY_FORM)
+  }, [])
+
+  const ModalContent = useMemo(() => ({ isEdit }) => {
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Full Name *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" style={INPUT_STYLE}
-                 />
+              <h2 style={{ fontSize: "20px", fontWeight: 800 }}>{isEdit ? "Edit Client" : "Add New Client"}</h2>
+              <p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>{isEdit ? "Update client information" : "Fill in client details"}</p>
             </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email *</label>
-              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" style={INPUT_STYLE}
-                 />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Phone</label>
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="9876543210" style={INPUT_STYLE}
-                 />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company</label>
-              <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Company name" style={INPUT_STYLE}
-                 />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Industry</label>
-              <select value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} style={INPUT_STYLE}>
-                {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</label>
-              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={INPUT_STYLE}>
-                {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Hourly Rate (₹)</label>
-              <input type="number" value={form.hourlyRate} onChange={e => setForm(f => ({ ...f, hourlyRate: e.target.value }))} placeholder="1500" style={INPUT_STYLE}
-                 />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Website</label>
-              <input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://example.com" style={INPUT_STYLE}
-                 />
-            </div>
+            <button onClick={handleCloseModal} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
           </div>
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Address</label>
-            <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="City, State, Country" style={INPUT_STYLE}
-               />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} placeholder="Any important notes about this client..." style={{ ...INPUT_STYLE, resize: "vertical" }}
-               />
-          </div>
-          <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
-            <button onClick={() => { isEdit ? setEditMode(false) : setShowModal(false); setForm(EMPTY_FORM) }} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
-            <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "12px", background: saving ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: saving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "15px" }}>
-              {saving ? "Saving..." : isEdit ? "Save Changes ✅" : "Add Client 🎉"}
-            </button>
+          <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px", background: "var(--surface2)", borderRadius: "12px" }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+                {form.name?.[0]?.toUpperCase() || "?"}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "15px" }}>{form.name || "Client Name"}</div>
+                <div style={{ fontSize: "12px", color: "var(--text2)" }}>{form.company || "Company"} · {form.industry}</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Full Name *</label>
+                <input value={form.name} onChange={e => handleFormChange("name", e.target.value)} placeholder="John Doe" style={INPUT_STYLE} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email *</label>
+                <input type="email" value={form.email} onChange={e => handleFormChange("email", e.target.value)} placeholder="john@example.com" style={INPUT_STYLE} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Phone</label>
+                <input value={form.phone} onChange={e => handleFormChange("phone", e.target.value)} placeholder="9876543210" style={INPUT_STYLE} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company</label>
+                <input value={form.company} onChange={e => handleFormChange("company", e.target.value)} placeholder="Company name" style={INPUT_STYLE} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Industry</label>
+                <select value={form.industry} onChange={e => handleFormChange("industry", e.target.value)} style={INPUT_STYLE}>
+                  {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</label>
+                <select value={form.status} onChange={e => handleFormChange("status", e.target.value)} style={INPUT_STYLE}>
+                  {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Hourly Rate (₹)</label>
+                <input type="number" value={form.hourlyRate} onChange={e => handleFormChange("hourlyRate", e.target.value)} placeholder="1500" style={INPUT_STYLE} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Website</label>
+                <input value={form.website} onChange={e => handleFormChange("website", e.target.value)} placeholder="https://example.com" style={INPUT_STYLE} />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Address</label>
+              <input value={form.address} onChange={e => handleFormChange("address", e.target.value)} placeholder="City, State, Country" style={INPUT_STYLE} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Notes</label>
+              <textarea value={form.notes} onChange={e => handleFormChange("notes", e.target.value)} rows={3} placeholder="Any important notes about this client..." style={{ ...INPUT_STYLE, resize: "vertical" }} />
+            </div>
+            <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
+              <button onClick={handleCloseModal} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "12px", background: saving ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: saving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "15px" }}>
+                {saving ? "Saving..." : isEdit ? "Save Changes ✅" : "Add Client 🎉"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }, [form, saving, handleFormChange, handleCloseModal])
 
   return (
     <div style={{ maxWidth: "1300px" }}>
@@ -336,10 +338,10 @@ export default function Clients() {
       )}
 
       {/* ADD MODAL */}
-      {showModal && !editMode && <Modal key="add" isEdit={false} />}
+      {showModal && !editMode && <ModalContent isEdit={false} />}
 
       {/* EDIT MODAL */}
-      {editMode && showDetail && <Modal key={`edit-${showDetail._id}`} isEdit={true} />}
+      {editMode && showDetail && <ModalContent isEdit={true} />}
 
       {/* DETAIL DRAWER */}
       {showDetail && !editMode && (
