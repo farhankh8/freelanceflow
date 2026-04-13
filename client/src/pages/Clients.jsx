@@ -79,7 +79,7 @@ export default function Clients() {
   }
 
   const openEdit = (client) => {
-    setForm({ name: client.name || "", email: client.email || "", phone: client.phone || "", company: client.company || "", industry: client.industry || "Technology", status: client.status || "active", hourlyRate: client.hourlyRate || "", address: client.address || "", website: client.website || "", notes: client.notes || "" })
+    setForm({ name: client.name || "", email: client.email || "", phone: client.phone || "", company: client.company || "", industry: client.industry || "Technology", status: client.status || "active", hourlyRate: client.defaultHourlyRate || "", address: client.address || "", website: client.website || "", notes: client.notes || "" })
     setEditMode(true)
   }
 
