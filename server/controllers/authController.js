@@ -87,4 +87,36 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, getMe };
+const updateProfile = async (req, res) => {
+  try {
+    const allowedFields = ['name', 'phone', 'settings'];
+    const updates = {};
+    
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        if (field === 'settings' && typeof req.body.settings === 'object') {
+          updates.settings = { ...req.user.settings?.toObject?.() || req.user.settings || {}, ...req.body.settings };
+        } else {
+          updates[field] = req.body[field];
+        }
+      }
+    }
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+    
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+    
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error('UPDATE PROFILE ERROR:', error);
+    res.status(500).json({ error: 'Server error', message: error.message });
+  }
+};
+
+module.exports = { register, login, refresh, logout, getMe, updateProfile };
