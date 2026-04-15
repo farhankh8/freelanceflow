@@ -46,11 +46,17 @@ app.use(helmet({
 
 // CORS configuration (production-ready)
 const isProduction = process.env.NODE_ENV === 'production';
+// Default allowed origins - add any known Vercel URLs here
+const DEFAULT_ORIGINS = [
+  'http://localhost:5173', 
+  'http://localhost:3000',
+  'https://freelanceflow-blue-delta.vercel.app',
+  'https://freelanceflow.vercel.app',
+  'https://freelanceflow.com'
+];
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : isProduction 
-    ? ['https://freelanceflow.vercel.app', 'https://freelanceflow.com']
-    : ['http://localhost:5173', 'http://localhost:3000'];
+  : DEFAULT_ORIGINS;
 
 app.use(cors({
   origin: isProduction ? ALLOWED_ORIGINS : true,
