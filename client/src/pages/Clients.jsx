@@ -33,16 +33,21 @@ export default function Clients() {
 
   const fetchClients = async () => {
     try {
-      const { data } = await api.get("/clients")
-      setClients(data.clients || [])
-    } catch { toast.error("Failed to load clients") }
+      const res = await api.get("/clients")
+      // Handle both old and new response formats
+      const clientList = res.data.clients || res.data.data || []
+      setClients(clientList)
+    } catch (e) { 
+      console.error("Fetch clients error:", e.response?.data)
+      toast.error("Failed to load clients") 
+    }
     finally { setLoading(false) }
   }
 
   const handleSave = async () => {
-    if (!form.name || !form.email) { toast.error("Name and email are required"); return }
+    if (!form.name) { toast.error("Name is required"); return }
     
-    // Free tier limit check
+    // Free tier limit check - only for new clients
     if (!isPro && !editMode && clients.length >= FREE_CLIENT_LIMIT) {
       toast.error(`Free plan limited to ${FREE_CLIENT_LIMIT} clients. Upgrade to Pro for unlimited!`, { duration: 5000 })
       return
@@ -52,19 +57,23 @@ export default function Clients() {
     try {
       if (editMode && showDetail) {
         const { data } = await api.put(`/clients/${showDetail._id}`, form)
-        setClients(prev => prev.map(c => c._id === showDetail._id ? data.client : c))
-        setShowDetail(data.client)
+        const updatedClient = data.client || data.data
+        setClients(prev => prev.map(c => c._id === showDetail._id ? updatedClient : c))
+        setShowDetail(updatedClient)
         toast.success("Client updated! ✅")
+        setShowModal(false)
       } else {
         const { data } = await api.post("/clients", form)
-        setClients(prev => [data.client, ...prev])
+        const newClient = data.client || data.data
+        setClients(prev => [newClient, ...prev])
         toast.success("Client added! 🎉")
         setShowModal(false)
       }
       setEditMode(false)
       setForm(EMPTY_FORM)
     } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to save")
+      console.error("Save client error:", e.response?.data)
+      toast.error(e.response?.data?.message || e.response?.data?.error || "Failed to save client")
     } finally { setSaving(false) }
   }
 
