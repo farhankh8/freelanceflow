@@ -46,13 +46,15 @@ app.use(helmet({
 
 // CORS configuration (production-ready)
 const isProduction = process.env.NODE_ENV === 'production';
-// Default allowed origins - add any known Vercel URLs here
+// Default allowed origins - add ALL known Vercel URLs here
 const DEFAULT_ORIGINS = [
   'http://localhost:5173', 
   'http://localhost:3000',
   'https://freelanceflow-blue-delta.vercel.app',
   'https://freelanceflow.vercel.app',
-  'https://freelanceflow.com'
+  'https://freelanceflow.com',
+  'https://freelanceflow-fr4he25nl-farhankh8s-projects.vercel.app',
+  'https://freelanceflow-git-main-farhankh8s-projects.vercel.app'
 ];
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',')
@@ -74,13 +76,13 @@ app.use(express.json({ limit: '10mb', strict: false }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting (enterprise - per IP)
+// Use default keyGenerator to avoid IPv6 issues
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 100 : 200,
   message: { success: false, message: 'Too many requests. Please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.ip + ':' + (req.user?.id || 'anon')
+  legacyHeaders: false
 });
 
 const authLimiter = rateLimit({
@@ -88,8 +90,7 @@ const authLimiter = rateLimit({
   max: isProduction ? 5 : 10,
   message: { success: false, message: 'Too many login attempts. Please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.ip + ':auth'
+  legacyHeaders: false
 });
 
 const registerLimiter = rateLimit({
@@ -97,16 +98,14 @@ const registerLimiter = rateLimit({
   max: isProduction ? 5 : 20,
   message: { success: false, message: 'Too many registration attempts. Please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.ip + ':register'
+  legacyHeaders: false
 });
 
 // Stricter limiter for sensitive endpoints
 const sensitiveLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 20 : 50,
-  message: { success: false, message: 'Too many requests on this endpoint.' },
-  keyGenerator: (req) => req.ip + ':sensitive'
+  message: { success: false, message: 'Too many requests on this endpoint.' }
 });
 
 // Apply rate limiters
