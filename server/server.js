@@ -1,11 +1,19 @@
+/**
+ * FreelanceFlow Enterprise Server
+ * Production-grade Express server with security, logging, and monitoring
+ */
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
-const connectDB = require('./config/db');
 
+const connectDB = require('./config/db');
+const { logger, requestLogger, errorLogger } = require('./config/logger');
+
+// Import routes
 const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -23,43 +31,84 @@ const searchRoutes = require('./routes/searchRoutes');
 
 const app = express();
 
+// Security headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
 }));
 
+// CORS configuration (production-ready)
+const isProduction = process.env.NODE_ENV === 'production';
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : isProduction 
+    ? ['https://freelanceflow.vercel.app', 'https://freelanceflow.com']
+    : ['http://localhost:5173', 'http://localhost:3000'];
+
 app.use(cors({
-  origin: true,
+  origin: isProduction ? ALLOWED_ORIGINS : true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   maxAge: 86400
 }));
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
+// Request logging (enterprise)
+app.use(requestLogger);
+
+// Body parsing with limits
+app.use(express.json({ limit: '10mb', strict: false }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Rate limiting (enterprise - per IP)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
-  message: { error: 'Too many requests' }
+  max: isProduction ? 100 : 200,
+  message: { success: false, message: 'Too many requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip + ':' + (req.user?.id || 'anon')
 });
 
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 50,
-  message: { error: 'Too many login attempts. Please try again later.' }
+  max: isProduction ? 5 : 10,
+  message: { success: false, message: 'Too many login attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip + ':auth'
 });
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 100,
-  message: { error: 'Too many registration attempts. Please try again later.' }
+  max: isProduction ? 5 : 20,
+  message: { success: false, message: 'Too many registration attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip + ':register'
 });
 
+// Stricter limiter for sensitive endpoints
+const sensitiveLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProduction ? 20 : 50,
+  message: { success: false, message: 'Too many requests on this endpoint.' },
+  keyGenerator: (req) => req.ip + ':sensitive'
+});
+
+// Apply rate limiters
 app.use('/api/', globalLimiter);
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', registerLimiter);
 
+// Mount API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/clients', clientRoutes);
 app.use('/api/v1/projects', projectRoutes);
@@ -71,56 +120,117 @@ app.use('/api/v1/contacts', contactRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/proposals', proposalRoutes);
-app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/dashboard', sensitiveLimiter, dashboardRoutes);
 app.use('/api/v1/seed', seedRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/contracts', require('./routes/contractRoutes'));
 
-app.get('/', (req, res) =>
-  res.json({ 
-    message: 'FreelanceFlow API v3 — Production Ready',
-    version: '3.0.0',
-    status: 'running',
-    timestamp: new Date().toISOString()
-  })
-);
+// API version info
+const API_VERSION = '3.0.0';
 
+// Health check endpoint
 app.get('/api/health', (req, res) => {
+  const os = require('os');
   res.json({ 
+    success: true,
+    message: 'FreelanceFlow API - Healthy',
+    version: API_VERSION,
+    environment: process.env.NODE_ENV || 'development',
     status: 'healthy',
     uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  })
+    timestamp: new Date().toISOString(),
+    system: {
+      freeMemory: os.freemem(),
+      totalMemory: os.totalmem(),
+      loadAverage: os.loadavg()
+    }
+  });
 });
 
-app.use((req, res) =>
-  res.status(404).json({ error: 'Route not found', path: req.path })
+// Root endpoint
+app.get('/', (req, res) =>
+  res.json({ 
+    success: true,
+    message: `FreelanceFlow API v${API_VERSION} — Enterprise Ready`,
+    version: API_VERSION,
+    environment: process.env.NODE_ENV || 'development',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: '/api/v1/auth',
+      clients: '/api/v1/clients',
+      projects: '/api/v1/projects',
+      invoices: '/api/v1/invoices',
+      contracts: '/api/v1/contracts',
+      dashboard: '/api/v1/dashboard',
+      health: '/api/health'
+    }
+  })
 );
 
-app.use((err, req, res) => {
-  console.error("SERVER ERROR:", err);
-  
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: 'Validation Error', details: err.message });
-  }
-  if (err.name === 'CastError') {
-    return res.status(400).json({ error: 'Invalid ID format' });
-  }
-  if (err.code === 11000) {
-    return res.status(409).json({ error: 'Duplicate entry' });
-  }
-  
-  res.status(500).json({ error: 'Internal Server Error', message: 'Something went wrong!' });
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found', 
+    path: req.path,
+    timestamp: new Date().toISOString()
+  });
 });
 
+// Centralized error handler
+app.use(errorLogger);
+
+// Error class for operational errors
+class AppError extends Error {
+  constructor(message, statusCode = 500) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+// Final error handler
+app.use((err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || 'error';
+
+  // Don't expose error in production
+  const response = {
+    success: false,
+    message: process.env.NODE_ENV === 'production' && err.isOperational !== false
+      ? 'Internal Server Error'
+      : err.message,
+    timestamp: new Date().toISOString()
+  };
+
+  if (process.env.NODE_ENV !== 'production') {
+    response.stack = err.stack;
+    response.statusCode = err.statusCode;
+  }
+
+  res.status(err.statusCode).json(response);
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
+    logger.info({ port: PORT, environment: process.env.NODE_ENV || 'development' }, 'Server started');
+    console.log(`
+╔═══════════════════════════════════════════════════════╗
+║     FreelanceFlow Enterprise API v${API_VERSION}              ║
+║     Environment: ${(process.env.NODE_ENV || 'development').padEnd(28)}║
+║     Port: ${PORT.toString().padEnd(33)}║
+║     Health: http://localhost:${PORT}/api/health         ║
+╚═══════════════════════════════════════════════════════╝
+    `);
   });
 }).catch(err => {
-  console.error('Failed to start server:', err);
+  logger.fatal({ error: err.message }, 'Failed to start server');
   process.exit(1);
 });
+
+module.exports = app;

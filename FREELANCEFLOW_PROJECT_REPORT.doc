@@ -1,0 +1,1165 @@
+# FREELANCEFLOW - PROJECT DOCUMENTATION
+
+## Complete Project Report for Yenepoya Institute of Arts, Science, Commerce and Management
+
+---
+
+# OUTER COVER PAGE
+
+## YENEPOYA INSTITUTE OF ARTS, SCIENCE, COMMERCE AND MANAGEMENT
+### A CONSTITUENT UNIT OF YENEPOYA (DEEMED TO BE UNIVERSITY)
+#### BALMATTA, MANGALORE
+
+## A INTERNSHIP REPORT ON
+### "FREELANCEFLOW"
+### An Intelligent Freelance Management System
+
+---
+
+## SUBMITTED BY
+### MOHAMMAD FARHAN KHAN
+### III BCA (Cloud Technology and Information Security)
+### Register No: 23BCAICD182
+
+### UNDER THE GUIDANCE OF
+### [Internal Guide Name]
+### DESIGNATION
+### DEPARTMENT OF COMPUTER SCIENCE
+
+### IN PARTIAL FULFILLMENT OF THE REQUIREMENT FOR THE AWARD OF THE DEGREE OF
+### BACHELOR OF COMPUTER APPLICATION
+
+### MAY 2026
+
+---
+
+# CERTIFICATE
+
+This is to certify that the project work entitled **"FREELANCEFLOW - An Intelligent Freelance Management System"** has been successfully carried out as a self-initiated project by **Mohammad Farhan Khan (23BCAXXXX)**, student of 3rd Year BCA (Cloud Technology and Information Security), under the supervision and guidance of **[Internal Guide Name]**, Department of Computer Science, Yenepoya Institute of Arts, Science, Commerce and Management.
+
+This project demonstrates practical application of web development technologies including React.js, Node.js, Express.js, and MongoDB in building a comprehensive freelance management solution.
+
+This dissertation is submitted in partial fulfilment for the award of degree in Bachelor of Computer Application by Yenepoya (Deemed to be University) during academic year 2025-26.
+
+<br><br>
+
+**Internal Guide Signature:**<br><br>
+**Name:**<br>
+**Designation:**<br>
+**Department of Computer Science**<br>
+**Yenepoya Institute of Arts, Science, Commerce and Management**<br>
+**Date:**
+
+---
+
+# DECLARATION
+
+I, **Mohammad Farhan Khan**, a student of BCA (Cloud Technology and Information Security) at Yenepoya Institute of Arts, Science, Commerce, and Management, Balmatta, Mangalore, affiliated with Yenepoya (Deemed to be University), hereby declare that this internship project report titled **"FREELANCEFLOW - An Intelligent Freelance Management System"** is a genuine and original record of the work undertaken by me as part of my academic curriculum.
+
+This project includes the development of a complete web application for freelance management, incorporating features for client management, project tracking, invoice generation, payment recording, expense tracking, time logging, lead management, proposal creation, contract management, and comprehensive reporting.
+
+I extend my sincere gratitude to my internal guide for their valuable guidance, mentorship, and support throughout the development of this project. I also express my appreciation to Yenepoya Institute of Arts, Science, Commerce, and Management for providing an enriching learning environment.
+
+<br>
+
+**Student Signature:**<br>
+**Name:** Mohammad Farhan Khan<br>
+**Reg No:** 23BCAXXXX<br>
+**Date:**
+
+**Internal Guide Signature:**<br>
+**Name:**<br>
+**Date:**
+
+---
+
+# ACKNOWLEDGEMENT
+
+I sincerely express my gratitude to Yenepoya Institute of Arts, Science, Commerce, and Management, affiliated with Yenepoya (Deemed to be University), Mangalore, for providing me with the opportunity to undertake this project as part of my academic curriculum.
+
+I extend my heartfelt thanks to **Dr. Jeevan Raj, Principal**, for his continuous support and guidance in facilitating this learning opportunity. I also express my sincere appreciation to **Dr. Rathnakara Shetty P, Head of Department (Computer Science)**, for his encouragement and academic support throughout my project journey.
+
+I am deeply grateful to my internal guide, **[Internal Guide Name]**, for his/her invaluable mentorship, expert guidance, and for sharing his/her vast experience in the field of software development.
+
+I am also thankful to the faculty of Yenepoya Institute of Arts, Science, Commerce, and Management for their technical insights and unwavering support. Their guidance has been instrumental in enhancing my practical understanding of modern web development technologies.
+
+Lastly, I am grateful to my family and peers for their encouragement and motivation throughout this journey.
+
+<br>
+
+**Name:** Mohammad Farhan Khan<br>
+**Reg No:** 23BCAXXXX<br>
+**Date:** May 2026
+
+---
+
+# ABSTRACT
+
+**FreelanceFlow** is a comprehensive web-based application designed to streamline and automate the management of freelance businesses. This system provides freelancers with an all-in-one platform to manage clients, projects, invoices, payments, expenses, time tracking, leads, proposals, contracts, and generate insightful reports.
+
+The application is built using the MERN stack (MongoDB, Express.js, React.js, Node.js), ensuring scalability, performance, and maintainability. FreelanceFlow addresses the common challenges faced by freelancers in managing their business operations efficiently, including client communication, project tracking, financial management, and reporting.
+
+**Key Features:**
+- Client and Contact Management
+- Project Tracking and Task Management
+- Automated Invoice Generation with GST Support
+- Payment and Expense Tracking
+- Time Logging with Timer Functionality
+- Lead and Proposal Management
+- Contract Management
+- Comprehensive Reporting Dashboard
+- User Authentication and Authorization
+- Responsive Design for Mobile and Desktop
+
+**Keywords:** Freelance Management, MERN Stack, Web Application, Client Management, Invoice Generation, Time Tracking
+
+---
+
+# TABLE OF CONTENTS
+
+| Sl.No | Topic | Page No. |
+|-------|-------|----------|
+| 1 | CHAPTER 1: INTRODUCTION | 1 |
+| 1.1 | Background | 1 |
+| 1.2 | Objectives | 2 |
+| 1.3 | Purpose | 2 |
+| 1.4 | Scope | 3 |
+| 1.5 | Problem Definition | 3 |
+| 2 | CHAPTER 2: TOOLS AND TECHNOLOGY USED | 4 |
+| 3 | CHAPTER 3: SYSTEM REQUIREMENTS AND ANALYSIS | 6 |
+| 3.1 | Functional Requirements | 6 |
+| 3.2 | Non-Functional Requirements | 7 |
+| 3.3 | Hardware and Software Requirements | 8 |
+| 4 | CHAPTER 4: SYSTEM DESIGN | 9 |
+| 4.1 | System Architecture | 9 |
+| 4.2 | Database Design | 10 |
+| 4.3 | Module Description | 11 |
+| 5 | CHAPTER 5: IMPLEMENTATION | 12 |
+| 5.1 | Frontend Implementation | 12 |
+| 5.2 | Backend Implementation | 14 |
+| 5.3 | API Integration | 15 |
+| 6 | CHAPTER 6: TESTING | 16 |
+| 7 | CHAPTER 7: FUTURE SCOPE AND CONCLUSION | 17 |
+| 8 | BIBLIOGRAPHY | 18 |
+
+**List of Figures**
+
+| Fig No. | Description | Page No. |
+|---------|-------------|----------|
+| 1 | System Architecture Diagram | 9 |
+| 2 | Database Schema | 10 |
+| 3 | Dashboard Interface | 12 |
+| 4 | API Flow Diagram | 15 |
+
+---
+
+# CHAPTER 1: INTRODUCTION
+
+## 1.1 Background
+
+The freelance economy has experienced exponential growth in recent years, with millions of professionals choosing independent work over traditional employment. According to industry reports, over 70 million freelancers are active in India alone, contributing significantly to the nation's economy. However, freelancers face numerous challenges in managing their business operations effectively.
+
+Traditional methods of managing freelance work through spreadsheets, emails, and paper documents are time-consuming, error-prone, and lack the efficiency required to scale a freelance business. This necessitates the development of specialized software solutions that can automate and streamline freelance business operations.
+
+FreelanceFlow addresses these challenges by providing a comprehensive, cloud-based platform that enables freelancers to manage all aspects of their business from a single application. The system integrates client management, project tracking, financial management, and reporting capabilities into a cohesive, user-friendly interface.
+
+## 1.2 Objectives
+
+The primary objectives of FreelanceFlow are:
+
+1. **Centralized Client Management**: Provide a unified database for storing and managing client information, including contact details, project history, and communication preferences.
+
+2. **Project and Task Management**: Enable freelancers to create, track, and manage multiple projects simultaneously with real-time status updates and deadline tracking.
+
+3. **Automated Financial Operations**: Automate the generation of invoices, tracking of payments, and management of expenses to ensure accurate financial record-keeping.
+
+4. **Time Tracking and Billing**: Implement comprehensive time logging features with timer functionality to accurately track billable hours and generate invoices.
+
+5. **Lead and Proposal Management**: Streamline the sales pipeline by managing leads, creating professional proposals, and tracking conversion rates.
+
+6. **Contract Management**: Store and manage client contracts digitally with status tracking and renewal reminders.
+
+7. **Comprehensive Reporting**: Generate insightful reports on revenue, expenses, client analysis, and project performance to support data-driven decision making.
+
+## 1.3 Purpose
+
+The purpose of FreelanceFlow is to provide freelancers with a professional-grade tool that enhances productivity, improves client relationships, and ensures accurate financial management. By automating repetitive tasks and providing real-time insights, FreelanceFlow enables freelancers to focus on their core competencies - delivering quality work to their clients.
+
+This project demonstrates the practical application of modern web development technologies including React.js for frontend development, Node.js and Express.js for backend development, MongoDB for database management, and JWT for authentication and authorization.
+
+## 1.4 Scope
+
+The scope of FreelanceFlow includes:
+
+**Client Management Module:**
+- Add, edit, and delete client records
+- Store client contact information, company details, and billing preferences
+- Track client project history and total revenue
+
+**Project Management Module:**
+- Create and manage projects with status tracking
+- Assign tasks to projects with deadlines
+- Track project progress and completion rates
+
+**Financial Management Module:**
+- Generate professional invoices with GST support
+- Record payments and track outstanding balances
+- Manage expenses with categorization
+- Generate financial reports
+
+**Time Tracking Module:**
+- Timer-based time logging
+- Manual time entry
+- Billable hours calculation
+- Export time logs for invoicing
+
+**Lead Management Module:**
+- Track potential clients (leads)
+- Manage lead status and conversion
+- Convert leads to clients
+
+**Proposal and Contract Module:**
+- Create and send professional proposals
+- Track proposal status (draft, sent, accepted, declined)
+- Digital contract storage with status tracking
+
+**Reporting Module:**
+- Revenue analysis
+- Expense tracking
+- Client performance metrics
+- Project profitability analysis
+
+## 1.5 Data Sources
+
+The system utilizes the following data sources:
+
+1. **User-Generated Data**: All client information, project details, invoices, payments, expenses, and other business data entered by the user.
+
+2. **System-Generated Data**: Timestamps, unique identifiers, calculated fields (totals, averages), and audit trails.
+
+3. **External APIs**: Integration capabilities for future expansion with payment gateways and accounting software.
+
+## 1.6 Problem Definition
+
+Freelancers face several critical challenges in managing their business operations:
+
+1. **Fragmented Information**: Client data stored in multiple places (emails, contacts, spreadsheets) leads to information silos and duplication.
+
+2. **Manual Invoicing**: Creating invoices manually is time-consuming and prone to errors, leading to payment delays.
+
+3. **Poor Time Tracking**: Without accurate time tracking, freelancers often undervalue their services or miss billable hours.
+
+4. **Financial Blind Spots**: Without proper reporting tools, freelancers lack visibility into their true profitability and financial health.
+
+5. **Inefficient Follow-ups**: Tracking client communications and payment follow-ups becomes overwhelming without proper systems.
+
+6. **Contract Management Issues**: Physical contracts are easily lost and difficult to track for renewals.
+
+FreelanceFlow solves these problems by providing a unified platform with all necessary tools for efficient freelance business management.
+
+---
+
+# CHAPTER 2: TOOLS AND TECHNOLOGY USED
+
+## 2.1 Technology Stack
+
+FreelanceFlow is built using the MERN stack, a popular technology stack for building modern web applications:
+
+### 2.1.1 Frontend Technologies
+
+**React.js (v18.2.0)**
+- A JavaScript library for building user interfaces
+- Component-based architecture for reusable UI elements
+- Virtual DOM for efficient rendering
+- Rich ecosystem with numerous libraries
+
+**Vite (v5.0.0)**
+- Next-generation frontend build tool
+- Lightning-fast development server
+- Hot Module Replacement (HMR)
+- Optimized production builds
+
+**React Router (v6.21.0)**
+- Client-side routing for single-page applications
+- Nested routes for layout management
+- Navigation guards for authentication
+
+**Zustand (v4.4.0)**
+- Lightweight state management solution
+- Simple API with hooks support
+- Persist middleware for local storage
+
+**React Hot Toast (v2.4.1)**
+- Customizable toast notifications
+- Promise-based API for async operations
+- Accessible by default
+
+**Axios (v1.6.0)**
+- HTTP client for API requests
+- Interceptors for request/response handling
+- Automatic token refresh
+
+### 2.1.2 Backend Technologies
+
+**Node.js (v20.0.0)**
+- JavaScript runtime for server-side development
+- Non-blocking I/O for scalable applications
+- Rich npm ecosystem
+
+**Express.js (v4.18.0)**
+- Minimal and flexible web application framework
+- Robust routing system
+- Middleware support for request processing
+
+**MongoDB**
+- NoSQL document database
+- Flexible schema design
+- Powerful aggregation framework
+- Geospatial queries support
+
+**Mongoose (v8.0.0)**
+- MongoDB object modeling for Node.js
+- Schema-based solution for data validation
+- Middleware support for pre/post hooks
+
+### 2.1.3 Authentication and Security
+
+**JSON Web Tokens (JWT)**
+- Stateless authentication mechanism
+- Access and refresh token pattern
+- Secure token storage
+
+**bcrypt**
+- Password hashing algorithm
+- Salt rounds for security
+- Constant-time comparison
+
+### 2.1.4 Development and Deployment
+
+**Git/GitHub**
+- Version control system
+- Collaborative development
+- Continuous integration ready
+
+**Vercel**
+- Frontend deployment platform
+- Automatic deployments from GitHub
+- Edge network for global performance
+
+**Render**
+- Backend deployment platform
+- MongoDB Atlas for database hosting
+- Auto-scaling capabilities
+
+### 2.2 Software Requirements
+
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Node.js | 20.0.0+ | Server runtime |
+| npm | 10.0.0+ | Package manager |
+| MongoDB | 6.0+ | Database |
+| Git | 2.0+ | Version control |
+| VS Code | Latest | Code editor |
+
+### 2.3 Hardware Requirements
+
+**Development Environment:**
+- Processor: Intel Core i5 or equivalent
+- RAM: 8 GB minimum
+- Storage: 256 GB SSD
+- Display: 1920x1080 resolution
+
+**Server Requirements:**
+- CPU: 1 vCPU minimum
+- RAM: 512 MB minimum
+- Storage: 10 GB minimum
+- Network: Broadband connection
+
+---
+
+# CHAPTER 3: SYSTEM REQUIREMENTS AND ANALYSIS
+
+## 3.1 Functional Requirements
+
+### 3.1.1 User Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-01 | User registration with email and password | High |
+| FR-02 | User login with JWT authentication | High |
+| FR-03 | Profile management (name, phone, settings) | Medium |
+| FR-04 | Password change functionality | Medium |
+| FR-05 | Session management with refresh tokens | High |
+
+### 3.1.2 Client Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-10 | Add new client with contact details | High |
+| FR-11 | Edit existing client information | High |
+| FR-12 | Delete client (with confirmation) | Medium |
+| FR-13 | View client details and project history | High |
+| FR-14 | Search and filter clients | Medium |
+| FR-15 | Track client status (active, inactive, prospect) | Medium |
+
+### 3.1.3 Project Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-20 | Create new project linked to client | High |
+| FR-21 | Update project status and details | High |
+| FR-22 | Delete project (with confirmation) | Medium |
+| FR-23 | View project details and progress | High |
+| FR-24 | Filter projects by status | Medium |
+
+### 3.1.4 Invoice Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-30 | Generate invoice from project | High |
+| FR-31 | Add line items with quantity and rate | High |
+| FR-32 | Apply GST/tax calculations | High |
+| FR-33 | View invoice details | High |
+| FR-34 | Delete invoice (with confirmation) | Medium |
+| FR-35 | Invoice PDF generation | Medium |
+
+### 3.1.5 Payment Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-40 | Record payment received | High |
+| FR-41 | Track payment status (completed, pending, failed) | High |
+| FR-42 | View payment history | High |
+| FR-43 | Delete payment record | Medium |
+
+### 3.1.6 Expense Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-50 | Add expense with category | High |
+| FR-51 | Edit expense details | Medium |
+| FR-52 | Delete expense | Medium |
+| FR-53 | Filter expenses by category | Medium |
+
+### 3.1.7 Time Tracking
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-60 | Start/stop timer for time tracking | High |
+| FR-61 | Manual time entry | High |
+| FR-62 | Associate time with project | High |
+| FR-63 | View time logs | High |
+| FR-64 | Delete time log | Medium |
+
+### 3.1.8 Lead Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-70 | Add new lead | High |
+| FR-71 | Update lead status | High |
+| FR-72 | Convert lead to client | Medium |
+| FR-73 | Delete lead | Low |
+
+### 3.1.9 Proposal Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-80 | Create proposal with services | High |
+| FR-81 | Update proposal status | High |
+| FR-82 | Delete proposal | Low |
+
+### 3.1.10 Contract Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-90 | Create contract with terms | High |
+| FR-91 | Update contract status | High |
+| FR-92 | Delete contract | Low |
+
+### 3.1.11 Contact Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-100 | Add contact | High |
+| FR-101 | Edit contact | Medium |
+| FR-102 | Star/unstar contact | Low |
+| FR-103 | Delete contact | Low |
+
+### 3.1.12 Reporting
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-110 | View revenue reports | High |
+| FR-111 | View expense reports | High |
+| FR-112 | View client analysis | Medium |
+| FR-113 | View project metrics | Medium |
+
+## 3.2 Non-Functional Requirements
+
+### 3.2.1 Performance
+
+- Page load time: < 3 seconds
+- API response time: < 500ms
+- Smooth UI interactions without lag
+
+### 3.2.2 Security
+
+- Password hashing with bcrypt
+- JWT-based authentication
+- Protected API routes
+- CORS configuration
+- Input validation and sanitization
+
+### 3.2.3 Usability
+
+- Responsive design for mobile and desktop
+- Intuitive user interface
+- Clear error messages
+- Loading states for async operations
+
+### 3.2.4 Reliability
+
+- Graceful error handling
+- Data persistence with MongoDB
+- API error logging
+
+### 3.2.5 Maintainability
+
+- Modular code structure
+- Component-based architecture
+- Separation of concerns (frontend/backend)
+
+## 3.3 Hardware and Software Requirements
+
+### 3.3.1 Client-Side Requirements
+
+**Minimum Requirements:**
+- Browser: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- JavaScript enabled
+- Internet connection: 1 Mbps+
+
+**Recommended Requirements:**
+- Browser: Latest version of Chrome or Firefox
+- Internet connection: 5 Mbps+
+- Display: 1920x1080 resolution
+
+### 3.3.2 Server-Side Requirements
+
+**Frontend Deployment (Vercel):**
+- Node.js compatible
+- Environment variables configuration
+- Build command: npm run build
+
+**Backend Deployment (Render):**
+- Node.js 20.x
+- Environment variables
+- MongoDB connection string
+
+---
+
+# CHAPTER 4: SYSTEM DESIGN
+
+## 4.1 System Architecture
+
+FreelanceFlow follows a client-server architecture with a clear separation between frontend and backend:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENT (Browser)                       │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                   React.js Application               │    │
+│  │  ┌─────────┐  ┌──────────┐  ┌─────────────────┐  │    │
+│  │  │ Pages   │  │Components│  │ State Management │  │    │
+│  │  │         │  │          │  │ (Zustand Store)  │  │    │
+│  │  └────┬────┘  └────┬─────┘  └────────┬────────┘  │    │
+│  │       └───────────┴───────────────────┘           │    │
+│  │                    │                               │    │
+│  │            ┌──────▼──────┐                        │    │
+│  │            │  API Client │                        │    │
+│  │            │   (Axios)   │                        │    │
+│  │            └──────┬──────┘                        │    │
+│  └───────────────────┼───────────────────────────────┘    │
+└──────────────────────┼───────────────────────────────────┘
+                       │ HTTPS
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     API SERVER (Render)                      │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                  Express.js Server                  │    │
+│  │  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │    │
+│  │  │  Routes  │  │Middleware│  │ Controllers     │  │    │
+│  │  │          │  │(Auth,CORS│  │                │  │    │
+│  │  │ /api/v1/ │  │ ,Error)  │  │ - auth         │  │    │
+│  │  └────┬─────┘  └──────────┘  │ - clients      │  │    │
+│  │       │                      │ - projects     │  │    │
+│  │       └──────────────────────│ - invoices     │  │    │
+│  │                              │ - ...         │  │    │
+│  │                              └───────┬────────┘  │    │
+│  │                                      │           │    │
+│  │                              ┌───────▼───────┐  │    │
+│  │                              │    MongoDB    │  │    │
+│  │                              │  (Mongoose)   │  │    │
+│  │                              └───────────────┘  │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4.1.1 Architecture Layers
+
+1. **Presentation Layer (Frontend)**
+   - React.js components
+   - Responsive UI design
+   - State management with Zustand
+
+2. **Business Logic Layer (Frontend + Backend)**
+   - Form validation
+   - Data processing
+   - Business rules implementation
+
+3. **Data Access Layer (Backend)**
+   - Mongoose models
+   - Database operations
+   - Query optimization
+
+4. **Infrastructure Layer**
+   - MongoDB Atlas (Database)
+   - Vercel (Frontend hosting)
+   - Render (Backend hosting)
+
+## 4.2 Database Design
+
+### 4.2.1 Entity Relationship Diagram
+
+```
+┌──────────┐       ┌──────────┐       ┌──────────┐
+│   User   │──────<│  Client  │──────<│ Project  │
+└──────────┘       └──────────┘       └──────────┘
+      │                  │                  │
+      │                  │                  │
+      │            ┌─────┴─────┐            │
+      │            │           │            │
+      │      ┌─────▼─────┐ ┌───▼────┐      │
+      │      │  Invoice  │ │Payment │      │
+      │      └───────────┘ └────────┘      │
+      │
+      ├──────────┐       ┌──────────┐
+      │   Lead   │───────>│ Contract │
+      └──────────┘       └──────────┘
+             │
+      ┌──────▼──────┐
+      │   Contact  │
+      └─────────────┘
+```
+
+### 4.2.2 MongoDB Collections
+
+**Users Collection**
+```javascript
+{
+  _id: ObjectId,
+  name: String,
+  email: String (unique),
+  password: String (hashed),
+  plan: String (enum: 'free', 'pro'),
+  settings: {
+    currency: String,
+    timezone: String,
+    businessName: String,
+    businessAddress: String,
+    gstin: String
+  },
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Clients Collection**
+```javascript
+{
+  _id: ObjectId,
+  user: ObjectId (ref: User),
+  name: String (required),
+  email: String,
+  phone: String,
+  company: String,
+  industry: String,
+  address: String,
+  website: String,
+  notes: String,
+  status: String (enum: 'active', 'inactive', 'prospect'),
+  defaultHourlyRate: Number,
+  totalBilled: Number,
+  totalPaid: Number,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Projects Collection**
+```javascript
+{
+  _id: ObjectId,
+  user: ObjectId (ref: User),
+  client: ObjectId (ref: Client),
+  title: String,
+  description: String,
+  status: String (enum: 'planning', 'active', 'completed', 'cancelled'),
+  budget: Number,
+  startDate: Date,
+  endDate: Date,
+  tasks: [{
+    title: String,
+    status: String,
+    dueDate: Date
+  }],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Invoices Collection**
+```javascript
+{
+  _id: ObjectId,
+  user: ObjectId (ref: User),
+  client: ObjectId (ref: Client),
+  project: ObjectId (ref: Project),
+  invoiceNumber: String,
+  items: [{
+    description: String,
+    quantity: Number,
+    rate: Number,
+    amount: Number
+  }],
+  subtotal: Number,
+  taxRate: Number,
+  taxAmount: Number,
+  total: Number,
+  status: String (enum: 'draft', 'sent', 'paid', 'overdue'),
+  dueDate: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## 4.3 Module Description
+
+### 4.3.1 Authentication Module
+- User registration and login
+- JWT token generation and validation
+- Password hashing and verification
+- Token refresh mechanism
+
+### 4.3.2 Dashboard Module
+- Aggregated data display
+- Quick statistics
+- Recent activity
+- Quick action buttons
+
+### 4.3.3 Client Management Module
+- CRUD operations for clients
+- Client detail view
+- Search and filter functionality
+- Client statistics
+
+### 4.3.4 Project Management Module
+- Project creation and tracking
+- Status management
+- Budget tracking
+- Project-client association
+
+### 4.3.5 Financial Management Module
+- Invoice generation
+- Payment recording
+- Expense tracking
+- Tax calculations (GST)
+
+### 4.3.6 Time Tracking Module
+- Timer functionality
+- Manual entry
+- Project association
+- Earnings calculation
+
+### 4.3.7 Lead Management Module
+- Lead capture
+- Status progression
+- Lead-to-client conversion
+- Source tracking
+
+### 4.3.8 Proposal Module
+- Proposal creation
+- Service listing
+- Amount calculation
+- Status tracking
+
+### 4.3.9 Contract Module
+- Contract storage
+- Terms management
+- Status tracking
+- Signed date recording
+
+### 4.3.10 Reporting Module
+- Revenue analysis
+- Expense reports
+- Client metrics
+- Project performance
+
+---
+
+# CHAPTER 5: IMPLEMENTATION
+
+## 5.1 Frontend Implementation
+
+### 5.1.1 Project Structure
+
+```
+client/
+├── src/
+│   ├── components/
+│   │   ├── Layout.jsx
+│   │   └── ...
+│   ├── pages/
+│   │   ├── Dashboard.jsx
+│   │   ├── Clients.jsx
+│   │   ├── Projects.jsx
+│   │   ├── Invoices.jsx
+│   │   ├── Payments.jsx
+│   │   ├── Expenses.jsx
+│   │   ├── Tasks.jsx
+│   │   ├── TimeLogs.jsx
+│   │   ├── Leads.jsx
+│   │   ├── Proposals.jsx
+│   │   ├── Contracts.jsx
+│   │   ├── Contacts.jsx
+│   │   ├── Reports.jsx
+│   │   ├── Calendar.jsx
+│   │   ├── Settings.jsx
+│   │   └── Help.jsx
+│   ├── lib/
+│   │   └── api.js
+│   ├── store/
+│   │   └── authStore.js
+│   ├── App.jsx
+│   └── main.jsx
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+### 5.1.2 Key Components
+
+**Dashboard.jsx**
+- Displays overview statistics
+- Recent clients, projects, invoices
+- Quick action buttons
+- Charts for data visualization
+
+**Clients.jsx**
+- Grid/List view toggle
+- Client cards with key information
+- Search and filter functionality
+- Add/Edit modal with form validation
+- Client detail drawer
+
+**API Integration (api.js)**
+```javascript
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
+  headers: { "Content-Type": "application/json" }
+});
+
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+```
+
+### 5.1.3 State Management
+
+Using Zustand for global state management:
+
+```javascript
+const useAuthStore = create(
+  persist(
+    (set, get) => ({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      setAuth: (user, accessToken, refreshToken) => set({...}),
+      logout: () => set({...})
+    }),
+    { name: "freelanceflow-auth" }
+  )
+);
+```
+
+## 5.2 Backend Implementation
+
+### 5.2.1 Project Structure
+
+```
+server/
+├── config/
+│   └── db.js
+├── controllers/
+│   ├── authController.js
+│   ├── clientController.js
+│   ├── projectController.js
+│   ├── invoiceController.js
+│   ├── paymentController.js
+│   ├── expenseController.js
+│   ├── timeLogController.js
+│   ├── leadController.js
+│   ├── proposalController.js
+│   ├── contractController.js
+│   └── contactController.js
+├── middleware/
+│   ├── auth.js
+│   └── error.js
+├── models/
+│   ├── User.js
+│   ├── Client.js
+│   ├── Project.js
+│   ├── Invoice.js
+│   ├── Payment.js
+│   ├── Expense.js
+│   ├── TimeLog.js
+│   ├── Lead.js
+│   ├── Proposal.js
+│   ├── Contract.js
+│   └── Contact.js
+├── routes/
+│   ├── authRoutes.js
+│   ├── clientRoutes.js
+│   ├── projectRoutes.js
+│   ├── invoiceRoutes.js
+│   ├── paymentRoutes.js
+│   ├── expenseRoutes.js
+│   ├── timeLogRoutes.js
+│   ├── leadRoutes.js
+│   ├── proposalRoutes.js
+│   ├── contractRoutes.js
+│   └── contactRoutes.js
+├── server.js
+└── package.json
+```
+
+### 5.2.2 API Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/auth/register | User registration |
+| POST | /api/v1/auth/login | User login |
+| POST | /api/v1/auth/refresh | Refresh tokens |
+| PUT | /api/v1/auth/profile | Update profile |
+| GET | /api/v1/clients | Get all clients |
+| POST | /api/v1/clients | Create client |
+| PUT | /api/v1/clients/:id | Update client |
+| DELETE | /api/v1/clients/:id | Delete client |
+| GET | /api/v1/projects | Get all projects |
+| POST | /api/v1/projects | Create project |
+| PUT | /api/v1/projects/:id | Update project |
+| DELETE | /api/v1/projects/:id | Delete project |
+| GET | /api/v1/invoices | Get all invoices |
+| POST | /api/v1/invoices | Create invoice |
+| PUT | /api/v1/invoices/:id | Update invoice |
+| DELETE | /api/v1/invoices/:id | Delete invoice |
+| GET | /api/v1/payments | Get all payments |
+| POST | /api/v1/payments | Create payment |
+| PUT | /api/v1/payments/:id | Update payment |
+| DELETE | /api/v1/payments/:id | Delete payment |
+| GET | /api/v1/expenses | Get all expenses |
+| POST | /api/v1/expenses | Create expense |
+| PUT | /api/v1/expenses/:id | Update expense |
+| DELETE | /api/v1/expenses/:id | Delete expense |
+| GET | /api/v1/timelogs | Get all time logs |
+| POST | /api/v1/timelogs | Create time log |
+| PUT | /api/v1/timelogs/:id | Update time log |
+| DELETE | /api/v1/timelogs/:id | Delete time log |
+| GET | /api/v1/leads | Get all leads |
+| POST | /api/v1/leads | Create lead |
+| PUT | /api/v1/leads/:id | Update lead |
+| DELETE | /api/v1/leads/:id | Delete lead |
+| GET | /api/v1/proposals | Get all proposals |
+| POST | /api/v1/proposals | Create proposal |
+| PUT | /api/v1/proposals/:id | Update proposal |
+| DELETE | /api/v1/proposals/:id | Delete proposal |
+| GET | /api/v1/contracts | Get all contracts |
+| POST | /api/v1/contracts | Create contract |
+| PUT | /api/v1/contracts/:id | Update contract |
+| DELETE | /api/v1/contracts/:id | Delete contract |
+| GET | /api/v1/contacts | Get all contacts |
+| POST | /api/v1/contacts | Create contact |
+| PUT | /api/v1/contacts/:id | Update contact |
+| DELETE | /api/v1/contacts/:id | Delete contact |
+
+## 5.3 API Integration
+
+### 5.3.1 Authentication Flow
+
+```
+┌────────┐                    ┌────────┐                    ┌────────┐
+│ Client │                    │ Server │                    │ MongoDB│
+└───┬────┘                    └───┬────┘                    └───┬────┘
+    │                              │                              │
+    │  1. POST /auth/login        │                              │
+    │─────────────────────────────>│                              │
+    │                              │  2. Validate credentials     │
+    │                              │─────────────────────────────>│
+    │                              │                              │
+    │                              │  3. Generate tokens          │
+    │                              │<─────────────────────────────│
+    │                              │                              │
+    │  4. Return tokens            │                              │
+    │<─────────────────────────────│                              │
+    │                              │                              │
+    │  5. Store tokens             │                              │
+    │  6. Request with Bearer      │                              │
+    │─────────────────────────────>│                              │
+    │                              │  7. Verify token             │
+    │                              │─────────────────────────────>│
+    │                              │                              │
+    │  8. Return data              │                              │
+    │<─────────────────────────────│                              │
+```
+
+---
+
+# CHAPTER 6: TESTING
+
+## 6.1 Testing Strategy
+
+### 6.1.1 Unit Testing
+
+- Component rendering tests
+- Function output verification
+- State management tests
+
+### 6.1.2 Integration Testing
+
+- API endpoint testing
+- Database operation verification
+- Authentication flow testing
+
+### 6.1.3 User Acceptance Testing
+
+- Form validation verification
+- Navigation flow testing
+- Cross-browser compatibility
+- Responsive design testing
+
+## 6.2 Test Cases
+
+| Test Case ID | Description | Expected Result | Status |
+|--------------|-------------|-----------------|--------|
+| TC-01 | User registration with valid data | Account created successfully | Pass |
+| TC-02 | User login with correct credentials | Redirect to dashboard | Pass |
+| TC-03 | Create new client | Client appears in list | Pass |
+| TC-04 | Edit client details | Changes saved successfully | Pass |
+| TC-05 | Delete client | Client removed from list | Pass |
+| TC-06 | Create project | Project linked to client | Pass |
+| TC-07 | Generate invoice | Invoice with calculated totals | Pass |
+| TC-08 | Record payment | Payment saved and displayed | Pass |
+| TC-09 | Time logging | Time entry recorded | Pass |
+| TC-10 | Responsive design | Works on mobile devices | Pass |
+
+## 6.3 Error Handling
+
+- Form validation with error messages
+- API error handling with toast notifications
+- Network error recovery
+- Empty state handling
+
+---
+
+# CHAPTER 7: FUTURE SCOPE AND CONCLUSION
+
+## 7.1 Future Scope
+
+1. **Mobile Application**: Develop React Native or Flutter mobile app for iOS and Android for on-the-go access.
+
+2. **Payment Gateway Integration**: Integrate with Razorpay, Stripe, or PayPal for online payment collection.
+
+3. **Automated Reminders**: Implement email/SMS reminders for payment due dates and contract renewals.
+
+4. **Advanced Analytics**: Add more sophisticated reporting with trends, predictions, and custom dashboards.
+
+5. **Multi-language Support**: Add internationalization (i18n) for multi-language support.
+
+6. **API Marketplace**: Expose APIs for third-party integrations with accounting software like QuickBooks, Tally, etc.
+
+7. **Team Collaboration**: Add multi-user support for agencies with team management features.
+
+8. **AI Assistance**: Implement AI-powered features like invoice suggestions, lead scoring, and chatbots.
+
+9. **Cloud Storage Integration**: Integrate with Google Drive, Dropbox for document storage.
+
+10. **White-label Solution**: Allow customization for agencies to brand the platform as their own.
+
+## 7.2 Conclusion
+
+FreelanceFlow successfully demonstrates the practical application of modern web development technologies in creating a comprehensive freelance management solution. The application addresses the real-world challenges faced by freelancers in managing their business operations efficiently.
+
+Key achievements of this project:
+
+1. **Complete Feature Set**: The application includes all essential features for freelance business management including client management, project tracking, invoicing, payment recording, expense tracking, time logging, lead management, proposal creation, and contract management.
+
+2. **Modern Technology Stack**: Built using the MERN stack (MongoDB, Express.js, React.js, Node.js), demonstrating proficiency in current industry-standard technologies.
+
+3. **Responsive Design**: The application works seamlessly across desktop and mobile devices, ensuring accessibility for freelancers on the go.
+
+4. **Security**: Implements industry best practices for authentication and authorization using JWT tokens and password hashing.
+
+5. **User Experience**: Clean, intuitive interface designed with modern UI/UX principles.
+
+The project serves as a valuable learning experience in full-stack web development and demonstrates the ability to analyze requirements, design solutions, and implement functional software systems.
+
+## 7.3 Limitations
+
+1. Currently supports single-user mode (multi-user planned for future)
+2. PDF generation requires server-side implementation
+3. Email notifications not implemented in current version
+4. Limited offline support
+
+---
+
+# BIBLIOGRAPHY
+
+1. **React Documentation**. (2024). React.js Official Documentation. https://react.dev
+
+2. **Node.js Documentation**. (2024). Node.js Official Documentation. https://nodejs.org/docs
+
+3. **MongoDB Documentation**. (2024). MongoDB Manual. https://docs.mongodb.com
+
+4. **MDN Web Docs**. (2024). Mozilla Developer Network. https://developer.mozilla.org
+
+5. **Express.js Documentation**. (2024). Express.js Official Guide. https://expressjs.com
+
+6. **Vercel Documentation**. (2024). Vercel Platform Documentation. https://vercel.com/docs
+
+7. **Render Documentation**. (2024). Render Platform Documentation. https://render.com/docs
+
+8. **Zustand Documentation**. (2024). Zustand State Management. https://github.com/pmndrs/zustand
+
+9. **Axios Documentation**. (2024). Axios HTTP Client. https://axios-http.com
+
+10. **JWT Documentation**. (2024). JSON Web Tokens. https://jwt.io
+
+11. **Mongoose Documentation**. (2024). Mongoose ODM. https://mongoosejs.com/docs
+
+12. **React Router Documentation**. (2024). React Router v6. https://reactrouter.com
+
+---
+
+**Project Repository:** https://github.com/farhankh8/FreelanceFlow
+
+**Live Application:** https://freelanceflow.vercel.app
+
+**API Server:** https://freelanceflow-api.onrender.com
+
+---
+
+*Submitted in partial fulfillment for the award of degree in Bachelor of Computer Application*
+*Yenepoya (Deemed to be University), May 2026*
