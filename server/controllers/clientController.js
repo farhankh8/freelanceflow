@@ -116,10 +116,12 @@ const createClient = async (req, res) => {
       userAgent: req.get('user-agent')
     });
 
+    // Backward compatible response
     res.status(201).json({
       success: true,
       message: 'Client created successfully',
       data: client,
+      client, // backward compat
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -227,10 +229,12 @@ const updateClient = async (req, res) => {
       userAgent: req.get('user-agent')
     });
 
+    // Backward compatible response
     res.status(200).json({
       success: true,
       message: 'Client updated successfully',
       data: client,
+      client, // backward compat
       timestamp: new Date().toISOString()
     });
   } catch (error) {
