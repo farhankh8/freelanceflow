@@ -11,7 +11,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
     const token = useAuthStore.getState().accessToken
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -22,23 +21,24 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => {
-    console.log(`API Response: ${response.status} ${response.config.url}`)
-    return response
-  },
+  (response) => response,
   async (error) => {
-    console.log(`API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data)
     const originalRequest = error.config
     
+    // Handle 401 - try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       try {
         const refreshToken = useAuthStore.getState().refreshToken
         if (refreshToken) {
-          const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
-          useAuthStore.getState().updateToken(data.accessToken)
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
-          return api(originalRequest)
+          // Handle both old and new response formats
+          const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
+          const newToken = res.data.accessToken || res.data.data?.accessToken
+          if (newToken) {
+            useAuthStore.getState().updateToken(newToken)
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            return api(originalRequest)
+          }
         }
       } catch (refreshError) {
         useAuthStore.getState().logout()
@@ -48,7 +48,8 @@ api.interceptors.response.use(
     }
     
     if (error.response?.status === 403) {
-      if (error.response.data?.error?.includes('Pro')) {
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || ''
+      if (errorMsg.includes('Pro')) {
         window.location.href = "/app/settings?upgrade=true"
       }
     }

@@ -19,20 +19,17 @@ export default function Register() {
     e.preventDefault()
     if (submittedRef.current) return
     if (password !== confirm) { toast.error('Passwords do not match!'); return }
-    if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    if (password.length < 12) { toast.error('Password must be at least 12 characters with uppercase, lowercase, number & special char'); return }
     submittedRef.current = true
     setLoading(true)
     try {
       const response = await api.post('/auth/register', { name, email, password })
-      console.log('SUCCESS - Response:', response.status, response.data)
       setAuth(response.data.user, response.data.accessToken, response.data.refreshToken)
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
       navigate('/app')
     } catch (err) {
-      console.log('ERROR - Status:', err.response?.status)
-      console.log('ERROR - Data:', err.response?.data)
-      console.log('ERROR - Message:', err.message)
-      toast.error(err.response?.data?.error || err.message || 'Registration failed')
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Registration failed'
+      toast.error(errorMsg)
       submittedRef.current = false
     } finally {
       setLoading(false)
@@ -100,7 +97,7 @@ export default function Register() {
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', color: '#8b9cc8', marginBottom: '6px', fontWeight: 600 }}>Password</label>
                 <div style={{ position: 'relative' }}>
-                  <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Min 6 characters" style={inputStyle}
+                  <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Min 12 chars (upper, lower, number, special)" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#6c63ff'}
                     onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
                   <button type="button" onClick={() => setShowPass(s => !s)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#8b9cc8', cursor: 'pointer', fontSize: '16px' }}>

@@ -138,10 +138,13 @@ const getProjectsEnhanced = async (req, res) => {
       hasPrev: parseInt(page) > 1
     };
 
+    // Backward compatible response
     res.status(200).json({
       success: true,
       message: 'Projects retrieved',
       data: projects,
+      projects, // backward compat
+      count: projects.length, // backward compat
       pagination,
       timestamp: new Date().toISOString()
     });

@@ -44,10 +44,13 @@ const getClients = async (req, res) => {
       hasPrev: parseInt(page) > 1
     };
 
+    // Backward compatible response
     res.status(200).json({
       success: true,
       message: 'Clients retrieved',
       data: clients,
+      clients, // backward compat
+      count: clients.length, // backward compat
       pagination,
       timestamp: new Date().toISOString()
     });
