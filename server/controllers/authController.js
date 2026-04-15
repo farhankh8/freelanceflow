@@ -70,11 +70,15 @@ const register = [
     
     logger.info({ userId: user._id }, 'User registered successfully')
     
-    return sendSuccess(res, {
+    // Backward compatible response - tokens at root level
+    return res.status(201).json({
+      success: true,
+      message: 'Registration successful',
       accessToken,
       refreshToken,
-      user: { id: user._id, name: user.name, email: user.email, plan: user.plan }
-    }, 'Registration successful', 201)
+      user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
+      timestamp: new Date().toISOString()
+    })
   })
 ]
 
@@ -149,11 +153,15 @@ const login = [
     logger.info({ userId: user._id }, 'User logged in successfully')
     securityLog.loginAttempt(user._id, req.ip, true)
     
-    return sendSuccess(res, {
+    // Backward compatible response - tokens at root level
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
       accessToken,
       refreshToken,
-      user: { id: user._id, name: user.name, email: user.email, plan: user.plan }
-    }, 'Login successful')
+      user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
+      timestamp: new Date().toISOString()
+    })
   })
 ]
 
@@ -192,7 +200,13 @@ const refresh = asyncHandler(async (req, res) => {
       method: 'POST'
     })
     
-    return sendSuccess(res, { accessToken }, 'Token refreshed')
+    // Backward compatible response
+    return res.status(200).json({
+      success: true,
+      message: 'Token refreshed',
+      accessToken,
+      timestamp: new Date().toISOString()
+    })
   } catch (error) {
     securityLog.invalidToken(null, error.message)
     return sendError(res, 'Invalid refresh token', 401)
@@ -220,7 +234,12 @@ const logout = asyncHandler(async (req, res) => {
     logger.info({ userId: req.user.id }, 'User logged out')
   }
   
-  return sendSuccess(res, null, 'Logged out successfully')
+  // Backward compatible
+  return res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+    timestamp: new Date().toISOString()
+  })
 })
 
 /**
@@ -243,7 +262,13 @@ const getMe = asyncHandler(async (req, res) => {
     method: 'GET'
   })
   
-  return sendSuccess(res, user, 'User retrieved')
+  // Backward compatible - user at root level
+  return res.status(200).json({
+    success: true,
+    message: 'User retrieved',
+    user,
+    timestamp: new Date().toISOString()
+  })
 })
 
 /**
@@ -289,7 +314,13 @@ const updateProfile = asyncHandler(async (req, res) => {
   
   logger.info({ userId: req.user.id, fields: Object.keys(updates) }, 'Profile updated')
   
-  return sendSuccess(res, user, 'Profile updated successfully')
+  // Backward compatible - user at root level
+  return res.status(200).json({
+    success: true,
+    message: 'Profile updated successfully',
+    user,
+    timestamp: new Date().toISOString()
+  })
 })
 
 module.exports = { 
