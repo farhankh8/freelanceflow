@@ -196,9 +196,9 @@ const createInvoice = asyncHandler(async (req, res) => {
 
   const processedItems = items.map(item => ({
     description: item.description || 'Service',
-    hours: item.hours || 0,
-    rate: item.rate || 0,
-    amount: item.amount || 0
+    hours: parseFloat(item.hours) || 0,
+    rate: parseFloat(item.rate) || 0,
+    amount: parseFloat((item.hours * item.rate).toFixed(2)) || 0
   }));
 
   const invoice = await Invoice.create({
