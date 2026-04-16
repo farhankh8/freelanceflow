@@ -66,7 +66,7 @@ export default function Clients() {
       if (editMode && showDetail) {
         const { data } = await api.put(`/clients/${showDetail._id}`, form)
         const updatedClient = data.data
-        setClients(prev => prev.map(c => c._id === showDetail._id ? updatedClient : c))
+        setClients(prev => (prev || []).map(c => c._id === showDetail._id ? updatedClient : c))
         setShowDetail(updatedClient)
         toast.success("Client updated! ✅")
         setShowModal(false)

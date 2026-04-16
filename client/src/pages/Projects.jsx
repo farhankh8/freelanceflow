@@ -108,7 +108,7 @@ export default function Projects() {
   const moveProject = async (id, status) => {
     try {
       const { data } = await api.put(`/projects/${id}`, { status })
-      setProjects(prev => prev.map(p => p._id === id ? data.data : p))
+      setProjects(prev => (prev || []).map(p => p._id === id ? data.data : p))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch {
       toast.error("Failed to update")

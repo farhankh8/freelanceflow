@@ -46,7 +46,7 @@ export default function Leads() {
   const moveLead = async (id, stage) => {
     try {
       const { data } = await api.put(`/leads/${id}`, { stage })
-      setLeads(prev => prev.map(l => l._id === id ? data.data : l))
+      setLeads(prev => (prev || []).map(l => l._id === id ? data.data : l))
       if (stage === "won") toast.success("Lead won! 🎉")
       else toast.success("Moved to " + STAGES[stage]?.label)
     } catch { toast.error("Failed to update") }

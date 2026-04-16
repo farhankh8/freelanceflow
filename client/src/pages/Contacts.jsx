@@ -195,7 +195,7 @@ export default function Contacts() {
     if (!selected) return
     try {
       const { data } = await api.put(`/contacts/${selected._id}`, formData)
-      setContacts(prev => prev.map(c => c._id === selected._id ? data.data : c))
+      setContacts(prev => (prev || []).map(c => c._id === selected._id ? data.data : c))
       setSelected(data.data)
       toast.success("Contact updated! ✏️")
       setShowForm(false)
@@ -210,7 +210,7 @@ export default function Contacts() {
     if (!contact) return
     try {
       const { data } = await api.put(`/contacts/${id}`, { starred: !contact.starred })
-      setContacts(prev => prev.map(c => c._id === id ? data.data : c))
+      setContacts(prev => (prev || []).map(c => c._id === id ? data.data : c))
       setSelected(s => s?._id === id ? data.data : s)
     } catch (e) {
       toast.error("Failed to update")

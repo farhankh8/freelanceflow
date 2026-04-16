@@ -111,7 +111,7 @@ export default function Tasks() {
   const moveTask = async (id, status) => {
     try {
       const { data } = await api.put(`/tasks/${id}`, { status })
-      setTasks(prev => prev.map(t => t._id === id ? data.data : t))
+      setTasks(prev => (prev || []).map(t => t._id === id ? data.data : t))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch { toast.error("Failed to update") }
   }
@@ -119,7 +119,7 @@ export default function Tasks() {
   const updateTask = async (id, updates) => {
     try {
       const { data } = await api.put(`/tasks/${id}`, updates)
-      setTasks(prev => prev.map(t => t._id === id ? data.data : t))
+      setTasks(prev => (prev || []).map(t => t._id === id ? data.data : t))
       setSelected(null)
       toast.success("Task updated!")
     } catch { toast.error("Failed to update") }

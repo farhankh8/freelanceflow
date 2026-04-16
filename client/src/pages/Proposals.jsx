@@ -191,7 +191,7 @@ export default function Proposals() {
     if (!editProposal) return
     try {
       const { data } = await api.put(`/proposals/${editProposal._id}`, formData)
-      setProposals(prev => prev.map(p => p._id === editProposal._id ? data.data : p))
+      setProposals(prev => (prev || []).map(p => p._id === editProposal._id ? data.data : p))
       setViewProposal(data.data)
       toast.success("Proposal updated!")
       setShowModal(false)
@@ -204,7 +204,7 @@ export default function Proposals() {
   const updateStatus = async (id, status) => {
     try {
       const { data } = await api.put(`/proposals/${id}`, { status })
-      setProposals(prev => prev.map(p => p._id === id ? data.data : p))
+      setProposals(prev => (prev || []).map(p => p._id === id ? data.data : p))
       setViewProposal(prev => prev?._id === id ? data.data : prev)
       toast.success(status === "accepted" ? "🎉 Accepted!" : "Status updated!")
     } catch (e) {

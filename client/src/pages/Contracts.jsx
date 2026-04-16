@@ -238,7 +238,7 @@ export default function Contracts() {
     if (!editContract) return
     try {
       const { data } = await api.put(`/contracts/${editContract._id}`, formData)
-      setContracts(prev => prev.map(c => c._id === editContract._id ? data.data : c))
+      setContracts(prev => (prev || []).map(c => c._id === editContract._id ? data.data : c))
       setViewContract(data.data)
       toast.success("Contract updated!")
       setShowModal(false)
@@ -252,7 +252,7 @@ export default function Contracts() {
     const extra = status === "signed" ? { signedAt: new Date().toISOString().split("T")[0] } : {}
     try {
       const { data } = await api.put(`/contracts/${id}`, { status, ...extra })
-      setContracts(prev => prev.map(c => c._id === id ? data.data : c))
+      setContracts(prev => (prev || []).map(c => c._id === id ? data.data : c))
       setViewContract(prev => prev?._id === id ? data.data : prev)
       toast.success(status === "signed" ? "Contract signed!" : "Status updated!")
     } catch (e) {

@@ -93,7 +93,7 @@ export default function Meetings() {
     setSaving(true)
     await new Promise(r => setTimeout(r, 800))
     if (selectedMeeting) {
-      setMeetings(prev => prev.map(m => m._id === selectedMeeting._id ? { ...m, ...form } : m))
+      setMeetings(prev => (prev || []).map(m => m._id === selectedMeeting._id ? { ...m, ...form } : m))
       toast.success("Meeting updated! ✅")
     } else {
       const newMeeting = { _id: Date.now().toString(), ...form, status: "scheduled" }

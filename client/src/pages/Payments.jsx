@@ -99,7 +99,7 @@ export default function Payments() {
   const updateStatus = async (id, status) => {
     try {
       await api.put(`/payments/${id}`, { status })
-      setPayments(prev => prev.map(p => p._id === id ? { ...p, status } : p))
+      setPayments(prev => (prev || []).map(p => p._id === id ? { ...p, status } : p))
       if (selected?._id === id) {
         setSelected(prev => prev ? { ...prev, status } : null)
       }
