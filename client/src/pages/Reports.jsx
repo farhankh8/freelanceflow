@@ -206,7 +206,7 @@ export default function Reports() {
             <BarChart data={monthlyData}>
               <XAxis dataKey="month" tick={{ fill: "#8888aa", fontSize: 12 }} axisLine={{ stroke: "#2a2a3a" }} />
               <YAxis tick={{ fill: "#8888aa", fontSize: 12 }} axisLine={{ stroke: "#2a2a3a" }} tickFormatter={v => "₹" + (v / 1000).toFixed(0) + "k"} />
-              <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + v.toLocaleString()} />
+              <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + ((v ?? 0).toLocaleString())} />
               <Bar dataKey="revenue" fill="#00d97e" radius={[4, 4, 0, 0]} name="Revenue" />
               <Bar dataKey="expense" fill="#ff4d6d" radius={[4, 4, 0, 0]} name="Expenses" />
             </BarChart>
@@ -222,7 +222,7 @@ export default function Reports() {
                   <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                     {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + v.toLocaleString()} />
+              <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + ((v ?? 0).toLocaleString())} />
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "10px" }}>
@@ -248,7 +248,7 @@ export default function Reports() {
               <BarChart data={clientRevenue} layout="vertical">
                 <XAxis type="number" tick={{ fill: "#8888aa", fontSize: 11 }} tickFormatter={v => "₹" + (v / 1000).toFixed(0) + "k"} />
                 <YAxis type="category" dataKey="name" tick={{ fill: "#8888aa", fontSize: 11 }} width={100} />
-                <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + v.toLocaleString()} />
+                <Tooltip contentStyle={{ background: "#1a1a24", border: "1px solid #2a2a3a", borderRadius: "8px" }} formatter={(v) => "₹" + ((v ?? 0).toLocaleString())} />
                 <Bar dataKey="value" fill="#6c63ff" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
