@@ -70,12 +70,19 @@ const register = [
     
     logger.info({ userId: user._id }, 'User registered successfully')
     
-    // Backward compatible response - tokens at root level
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    }
+    
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, httpOnly: true })
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
+    
     return res.status(201).json({
       success: true,
       message: 'Registration successful',
-      accessToken,
-      refreshToken,
       user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
       timestamp: new Date().toISOString()
     })
@@ -153,12 +160,19 @@ const login = [
     logger.info({ userId: user._id }, 'User logged in successfully')
     securityLog.loginAttempt(user._id, req.ip, true)
     
-    // Backward compatible response - tokens at root level
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    }
+    
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, httpOnly: true })
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
+    
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-      accessToken,
-      refreshToken,
       user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
       timestamp: new Date().toISOString()
     })
@@ -169,8 +183,8 @@ const login = [
  * Refresh access token
  */
 const refresh = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body
-  
+  const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken
+   
   if (!refreshToken) {
     return sendError(res, 'Refresh token required', 401)
   }
@@ -190,7 +204,6 @@ const refresh = asyncHandler(async (req, res) => {
     
     const accessToken = generateAccessToken(user._id)
     
-    // Log audit
     await AuditLog.log({
       userId: user._id,
       action: 'TOKEN_REFRESH',
@@ -200,11 +213,16 @@ const refresh = asyncHandler(async (req, res) => {
       method: 'POST'
     })
     
-    // Backward compatible response
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000
+    })
+    
     return res.status(200).json({
       success: true,
       message: 'Token refreshed',
-      accessToken,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
@@ -218,10 +236,8 @@ const refresh = asyncHandler(async (req, res) => {
  */
 const logout = asyncHandler(async (req, res) => {
   if (req.user?.id) {
-    // Clear refresh token
     await User.findByIdAndUpdate(req.user.id, { refreshToken: null })
     
-    // Log audit
     await AuditLog.log({
       userId: req.user.id,
       action: 'LOGOUT',
@@ -234,7 +250,9 @@ const logout = asyncHandler(async (req, res) => {
     logger.info({ userId: req.user.id }, 'User logged out')
   }
   
-  // Backward compatible
+  res.clearCookie('accessToken')
+  res.clearCookie('refreshToken')
+  
   return res.status(200).json({
     success: true,
     message: 'Logged out successfully',
@@ -323,11 +341,58 @@ const updateProfile = asyncHandler(async (req, res) => {
   })
 })
 
+/**
+ * Change password
+ */
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+
+  if (!currentPassword || !newPassword) {
+    return sendError(res, 'Current password and new password are required', 400)
+  }
+
+  if (newPassword.length < 8) {
+    return sendError(res, 'New password must be at least 8 characters', 400)
+  }
+
+  const user = await User.findById(req.user.id).select('+password')
+
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+
+  const isMatch = await user.comparePassword(currentPassword)
+  if (!isMatch) {
+    return sendError(res, 'Current password is incorrect', 401)
+  }
+
+  user.password = newPassword
+  await user.save()
+
+  await AuditLog.log({
+    userId: req.user.id,
+    action: 'PASSWORD_CHANGE',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'PUT'
+  })
+
+  logger.info({ userId: req.user.id }, 'Password changed successfully')
+
+  return res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
+    timestamp: new Date().toISOString()
+  })
+})
+
 module.exports = { 
   register, 
   login, 
   refresh, 
   logout, 
   getMe, 
-  updateProfile 
+  updateProfile,
+  changePassword
 }

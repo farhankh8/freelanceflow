@@ -63,7 +63,7 @@ export default function Meetings() {
         },
       ]
       setMeetings(sampleMeetings)
-    } catch (e) { console.error(e) }
+    } catch { /* silent fail */ }
     finally { setLoading(false) }
   }
 

@@ -10,16 +10,20 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
   const [show, setShow] = useState(false)
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) { toast.error("Fill in all fields"); return }
+    let valid = true
+    if (!form.email) { setEmailError("Email is required"); valid = false } else { setEmailError("") }
+    if (!form.password) { setPasswordError("Password is required"); valid = false } else { setPasswordError("") }
+    if (!valid) return
     setLoading(true)
     try {
       const { data } = await api.post("/auth/login", form)
-      // ✅ Save token + user to persisted store
-      setAuth(data.user, data.accessToken, data.refreshToken)
-      toast.success("Welcome back! 🎉")
+      setAuth(data.user)
+      toast.success("Welcome back!")
       navigate("/app")
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid email or password")
@@ -38,14 +42,14 @@ export default function Login() {
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0a12 0%,#0f0f1a 50%,#0a0a12 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       {/* Background blobs */}
-      <div style={{ position: "fixed", top: "10%", left: "5%", width: "400px", height: "400px", background: "radial-gradient(circle,rgba(108,99,255,0.12),transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", bottom: "10%", right: "5%", width: "350px", height: "350px", background: "radial-gradient(circle,rgba(255,101,132,0.1),transparent 70%)", pointerEvents: "none" }} />
+      <div aria-hidden="true" style={{ position: "fixed", top: "10%", left: "5%", width: "400px", height: "400px", background: "radial-gradient(circle,rgba(108,99,255,0.12),transparent 70%)", pointerEvents: "none" }} />
+      <div aria-hidden="true" style={{ position: "fixed", bottom: "10%", right: "5%", width: "350px", height: "350px", background: "radial-gradient(circle,rgba(255,101,132,0.1),transparent 70%)", pointerEvents: "none" }} />
 
       <div style={{ width: "100%", maxWidth: "420px", position: "relative" }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>💼</div>
+            <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }} aria-hidden="true">💼</div>
             <span style={{ fontSize: "22px", fontWeight: 800, color: "#fff" }}>FreelanceFlow</span>
           </div>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>Sign in to your account</p>
@@ -53,40 +57,54 @@ export default function Login() {
 
         {/* Card */}
         <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "36px", backdropFilter: "blur(20px)" }}>
-          <h2 style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Welcome back 👋</h2>
+          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Welcome back</h1>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "28px" }}>Enter your credentials to continue</p>
 
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }} noValidate>
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email Address</label>
+              <label htmlFor="login-email" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email Address</label>
               <input
-                type="email" value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                placeholder="you@example.com" style={inp} autoComplete="email"
+                id="login-email"
+                type="email"
+                value={form.email}
+                onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setEmailError("") }}
+                placeholder="you@example.com"
+                style={{ ...inp, borderColor: emailError ? "#ff4d6d" : undefined }}
+                autoComplete="email"
+                aria-invalid={!!emailError}
+                aria-describedby={emailError ? "login-email-error" : undefined}
                 onFocus={e => e.target.style.borderColor = "rgba(108,99,255,0.6)"}
-                onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+                onBlur={e => e.target.style.borderColor = emailError ? "#ff4d6d" : "rgba(255,255,255,0.1)"}
               />
+              {emailError && <p id="login-email-error" role="alert" style={{ color: "#ff4d6d", fontSize: "12px", marginTop: "4px" }}>{emailError}</p>}
             </div>
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Password</label>
+              <label htmlFor="login-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Password</label>
               <div style={{ position: "relative" }}>
                 <input
-                  type={show ? "text" : "password"} value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="••••••••" style={{ ...inp, paddingRight: "48px" }} autoComplete="current-password"
+                  id="login-password"
+                  type={show ? "text" : "password"}
+                  value={form.password}
+                  onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setPasswordError("") }}
+                  placeholder="Enter your password"
+                  style={{ ...inp, paddingRight: "48px" }}
+                  autoComplete="current-password"
+                  aria-invalid={!!passwordError}
+                  aria-describedby={passwordError ? "login-password-error" : undefined}
                   onFocus={e => e.target.style.borderColor = "rgba(108,99,255,0.6)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+                  onBlur={e => e.target.style.borderColor = passwordError ? "#ff4d6d" : "rgba(255,255,255,0.1)"}
                 />
-                <button type="button" onClick={() => setShow(s => !s)}
+                <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"}
                   style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "16px" }}>
                   {show ? "🙈" : "👁️"}
                 </button>
               </div>
+              {passwordError && <p id="login-password-error" role="alert" style={{ color: "#ff4d6d", fontSize: "12px", marginTop: "4px" }}>{passwordError}</p>}
             </div>
 
-            <button type="submit" disabled={loading}
+            <button type="submit" disabled={loading} aria-busy={loading}
               style={{ width: "100%", padding: "14px", background: loading ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, fontSize: "15px", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", marginTop: "4px" }}>
-              {loading ? "Signing in..." : "Sign In →"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 

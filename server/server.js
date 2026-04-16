@@ -8,6 +8,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -28,6 +29,7 @@ const proposalRoutes = require('./routes/proposalRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const seedRoutes = require('./routes/seedRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -72,8 +74,9 @@ app.use(cors({
 app.use(requestLogger);
 
 // Body parsing with limits
-app.use(express.json({ limit: '10mb', strict: false }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10kb', strict: false }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
 
 // Rate limiting (enterprise - per IP)
 // Use default keyGenerator to avoid IPv6 issues
@@ -128,6 +131,7 @@ app.use('/api/v1/proposals', proposalRoutes);
 app.use('/api/v1/dashboard', sensitiveLimiter, dashboardRoutes);
 app.use('/api/v1/seed', seedRoutes);
 app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/contracts', require('./routes/contractRoutes'));
 
 // API version info
@@ -135,20 +139,10 @@ const API_VERSION = '3.0.0';
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const os = require('os');
-  res.json({ 
-    success: true,
-    message: 'FreelanceFlow API - Healthy',
-    version: API_VERSION,
-    environment: process.env.NODE_ENV || 'development',
-    status: 'healthy',
+  res.json({
+    status: 'ok',
     uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    system: {
-      freeMemory: os.freemem(),
-      totalMemory: os.totalmem(),
-      loadAverage: os.loadavg()
-    }
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -224,14 +218,6 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
   app.listen(PORT, () => {
     logger.info({ port: PORT, environment: process.env.NODE_ENV || 'development' }, 'Server started');
-    console.log(`
-╔═══════════════════════════════════════════════════════╗
-║     FreelanceFlow Enterprise API v${API_VERSION}              ║
-║     Environment: ${(process.env.NODE_ENV || 'development').padEnd(28)}║
-║     Port: ${PORT.toString().padEnd(33)}║
-║     Health: http://localhost:${PORT}/api/health         ║
-╚═══════════════════════════════════════════════════════╝
-    `);
   });
 }).catch(err => {
   logger.fatal({ error: err.message }, 'Failed to start server');

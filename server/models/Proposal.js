@@ -1,1 +1,19 @@
-const mongoose=require('mongoose');const proposalSchema=new mongoose.Schema({user:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},title:{type:String,required:true},client:String,company:String,amount:{type:Number,default:0},status:{type:String,enum:['draft','sent','viewed','accepted','declined','expired'],default:'draft'},validUntil:Date,services:[String],notes:String},{timestamps:true});module.exports=mongoose.model('Proposal',proposalSchema);
+const mongoose = require('mongoose')
+
+const proposalSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true },
+  client: { type: String, required: true },
+  company: String,
+  amount: { type: Number, default: 0 },
+  status: {
+    type: String,
+    enum: ['draft', 'sent', 'viewed', 'accepted', 'declined', 'expired'],
+    default: 'draft'
+  },
+  validUntil: Date,
+  services: [String],
+  notes: String
+}, { timestamps: true })
+
+module.exports = mongoose.model('Proposal', proposalSchema)

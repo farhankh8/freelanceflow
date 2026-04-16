@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useCallback, memo } from "react"
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
@@ -37,13 +37,13 @@ const navGroups = [
 
 const badgeColors = { "New": { bg: "rgba(0,217,126,0.15)", color: "#00d97e", border: "rgba(0,217,126,0.3)" } }
 
-export default function Layout() {
+export default memo(function Layout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
 
-  const handleLogout = () => { logout(); toast.success("Logged out!"); navigate("/") }
+  const handleLogout = useCallback(() => { logout(); toast.success("Logged out!"); navigate("/") }, [logout, navigate])
 
   const getPageName = () => {
     if (location.pathname === "/app") return "Dashboard"
@@ -52,7 +52,10 @@ export default function Layout() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
-      <div style={{ width: collapsed ? "60px" : "240px", background: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", position: "fixed", height: "100vh", zIndex: 100, transition: "width 0.2s ease", overflow: "hidden" }}>
+      {/* Skip to main content link */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      <nav aria-label="Main navigation" style={{ width: collapsed ? "60px" : "240px", background: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", position: "fixed", height: "100vh", zIndex: 100, transition: "width 0.2s ease", overflow: "hidden" }}>
         <div style={{ padding: collapsed ? "16px 8px" : "16px 14px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {!collapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -67,7 +70,7 @@ export default function Layout() {
             </div>
           )}
           {collapsed && <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>💼</div>}
-          <button onClick={() => setCollapsed(c => !c)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "16px", padding: "4px", borderRadius: "6px" }}>{collapsed ? "→" : "←"}</button>
+          <button onClick={() => setCollapsed(c => !c)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "16px", padding: "4px", borderRadius: "6px" }}>{collapsed ? "→" : "←"}</button>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: collapsed ? "8px 6px" : "10px 8px" }}>
@@ -77,7 +80,7 @@ export default function Layout() {
               {group.items.map(({ to, icon, label, badge }) => {
                 const active = location.pathname === to
                 return (
-                  <Link key={to} to={to} title={collapsed ? label : ""}
+                  <Link key={to} to={to} aria-label={collapsed ? label : undefined} aria-current={active ? "page" : undefined}
                     style={{ display: "flex", alignItems: "center", gap: "8px", padding: collapsed ? "10px" : "7px 8px", borderRadius: "8px", marginBottom: "1px", color: active ? "var(--accent)" : "var(--text2)", background: active ? "rgba(108,99,255,0.12)" : "transparent", textDecoration: "none", fontSize: "13px", fontWeight: active ? 600 : 500, border: active ? "1px solid rgba(108,99,255,0.2)" : "1px solid transparent", justifyContent: collapsed ? "center" : "flex-start" }}>
                     <span style={{ fontSize: "15px" }}>{icon}</span>
                     {!collapsed && <span style={{ flex: 1 }}>{label}</span>}
@@ -99,10 +102,10 @@ export default function Layout() {
             )}
           </div>
         </div>
-      </div>
+      </nav>
 
       <div style={{ marginLeft: collapsed ? "60px" : "240px", flex: 1, display: "flex", flexDirection: "column", minHeight: "100vh", transition: "margin-left 0.2s ease" }}>
-        <div style={{ height: "52px", background: "var(--surface)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", position: "sticky", top: 0, zIndex: 50 }}>
+        <header style={{ height: "52px", background: "var(--surface)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", position: "sticky", top: 0, zIndex: 50 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontSize: "13px", color: "var(--text2)" }}>FreelanceFlow</span>
             <span style={{ color: "var(--border)" }}>›</span>
@@ -110,13 +113,13 @@ export default function Layout() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#fff" }}>{user?.name?.charAt(0).toUpperCase()}</div>
-            <button onClick={handleLogout} style={{ padding: "6px 12px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Logout</button>
+            <button onClick={handleLogout} aria-label="Log out of your account" style={{ padding: "6px 12px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Logout</button>
           </div>
-        </div>
-        <div style={{ flex: 1, padding: "24px 28px", background: "var(--bg)" }}>
+        </header>
+        <main id="main-content" style={{ flex: 1, padding: "24px 28px", background: "var(--bg)" }} tabIndex={-1}>
           <Outlet />
-        </div>
+        </main>
       </div>
     </div>
   )
-}
+})

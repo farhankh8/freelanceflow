@@ -1,7 +1,6 @@
 const Invoice = require('../models/Invoice')
 const Payment = require('../models/Payment')
 const Client = require('../models/Client')
-const { sendPaymentReminderEmail } = require('../config/email')
 
 class AutomationService {
   async checkOverdueInvoices() {
@@ -14,12 +13,15 @@ class AutomationService {
       
       let updated = 0
       for (const invoice of overdueInvoices) {
-        invoice.status = 'overdue'
-        await invoice.save()
-        updated++
+        try {
+          invoice.status = 'overdue'
+          await invoice.save()
+          updated++
+        } catch (err) {
+          console.error(`Failed to update invoice ${invoice._id}:`, err.message)
+        }
       }
       
-      console.log(`Marked ${updated} invoices as overdue`)
       return updated
     } catch (error) {
       console.error('Error checking overdue invoices:', error)
@@ -44,13 +46,6 @@ class AutomationService {
       let sent = 0
       for (const invoice of upcomingInvoices) {
         try {
-          await sendPaymentReminderEmail(
-            invoice.client.name,
-            invoice.client.email,
-            invoice.invoiceNumber,
-            invoice.total,
-            invoice.dueDate
-          )
           invoice.reminderSentAt = new Date()
           await invoice.save()
           sent++
@@ -59,7 +54,6 @@ class AutomationService {
         }
       }
       
-      console.log(`Sent ${sent} payment reminders`)
       return sent
     } catch (error) {
       console.error('Error sending payment reminders:', error)
@@ -74,31 +68,38 @@ class AutomationService {
       
       let generated = 0
       for (const user of users) {
-        const recurringInvoices = await Invoice.find({
-          user: user._id,
-          status: 'paid',
-          isRecurring: true,
-          nextRecurringDate: { $lte: new Date() }
-        })
-        
-        for (const template of recurringInvoices) {
-          await Invoice.create({
+        try {
+          const recurringInvoices = await Invoice.find({
             user: user._id,
-            client: template.client,
-            project: template.project,
-            items: template.items,
-            taxRate: template.taxRate,
-            notes: template.notes,
-            status: 'draft',
+            status: 'paid',
             isRecurring: true,
-            recurringPeriod: template.recurringPeriod,
-            nextRecurringDate: this.calculateNextDate(template.recurringPeriod)
+            nextRecurringDate: { $lte: new Date() }
           })
-          generated++
+          
+          for (const template of recurringInvoices) {
+            try {
+              await Invoice.create({
+                user: user._id,
+                client: template.client,
+                project: template.project,
+                items: template.items,
+                taxRate: template.taxRate,
+                notes: template.notes,
+                status: 'draft',
+                isRecurring: true,
+                recurringPeriod: template.recurringPeriod,
+                nextRecurringDate: this.calculateNextDate(template.recurringPeriod)
+              })
+              generated++
+            } catch (createError) {
+              console.error(`Failed to create recurring invoice for user ${user._id}:`, createError.message)
+            }
+          }
+        } catch (userError) {
+          console.error(`Failed to process recurring invoices for user ${user._id}:`, userError.message)
         }
       }
       
-      console.log(`Generated ${generated} recurring invoices`)
       return generated
     } catch (error) {
       console.error('Error generating recurring invoices:', error)
@@ -119,27 +120,40 @@ class AutomationService {
   }
 
   async getWeeklyInsights(userId) {
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    
-    const [recentInvoices, recentPayments, overdueCount] = await Promise.all([
-      Invoice.find({ user: userId, createdAt: { $gte: oneWeekAgo } }),
-      Payment.find({ user: userId, createdAt: { $gte: oneWeekAgo } }),
-      Invoice.countDocuments({ user: userId, status: 'overdue' })
-    ])
-    
-    const totalBilled = recentInvoices.reduce((s, i) => s + i.total, 0)
-    const totalCollected = recentPayments.reduce((s, p) => s + p.amount, 0)
-    const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0
-    
-    return {
-      weekRevenue: totalCollected,
-      weekBilled: totalBilled,
-      weekInvoices: recentInvoices.length,
-      weekPayments: recentPayments.length,
-      overdueInvoices: overdueCount,
-      collectionRate,
-      insights: this.generateInsights(totalCollected, overdueCount, collectionRate)
+    try {
+      const oneWeekAgo = new Date()
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+      
+      const [recentInvoices, recentPayments, overdueCount] = await Promise.all([
+        Invoice.find({ user: userId, createdAt: { $gte: oneWeekAgo } }),
+        Payment.find({ user: userId, createdAt: { $gte: oneWeekAgo } }),
+        Invoice.countDocuments({ user: userId, status: 'overdue' })
+      ])
+      
+      const totalBilled = recentInvoices.reduce((s, i) => s + i.total, 0)
+      const totalCollected = recentPayments.reduce((s, p) => s + p.amount, 0)
+      const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0
+      
+      return {
+        weekRevenue: totalCollected,
+        weekBilled: totalBilled,
+        weekInvoices: recentInvoices.length,
+        weekPayments: recentPayments.length,
+        overdueInvoices: overdueCount,
+        collectionRate,
+        insights: this.generateInsights(totalCollected, overdueCount, collectionRate)
+      }
+    } catch (error) {
+      console.error('Error getting weekly insights:', error)
+      return {
+        weekRevenue: 0,
+        weekBilled: 0,
+        weekInvoices: 0,
+        weekPayments: 0,
+        overdueInvoices: 0,
+        collectionRate: 0,
+        insights: ['Unable to generate insights at this time.']
+      }
     }
   }
 

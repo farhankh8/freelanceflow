@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
@@ -11,26 +11,47 @@ export default function Register() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
+  const [showBranding, setShowBranding] = useState(true)
+  const [errors, setErrors] = useState({ name: '', email: '', password: '', confirm: '' })
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
   const submittedRef = useRef(false)
 
+  useEffect(() => {
+    const checkWidth = () => setShowBranding(window.innerWidth >= 768)
+    checkWidth()
+    window.addEventListener('resize', checkWidth)
+    return () => window.removeEventListener('resize', checkWidth)
+  }, [])
+
+  const validate = () => {
+    const errs = {}
+    if (!name.trim()) errs.name = 'Full name is required'
+    if (!email.trim()) errs.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Please enter a valid email'
+    if (!password) errs.password = 'Password is required'
+    else if (password.length < 12) errs.password = 'Must be at least 12 characters with upper, lower, number and special char'
+    if (!confirm) errs.confirm = 'Please confirm your password'
+    else if (password !== confirm) errs.confirm = 'Passwords do not match'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (submittedRef.current) return
-    if (password !== confirm) { toast.error('Passwords do not match!'); return }
-    if (password.length < 12) { toast.error('Password must be at least 12 characters with uppercase, lowercase, number & special char'); return }
+    if (!validate()) return
     submittedRef.current = true
     setLoading(true)
     try {
       const response = await api.post('/auth/register', { name, email, password })
-      setAuth(response.data.user, response.data.accessToken, response.data.refreshToken)
+      setAuth(response.data.user)
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
       navigate('/app')
     } catch (err) {
+      submittedRef.current = false
       const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Registration failed'
       toast.error(errorMsg)
-      submittedRef.current = false
     } finally {
       setLoading(false)
     }
@@ -42,28 +63,30 @@ export default function Register() {
     <div style={{ minHeight: '100vh', display: 'flex', background: 'linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 50%,#0f3460 100%)' }}>
       
       {/* Left side - Branding */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', display: window.innerWidth < 768 ? 'none' : 'flex' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
-        <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#fff', marginBottom: '16px', letterSpacing: '-1px' }}>
-          Start your free<br />
-          <span style={{ background: 'linear-gradient(135deg,#6c63ff,#ff6584)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>freelance journey</span>
-        </h1>
-        <p style={{ color: '#8b9cc8', fontSize: '17px', lineHeight: '1.7', marginBottom: '40px' }}>Join thousands of freelancers who manage their business with FreelanceFlow.</p>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {[
-            { icon: '🧾', text: 'Create and share professional invoices' },
-            { icon: '👥', text: 'Manage all your clients in one place' },
-            { icon: '💰', text: 'Get paid faster with INR support' },
-            { icon: '🤖', text: 'AI assistant to help you grow' },
-          ].map(item => (
-            <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(108,99,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{item.icon}</div>
-              <span style={{ color: '#c4b5fd', fontSize: '14px' }}>{item.text}</span>
-            </div>
-          ))}
+      {showBranding && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px' }} aria-hidden="true">
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
+          <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#fff', marginBottom: '16px', letterSpacing: '-1px' }}>
+            Start your free<br />
+            <span style={{ background: 'linear-gradient(135deg,#6c63ff,#ff6584)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>freelance journey</span>
+          </h1>
+          <p style={{ color: '#a8aec0', fontSize: '17px', lineHeight: '1.7', marginBottom: '40px' }}>Join thousands of freelancers who manage their business with FreelanceFlow.</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              { icon: '🧾', text: 'Create and share professional invoices' },
+              { icon: '👥', text: 'Manage all your clients in one place' },
+              { icon: '💰', text: 'Get paid faster with INR support' },
+              { icon: '🤖', text: 'AI assistant to help you grow' },
+            ].map(item => (
+              <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(108,99,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{item.icon}</div>
+                <span style={{ color: '#c4b5fd', fontSize: '14px' }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Right side - Form */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
@@ -71,59 +94,98 @@ export default function Register() {
           
           {/* Logo for mobile */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>💼</div>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }} aria-hidden="true">💼</div>
             <div style={{ fontSize: '22px', fontWeight: 800, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>FreelanceFlow</div>
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '40px' }}>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>Create account</h2>
-            <p style={{ color: '#8b9cc8', marginBottom: '28px', fontSize: '14px' }}>Free forever — no credit card required</p>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>Create account</h1>
+            <p style={{ color: '#a8aec0', marginBottom: '28px', fontSize: '14px' }}>Free forever — no credit card required</p>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#8b9cc8', marginBottom: '6px', fontWeight: 600 }}>Full Name</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Farhan Khan" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = '#6c63ff'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                <label htmlFor="reg-name" style={{ display: 'block', fontSize: '13px', color: '#a8aec0', marginBottom: '6px', fontWeight: 600 }}>Full Name</label>
+                <input
+                  id="reg-name"
+                  type="text"
+                  value={name}
+                  onChange={e => { setName(e.target.value); if (errors.name) setErrors(p => ({ ...p, name: '' })) }}
+                  placeholder="Farhan Khan"
+                  style={{ ...inputStyle, borderColor: errors.name ? '#ff4d6d' : undefined }}
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? 'reg-name-error' : undefined}
+                  onFocus={e => e.target.style.borderColor = errors.name ? '#ff4d6d' : '#6c63ff'}
+                  onBlur={e => e.target.style.borderColor = errors.name ? '#ff4d6d' : 'rgba(255,255,255,0.1)'}
+                />
+                {errors.name && <p id="reg-name-error" role="alert" style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>{errors.name}</p>}
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#8b9cc8', marginBottom: '6px', fontWeight: 600 }}>Email Address</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = '#6c63ff'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                <label htmlFor="reg-email" style={{ display: 'block', fontSize: '13px', color: '#a8aec0', marginBottom: '6px', fontWeight: 600 }}>Email Address</label>
+                <input
+                  id="reg-email"
+                  type="email"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(p => ({ ...p, email: '' })) }}
+                  placeholder="you@example.com"
+                  style={{ ...inputStyle, borderColor: errors.email ? '#ff4d6d' : undefined }}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'reg-email-error' : undefined}
+                  onFocus={e => e.target.style.borderColor = errors.email ? '#ff4d6d' : '#6c63ff'}
+                  onBlur={e => e.target.style.borderColor = errors.email ? '#ff4d6d' : 'rgba(255,255,255,0.1)'}
+                />
+                {errors.email && <p id="reg-email-error" role="alert" style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>{errors.email}</p>}
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#8b9cc8', marginBottom: '6px', fontWeight: 600 }}>Password</label>
+                <label htmlFor="reg-password" style={{ display: 'block', fontSize: '13px', color: '#a8aec0', marginBottom: '6px', fontWeight: 600 }}>Password</label>
                 <div style={{ position: 'relative' }}>
-                  <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Min 12 chars (upper, lower, number, special)" style={inputStyle}
-                    onFocus={e => e.target.style.borderColor = '#6c63ff'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
-                  <button type="button" onClick={() => setShowPass(s => !s)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#8b9cc8', cursor: 'pointer', fontSize: '16px' }}>
+                  <input
+                    id="reg-password"
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); if (errors.password) setErrors(p => ({ ...p, password: '' })) }}
+                    placeholder="Min 12 chars (upper, lower, number, special)"
+                    style={{ ...inputStyle, borderColor: errors.password ? '#ff4d6d' : undefined }}
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? 'reg-password-error' : undefined}
+                    onFocus={e => e.target.style.borderColor = errors.password ? '#ff4d6d' : '#6c63ff'}
+                    onBlur={e => e.target.style.borderColor = errors.password ? '#ff4d6d' : 'rgba(255,255,255,0.1)'}
+                  />
+                  <button type="button" onClick={() => setShowPass(s => !s)} aria-label={showPass ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#a8aec0', cursor: 'pointer', fontSize: '16px' }}>
                     {showPass ? '🙈' : '👁️'}
                   </button>
                 </div>
+                {errors.password && <p id="reg-password-error" role="alert" style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>{errors.password}</p>}
               </div>
 
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#8b9cc8', marginBottom: '6px', fontWeight: 600 }}>Confirm Password</label>
-                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required placeholder="Repeat password" style={{ ...inputStyle, borderColor: confirm && confirm !== password ? '#ff4d6d' : 'rgba(255,255,255,0.1)' }}
-                  onFocus={e => e.target.style.borderColor = '#6c63ff'}
-                  onBlur={e => e.target.style.borderColor = confirm !== password ? '#ff4d6d' : 'rgba(255,255,255,0.1)'} />
-                {confirm && confirm !== password && <p style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>Passwords do not match</p>}
+                <label htmlFor="reg-confirm" style={{ display: 'block', fontSize: '13px', color: '#a8aec0', marginBottom: '6px', fontWeight: 600 }}>Confirm Password</label>
+                <input
+                  id="reg-confirm"
+                  type="password"
+                  value={confirm}
+                  onChange={e => { setConfirm(e.target.value); if (errors.confirm) setErrors(p => ({ ...p, confirm: '' })) }}
+                  placeholder="Repeat password"
+                  style={{ ...inputStyle, borderColor: errors.confirm ? '#ff4d6d' : 'rgba(255,255,255,0.1)' }}
+                  aria-invalid={!!errors.confirm}
+                  aria-describedby={errors.confirm ? 'reg-confirm-error' : undefined}
+                  onFocus={e => e.target.style.borderColor = errors.confirm ? '#ff4d6d' : '#6c63ff'}
+                  onBlur={e => e.target.style.borderColor = errors.confirm ? '#ff4d6d' : 'rgba(255,255,255,0.1)'}
+                />
+                {errors.confirm && <p id="reg-confirm-error" role="alert" style={{ color: '#ff4d6d', fontSize: '12px', marginTop: '4px' }}>{errors.confirm}</p>}
               </div>
 
-              <button type="submit" disabled={loading} onClick={(e) => { if (loading) e.preventDefault() }} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(108,99,255,0.5)' : 'linear-gradient(135deg,#6c63ff,#ff6584)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'opacity 0.2s' }}>
-                {loading ? '⏳ Creating account...' : 'Create Free Account →'}
+              <button type="submit" disabled={loading} aria-busy={loading} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(108,99,255,0.5)' : 'linear-gradient(135deg,#6c63ff,#ff6584)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'opacity 0.2s' }}>
+                {loading ? 'Creating account...' : 'Create Free Account'}
               </button>
             </form>
 
             <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(0,217,126,0.08)', border: '1px solid rgba(0,217,126,0.2)', borderRadius: '10px', textAlign: 'center' }}>
-              <p style={{ color: '#00d97e', fontSize: '13px', margin: 0 }}>✅ You'll receive a welcome email after signup!</p>
+              <p style={{ color: '#00d97e', fontSize: '13px', margin: 0 }}>You'll receive a welcome email after signup!</p>
             </div>
 
-            <p style={{ textAlign: 'center', marginTop: '20px', color: '#8b9cc8', fontSize: '14px' }}>
+            <p style={{ textAlign: 'center', marginTop: '20px', color: '#a8aec0', fontSize: '14px' }}>
               Already have an account? <Link to="/login" style={{ color: '#6c63ff', fontWeight: 700, textDecoration: 'none' }}>Sign in</Link>
             </p>
           </div>

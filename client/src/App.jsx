@@ -1,32 +1,42 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
+import { Suspense, lazy } from "react"
 import useAuthStore from "./store/authStore"
-import Landing from "./pages/Landing"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import Dashboard from "./pages/Dashboard"
-import Clients from "./pages/Clients"
-import Invoices from "./pages/Invoices"
-import Projects from "./pages/Projects"
-import Leads from "./pages/Leads"
-import Contacts from "./pages/Contacts"
-import Expenses from "./pages/Expenses"
-import Payments from "./pages/Payments"
-import TimeLogs from "./pages/TimeLogs"
-import Proposals from "./pages/Proposals"
-import Contracts from "./pages/Contracts"
-import Tasks from "./pages/Tasks"
-import Reports from "./pages/Reports"
-import Settings from "./pages/Settings"
-import Calendar from "./pages/Calendar"
-import Meetings from "./pages/Meetings"
-import ClientPortal from "./pages/ClientPortal"
-import Help from "./pages/Help"
+import ErrorBoundary from "./components/ErrorBoundary"
 import Layout from "./components/Layout"
 
+const Landing = lazy(() => import("./pages/Landing"))
+const Login = lazy(() => import("./pages/Login"))
+const Register = lazy(() => import("./pages/Register"))
+const Dashboard = lazy(() => import("./pages/Dashboard"))
+const Clients = lazy(() => import("./pages/Clients"))
+const Invoices = lazy(() => import("./pages/Invoices"))
+const Projects = lazy(() => import("./pages/Projects"))
+const Leads = lazy(() => import("./pages/Leads"))
+const Contacts = lazy(() => import("./pages/Contacts"))
+const Expenses = lazy(() => import("./pages/Expenses"))
+const Payments = lazy(() => import("./pages/Payments"))
+const TimeLogs = lazy(() => import("./pages/TimeLogs"))
+const Proposals = lazy(() => import("./pages/Proposals"))
+const Contracts = lazy(() => import("./pages/Contracts"))
+const Tasks = lazy(() => import("./pages/Tasks"))
+const Reports = lazy(() => import("./pages/Reports"))
+const Settings = lazy(() => import("./pages/Settings"))
+const Calendar = lazy(() => import("./pages/Calendar"))
+const Meetings = lazy(() => import("./pages/Meetings"))
+const ClientPortal = lazy(() => import("./pages/ClientPortal"))
+const Help = lazy(() => import("./pages/Help"))
+
+const PageLoader = () => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", flexDirection: "column", gap: "16px", color: "var(--text2)" }}>
+    <div style={{ width: "40px", height: "40px", border: "3px solid var(--border)", borderTop: "3px solid var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </div>
+)
+
 const PrivateRoute = ({ children }) => {
-  const { accessToken } = useAuthStore()
-  return accessToken ? children : <Navigate to="/login" replace />
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn())
+  return isLoggedIn ? children : <Navigate to="/login" replace />
 }
 
 const ComingSoon = ({ title }) => (
@@ -52,6 +62,8 @@ export default function App() {
           zIndex: 999999,
         }}
       />
+      <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -83,6 +95,8 @@ export default function App() {
           <Route path="integrations" element={<ComingSoon title="Integrations" />} />
         </Route>
       </Routes>
+      </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }

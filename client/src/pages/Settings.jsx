@@ -27,6 +27,10 @@ export default function Settings() {
   const { user, updateUser } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState("profile")
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false, accountNumber: false, ifsc: false })
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -62,6 +66,29 @@ export default function Settings() {
     toast.success("Redirecting to payment page... (Coming soon!)")
   }
 
+  const handleChangePassword = async () => {
+    if (!pwForm.currentPassword) { toast.error("Current password is required"); return }
+    if (!pwForm.newPassword) { toast.error("New password is required"); return }
+    if (pwForm.newPassword.length < 8) { toast.error("New password must be at least 8 characters"); return }
+    if (pwForm.newPassword !== pwForm.confirmPassword) { toast.error("Passwords do not match"); return }
+    setPwSaving(true)
+    try {
+      await api.put("/auth/change-password", {
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+      })
+      toast.success("Password changed successfully!")
+      setShowPasswordModal(false)
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to change password")
+    } finally {
+      setPwSaving(false)
+    }
+  }
+
+  const toggleShow = (key) => setShowPass(prev => ({ ...prev, [key]: !prev[key] }))
+
   return (
     <div style={{ maxWidth: "900px" }}>
       <div style={{ marginBottom: "28px" }}>
@@ -69,10 +96,10 @@ export default function Settings() {
         <p style={{ color: "var(--text2)", fontSize: "14px" }}>Manage your account and preferences</p>
       </div>
 
-      <div style={{ display: "flex", gap: "20px" }}>
-        <div style={{ width: "200px", flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+        <div style={{ width: "200px", flexShrink: 0, minWidth: "150px" }}>
           {["profile", "business", "billing", "security"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ display: "block", width: "100%", padding: "10px 14px", marginBottom: "4px", background: tab === t ? "rgba(108,99,255,0.15)" : "transparent", border: tab === t ? "1px solid rgba(108,99,255,0.3)" : "1px solid transparent", borderRadius: "8px", color: tab === t ? "#6c63ff" : "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left", textTransform: "capitalize" }}>
+                <button key={t} onClick={() => setTab(t)} aria-pressed={tab === t} style={{ display: "block", width: "100%", padding: "10px 14px", marginBottom: "4px", background: tab === t ? "rgba(108,99,255,0.15)" : "transparent", border: tab === t ? "1px solid rgba(108,99,255,0.3)" : "1px solid transparent", borderRadius: "8px", color: tab === t ? "#6c63ff" : "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left", textTransform: "capitalize" }}>
               {t === "profile" && "👤 "}{t === "business" && "🏢 "}{t === "billing" && "💳 "}{t === "security" && "🔒 "}
               {t}
             </button>
@@ -107,8 +134,8 @@ export default function Settings() {
             <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px" }}>
               <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>Business Settings</h2>
               <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "20px" }}>Configure your business details for invoices and compliance</p>
-              
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+               
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Business Name</label>
                   <input value={form.settings.businessName} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, businessName: e.target.value } }))} placeholder="Your Business Name" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
@@ -125,7 +152,7 @@ export default function Settings() {
               </div>
               
               <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px" }}>💳 Payment Details</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>UPI ID</label>
                   <input value={form.settings.upiId} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, upiId: e.target.value } }))} placeholder="yourname@upi" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
@@ -136,15 +163,21 @@ export default function Settings() {
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Account Number</label>
-                  <input value={form.settings.accountNumber} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, accountNumber: e.target.value } }))} placeholder="1234567890" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <div style={{ position: "relative" }}>
+                    <input type={showPass.accountNumber ? "text" : "password"} value={form.settings.accountNumber} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, accountNumber: e.target.value } }))} placeholder="1234567890" style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                    <button type="button" onClick={() => toggleShow("accountNumber")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.accountNumber ? "🙈" : "👁️"}</button>
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>IFSC Code</label>
-                  <input value={form.settings.ifsc} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, ifsc: e.target.value.toUpperCase() } }))} placeholder="HDFC0001234" maxLength={11} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <div style={{ position: "relative" }}>
+                    <input type={showPass.ifsc ? "text" : "password"} value={form.settings.ifsc} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, ifsc: e.target.value.toUpperCase() } }))} placeholder="HDFC0001234" maxLength={11} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                    <button type="button" onClick={() => toggleShow("ifsc")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.ifsc ? "🙈" : "👁️"}</button>
+                  </div>
                 </div>
               </div>
               
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Currency</label>
                   <select value={form.settings.currency} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, currency: e.target.value } }))} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px" }}>
@@ -219,27 +252,66 @@ export default function Settings() {
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Change Password</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Update your password regularly</div>
                   </div>
-                  <button style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Change</button>
+                  <button onClick={() => setShowPasswordModal(true)} style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="Change password">Change</button>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--surface2)", borderRadius: "12px" }}>
                   <div>
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Two-Factor Authentication</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Add extra security to your account</div>
                   </div>
-                  <button style={{ padding: "8px 16px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "8px", color: "#00d97e", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Enable</button>
+                  <button onClick={() => toast.success("Two-Factor Authentication is coming soon!")} aria-label="Enable two-factor authentication (coming soon)" style={{ padding: "8px 16px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "8px", color: "#00d97e", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Enable</button>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--surface2)", borderRadius: "12px" }}>
                   <div>
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Active Sessions</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Manage your active sessions</div>
                   </div>
-                  <button style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>View</button>
+                  <button style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="View API key">View</button>
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+      {showPasswordModal && (
+        <div role="dialog" aria-modal="true" aria-labelledby="change-password-title" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "440px" }}>
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 id="change-password-title" style={{ fontSize: "20px", fontWeight: 800 }}>Change Password</h2>
+              <button onClick={() => setShowPasswordModal(false)} aria-label="Close dialog" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+            </div>
+            <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label htmlFor="current-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Current Password</label>
+                <div style={{ position: "relative" }}>
+                  <input id="current-password" type={showPass.current ? "text" : "password"} value={pwForm.currentPassword} onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("current")} aria-label={showPass.current ? "Hide current password" : "Show current password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.current ? "🙈" : "👁️"}</button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="new-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>New Password <span style={{ fontSize: "10px", fontWeight: 400, textTransform: "none" }}>(min 8 chars)</span></label>
+                <div style={{ position: "relative" }}>
+                  <input id="new-password" type={showPass.new ? "text" : "password"} value={pwForm.newPassword} onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("new")} aria-label={showPass.new ? "Hide new password" : "Show new password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.new ? "🙈" : "👁️"}</button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="confirm-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Confirm New Password</label>
+                <div style={{ position: "relative" }}>
+                  <input id="confirm-password" type={showPass.confirm ? "text" : "password"} value={pwForm.confirmPassword} onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("confirm")} aria-label={showPass.confirm ? "Hide confirm password" : "Show confirm password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.confirm ? "🙈" : "👁️"}</button>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => setShowPasswordModal(false)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
+                <button onClick={handleChangePassword} disabled={pwSaving} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: pwSaving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "14px", opacity: pwSaving ? 0.7 : 1 }}>
+                  {pwSaving ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -256,7 +256,7 @@ export default function Contacts() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[{ label: "Total Contacts", value: contacts.length, icon: "📇", color: "#6c63ff" }, { label: "Clients", value: tagCounts["Client"] || 0, icon: "👥", color: "#00d97e" }, { label: "Partners", value: tagCounts["Partner"] || 0, icon: "🤝", color: "#ffb800" }, { label: "Starred", value: starredCount, icon: "⭐", color: "#ff6584" }].map(s => (
           <div key={s.label} style={{ background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "14px", padding: "18px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -303,11 +303,12 @@ export default function Contacts() {
       )}
 
       {view === "list" && contacts.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {filtered.map(c => {
-            const tc = TAG_COLORS[c.tag] || TAG_COLORS.Other
-            return (
-              <div key={c._id} onClick={() => setSelected(c)} style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1.2fr 0.8fr 0.8fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}>
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "750px" }}>
+            {filtered.map(c => {
+              const tc = TAG_COLORS[c.tag] || TAG_COLORS.Other
+              return (
+                <div key={c._id} onClick={() => setSelected(c)} style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1.2fr 0.8fr 0.8fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg," + c.color + "," + c.color + "88)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff" }}>{c.avatar}</div>
                   <div><div style={{ fontWeight: 700, fontSize: "14px" }}>{c.name}</div><div style={{ fontSize: "11px", color: "var(--text2, #a1a1aa)" }}>{c.company || "—"}</div></div>
@@ -324,6 +325,7 @@ export default function Contacts() {
               </div>
             )
           })}
+        </div>
         </div>
       )}
 

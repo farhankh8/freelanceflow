@@ -4,6 +4,7 @@
  */
 
 const { sendError, sendPaginated } = require('./apiResponse')
+const { logger } = require('../config/logger')
 
 /**
  * Build pagination middleware for any model
@@ -59,11 +60,13 @@ const paginate = (model, options = {}) => {
         }
       }
 
-      // Search filter
+      // Search filter (with regex injection protection)
       if (req.query.search && searchable && searchFields.length > 0) {
+        const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const safeSearch = escapeRegex(String(req.query.search));
         filter.$or = searchFields.map(field => ({
-          [field]: { $regex: req.query.search, $options: 'i' }
-        }))
+          [field]: { $regex: safeSearch, $options: 'i' }
+        }));
       }
 
       // Build sort
@@ -103,7 +106,7 @@ const paginate = (model, options = {}) => {
 
       next()
     } catch (error) {
-      console.error('PAGINATION_ERROR:', error)
+      logger.error({ err: error, query: req.query }, 'Pagination error')
       next(error)
     }
   }
@@ -140,9 +143,9 @@ const buildFilter = (req, allowedFields = []) => {
 /**
  * Parse sort params
  */
-const parseSort = (defaultSort = '-createdAt') => {
-  const sortBy = this.sortBy || defaultSort.replace('-', '')
-  const sortOrder = this.sortOrder === 'asc' ? 1 : -1
+const parseSort = (options = {}, defaultSort = '-createdAt') => {
+  const sortBy = options.sortBy || defaultSort.replace('-', '')
+  const sortOrder = options.sortOrder === 'asc' ? 1 : -1
   return { [sortBy]: sortOrder }
 }
 

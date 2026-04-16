@@ -8,6 +8,10 @@ const Expense = require('../models/Expense')
 const Contact = require('../models/Contact')
 const Proposal = require('../models/Proposal')
 
+const escapeRegex = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 class SearchService {
   async globalSearch(userId, query, options = {}) {
     const { limit = 20, type } = options
@@ -17,7 +21,8 @@ class SearchService {
     }
     
     const searchQuery = { user: userId }
-    const regex = new RegExp(query, 'i')
+    const safeQuery = escapeRegex(query)
+    const regex = new RegExp(safeQuery, 'i')
     const results = []
     
     const collectionSearch = async (Model, searchFields, resultType, transform) => {

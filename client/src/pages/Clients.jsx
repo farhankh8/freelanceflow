@@ -6,7 +6,7 @@ import useAuthStore from "../store/authStore"
 const INDUSTRIES = ["Technology", "Design", "Marketing", "E-commerce", "Education", "Healthcare", "Finance", "Real Estate", "Media", "Retail", "Other"]
 const STATUSES = {
   active: { label: "Active", color: "#00d97e", bg: "rgba(0,217,126,0.15)", border: "rgba(0,217,126,0.3)" },
-  inactive: { label: "Inactive", color: "#8b9cc8", bg: "rgba(139,156,200,0.15)", border: "rgba(139,156,200,0.3)" },
+  inactive: { label: "Inactive", color: "#a8aec0", bg: "rgba(168,174,192,0.15)", border: "rgba(168,174,192,0.3)" },
   prospect: { label: "Prospect", color: "#ffb800", bg: "rgba(255,184,0,0.15)", border: "rgba(255,184,0,0.3)" },
 }
 const COLORS = ["#6c63ff","#ff6584","#00d97e","#ffb800","#2CA5E0","#ff4d6d","#a78bfa","#00c9a7"]
@@ -28,18 +28,26 @@ export default function Clients() {
   const [sortBy, setSortBy] = useState("newest")
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  useEffect(() => { fetchClients() }, [])
+  useEffect(() => { fetchClients() }, [search, filterStatus, sortBy, page])
 
   const fetchClients = async () => {
+    setLoading(true)
     try {
-      const res = await api.get("/clients")
-      // Handle both old and new response formats
-      const clientList = res.data.clients || res.data.data || []
+      const params = new URLSearchParams({ page, limit: 12 })
+      if (search) params.append("search", search)
+      if (filterStatus !== "all") params.append("status", filterStatus)
+      if (sortBy) { params.append("sortBy", sortBy === "newest" ? "createdAt" : sortBy === "oldest" ? "createdAt" : sortBy === "name" ? "name" : sortBy === "rate" ? "defaultHourlyRate" : "createdAt"); params.append("sortOrder", sortBy === "oldest" ? "asc" : "desc") }
+      const res = await api.get(`/clients?${params}`)
+      const clientList = res.data?.clients || res.data?.data || []
       setClients(clientList)
-    } catch (e) { 
-      console.error("Fetch clients error:", e.response?.data)
-      toast.error("Failed to load clients") 
+      if (res.data?.pagination) {
+        setTotalPages(res.data.pagination.totalPages || 1)
+      }
+    } catch (e) {
+      toast.error("Failed to load clients")
     }
     finally { setLoading(false) }
   }
@@ -72,7 +80,6 @@ export default function Clients() {
       setEditMode(false)
       setForm(EMPTY_FORM)
     } catch (e) {
-      console.error("Save client error:", e.response?.data)
       toast.error(e.response?.data?.message || e.response?.data?.error || "Failed to save client")
     } finally { setSaving(false) }
   }
@@ -92,17 +99,7 @@ export default function Clients() {
     setEditMode(true)
   }
 
-  const filtered = useMemo(() => clients.filter(c => {
-    const matchSearch = !search || c.name?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase()) || c.company?.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = filterStatus === "all" || c.status === filterStatus
-    return matchSearch && matchStatus
-  }).sort((a, b) => {
-    if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt)
-    if (sortBy === "oldest") return new Date(a.createdAt) - new Date(b.createdAt)
-    if (sortBy === "name") return a.name?.localeCompare(b.name)
-    if (sortBy === "rate") return (b.defaultHourlyRate || 0) - (a.defaultHourlyRate || 0)
-    return 0
-  }), [clients, search, filterStatus, sortBy])
+  const filtered = useMemo(() => clients, [clients])
 
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
@@ -126,7 +123,7 @@ export default function Clients() {
               <h2 style={{ fontSize: "20px", fontWeight: 800 }}>{isEdit ? "Edit Client" : "Add New Client"}</h2>
               <p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>{isEdit ? "Update client information" : "Fill in client details"}</p>
             </div>
-            <button onClick={handleCloseModal} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={handleCloseModal} aria-label="Close modal" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
           </div>
           <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px", background: "var(--surface2)", borderRadius: "12px" }}>
@@ -138,7 +135,7 @@ export default function Clients() {
                 <div style={{ fontSize: "12px", color: "var(--text2)" }}>{form.company || "Company"} · {form.industry}</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Full Name *</label>
                 <input value={form.name} onChange={e => handleFormChange("name", e.target.value)} placeholder="John Doe" style={INPUT_STYLE} />
@@ -199,7 +196,7 @@ export default function Clients() {
   return (
     <div style={{ maxWidth: "1300px" }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "12px", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Clients</h1>
           <p style={{ color: "var(--text2)", fontSize: "14px" }}>{clients.length} total · {activeCount} active</p>
@@ -229,7 +226,7 @@ export default function Clients() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Clients", value: clients.length, icon: "👥", color: "#6c63ff" },
           { label: "Active", value: activeCount, icon: "✅", color: "#00d97e" },
@@ -250,15 +247,15 @@ export default function Clients() {
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 1, minWidth: "220px" }}>
           <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "14px" }}>🔍</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, company..." style={{ ...INPUT_STYLE, padding: "10px 12px 10px 36px" }} />
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="Search by name, email, company..." style={{ ...INPUT_STYLE, padding: "10px 12px 10px 36px" }} />
         </div>
-        <div style={{ display: "flex", gap: "6px" }}>
-          <button onClick={() => setFilterStatus("all")} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: filterStatus === "all" ? "var(--accent)" : "var(--surface)", color: filterStatus === "all" ? "#fff" : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>All</button>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          <button onClick={() => { setFilterStatus("all"); setPage(1) }} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: filterStatus === "all" ? "var(--accent)" : "var(--surface)", color: filterStatus === "all" ? "#fff" : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>All</button>
           {Object.entries(STATUSES).map(([k, v]) => (
-            <button key={k} onClick={() => setFilterStatus(k)} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid " + (filterStatus === k ? v.color : "var(--border)"), background: filterStatus === k ? v.bg : "var(--surface)", color: filterStatus === k ? v.color : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>{v.label}</button>
+            <button key={k} onClick={() => { setFilterStatus(k); setPage(1) }} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid " + (filterStatus === k ? v.color : "var(--border)"), background: filterStatus === k ? v.bg : "var(--surface)", color: filterStatus === k ? v.color : "var(--text2)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}>{v.label}</button>
           ))}
         </div>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...INPUT_STYLE, width: "auto", padding: "8px 14px" }}>
+        <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1) }} style={{ ...INPUT_STYLE, width: "auto", padding: "8px 14px" }}>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="name">Name A-Z</option>
@@ -279,7 +276,7 @@ export default function Clients() {
           {!search && <button onClick={() => setShowModal(true)} style={{ padding: "10px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", fontWeight: 700, cursor: "pointer" }}>+ Add First Client</button>}
         </div>
       ) : view === "grid" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
           {filtered.map((c, idx) => {
             const color = COLORS[idx % COLORS.length]
             const st = STATUSES[c.status] || STATUSES.active
@@ -289,7 +286,6 @@ export default function Clients() {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = color + "60"; e.currentTarget.style.transform = "translateY(-3px)" }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)" }}
                 onClick={() => setShowDetail(c)}>
-                {/* Top banner */}
                 <div style={{ height: "6px", background: "linear-gradient(90deg," + color + "," + color + "88)" }} />
                 <div style={{ padding: "20px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
@@ -312,37 +308,48 @@ export default function Clients() {
           })}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            <span>Client</span><span>Email</span><span>Company</span><span>Status</span><span>Rate</span><span>Actions</span>
-          </div>
-          {filtered.map((c, idx) => {
-            const color = COLORS[idx % COLORS.length]
-            const st = STATUSES[c.status] || STATUSES.active
-            return (
-              <div key={c._id}
-                style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s", cursor: "pointer" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
-                onClick={() => setShowDetail(c)}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg," + color + "," + color + "88)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>{c.name?.[0]?.toUpperCase()}</div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "14px" }}>{c.name}</div>
-                    {c.phone && <div style={{ fontSize: "11px", color: "var(--text2)" }}>{c.phone}</div>}
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "700px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <span>Client</span><span>Email</span><span>Company</span><span>Status</span><span>Rate</span><span>Actions</span>
+            </div>
+            {filtered.map((c, idx) => {
+              const color = COLORS[idx % COLORS.length]
+              const st = STATUSES[c.status] || STATUSES.active
+              return (
+                <div key={c._id}
+                  style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s", cursor: "pointer" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+                  onClick={() => setShowDetail(c)}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg," + color + "," + color + "88)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>{c.name?.[0]?.toUpperCase()}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "14px" }}>{c.name}</div>
+                      {c.phone && <div style={{ fontSize: "11px", color: "var(--text2)" }}>{c.phone}</div>}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.email}</div>
+                  <div style={{ fontSize: "12px", color: "var(--text2)" }}>{c.company || "—"}</div>
+                  <div><span style={{ fontSize: "11px", padding: "3px 9px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: c.defaultHourlyRate ? "#00d97e" : "var(--text2)" }}>{c.defaultHourlyRate ? "₹" + c.defaultHourlyRate + "/hr" : "—"}</div>
+                  <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => { openEdit(c); setShowDetail(c) }} style={{ padding: "5px 10px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Edit</button>
+                    <button onClick={() => deleteClient(c._id)} style={{ padding: "5px 10px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
                   </div>
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.email}</div>
-                <div style={{ fontSize: "12px", color: "var(--text2)" }}>{c.company || "—"}</div>
-                <div><span style={{ fontSize: "11px", padding: "3px 9px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: c.defaultHourlyRate ? "#00d97e" : "var(--text2)" }}>{c.defaultHourlyRate ? "₹" + c.defaultHourlyRate + "/hr" : "—"}</div>
-                <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
-                  <button onClick={() => { openEdit(c); setShowDetail(c) }} style={{ padding: "5px 10px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Edit</button>
-                  <button onClick={() => deleteClient(c._id)} style={{ padding: "5px 10px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "24px", flexWrap: "wrap" }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: page <= 1 ? "var(--text2)" : "var(--text)", cursor: page <= 1 ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: page <= 1 ? 0.5 : 1 }}>← Prev</button>
+          <span style={{ fontSize: "13px", color: "var(--text2)", padding: "0 8px" }}>Page {page} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: page >= totalPages ? "var(--text2)" : "var(--text)", cursor: page >= totalPages ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: page >= totalPages ? 0.5 : 1 }}>Next →</button>
         </div>
       )}
 
@@ -355,7 +362,7 @@ export default function Clients() {
       {/* DETAIL DRAWER */}
       {showDetail && !editMode && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 999, display: "flex", justifyContent: "flex-end" }} onClick={() => setShowDetail(null)}>
-          <div style={{ width: "420px", background: "var(--surface)", height: "100%", overflowY: "auto", borderLeft: "1px solid var(--border)", animation: "slideIn 0.25s ease" }}
+          <div style={{ width: "min(420px, 100vw)", background: "var(--surface)", height: "100%", overflowY: "auto", borderLeft: "1px solid var(--border)", animation: "slideIn 0.25s ease" }}
             onClick={e => e.stopPropagation()}>
             <style>{`@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
             {/* Banner */}
@@ -377,7 +384,7 @@ export default function Clients() {
                           <span style={{ fontSize: "11px", padding: "2px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span>
                         </div>
                       </div>
-                      <button onClick={() => setShowDetail(null)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "20px" }}>×</button>
+                      <button onClick={() => setShowDetail(null)} aria-label="Close client details" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "20px" }}>×</button>
                     </div>
                   </div>
                   <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>

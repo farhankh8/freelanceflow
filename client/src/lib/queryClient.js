@@ -31,9 +31,6 @@ export const queryClient = new QueryClient({
       
       // Retry failed requests only once
       retry: 1,
-      
-      // Keep failed data for 3 minutes before removing
-      gcTime: 3 * 60 * 1000,
     },
     mutations: {
       // Don't retry mutations

@@ -5,20 +5,44 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Focus fix for inputs */
-input:focus, textarea:focus, select:focus {
+/* Skip to main content link (accessibility) */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 10000;
+  padding: 12px 24px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Focus styles - replaces outline:none with accessible alternative */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Legacy focus fix for inputs (no alternative needed — replaced by focus-visible above) */
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   box-shadow: none;
-}
-
-/* Prevent any overlay from capturing focus */
-[role="dialog"]:focus {
-  outline: none;
-}
-
-/* Ensure inputs maintain focus when typing */
-input, textarea, select {
-  transition: none;
 }
 
 /* Ensure modals don't interfere with typing */

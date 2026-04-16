@@ -26,7 +26,7 @@ export default function ClientPortal() {
       setInvoices(invRes.value?.data?.invoices || [])
       setPayments(payRes.value?.data?.payments || payRes.value?.data?.data || [])
       setProjects(projRes.value?.data?.projects || [])
-    } catch (e) { console.error(e) }
+    } catch { /* silent fail */ }
     finally { setLoading(false) }
   }
 

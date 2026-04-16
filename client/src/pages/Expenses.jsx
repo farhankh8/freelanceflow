@@ -11,7 +11,7 @@ const CATEGORIES = {
   education: { label: "Education", icon: "📚", color: "#a78bfa" },
   office: { label: "Office & Supplies", icon: "🗂️", color: "#ff4d6d" },
   subscription: { label: "Subscriptions", icon: "🔄", color: "#ffb800" },
-  other: { label: "Other", icon: "📦", color: "#8b9cc8" },
+  other: { label: "Other", icon: "📦", color: "#a8aec0" },
 }
 
 const PAYMENT_METHODS = ["UPI", "Credit Card", "Debit Card", "Net Banking", "Cash", "Cheque"]
@@ -84,7 +84,7 @@ export default function Expenses() {
         <button onClick={() => setShowModal(true)} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ Add Expense</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Expenses", value: "₹" + totalExpenses.toLocaleString(), icon: "💸", color: "#ff4d6d" },
           { label: "This Month", value: "₹" + thisMonthExpenses.toLocaleString(), icon: "📅", color: "#ffb800" },
@@ -98,7 +98,7 @@ export default function Expenses() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(280px, 300px)", gap: "20px", alignItems: "start" }}>
         <div>
           <div style={{ display: "flex", gap: "8px", marginBottom: "14px", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
@@ -167,7 +167,7 @@ export default function Expenses() {
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "540px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ fontSize: "20px", fontWeight: 800 }}>Add Expense</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={() => setShowModal(false)} aria-label="Close expense form" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Title *</label><input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Figma Pro" style={inp} /></div>
@@ -195,7 +195,7 @@ export default function Expenses() {
                 <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: CATEGORIES[selected.category]?.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>{CATEGORIES[selected.category]?.icon}</div>
                 <div><h2 style={{ fontSize: "18px", fontWeight: 800 }}>{selected.title}</h2><p style={{ fontSize: "12px", color: "var(--text2)" }}>{CATEGORIES[selected.category]?.label}</p></div>
               </div>
-              <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={() => setSelected(null)} aria-label="Close expense details" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div style={{ textAlign: "center", padding: "20px", background: "rgba(255,77,109,0.08)", borderRadius: "12px" }}>
@@ -205,7 +205,7 @@ export default function Expenses() {
               {selected.notes && <div style={{ background: "var(--surface2)", borderRadius: "10px", padding: "14px" }}><p style={{ fontSize: "13px" }}>{selected.notes}</p></div>}
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={() => setSelected(null)} style={{ flex: 1, padding: "11px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Close</button>
-                <button onClick={() => deleteExpense(selected._id)} style={{ flex: 1, padding: "11px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontWeight: 700 }}>🗑️ Delete</button>
+                <button onClick={() => deleteExpense(selected._id)} style={{ flex: 1, padding: "11px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontWeight: 700 }} aria-label="Delete expense">🗑️ Delete</button>
               </div>
             </div>
           </div>

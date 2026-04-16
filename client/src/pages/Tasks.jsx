@@ -80,9 +80,9 @@ export default function Tasks() {
         api.get("/projects"),
         api.get("/clients")
       ])
-      setTasks(taskRes.data.tasks || [])
-      setProjects(projRes.data.projects || [])
-      setClients(cliRes.data.clients || [])
+      setTasks(taskRes.data.data || [])
+      setProjects(projRes.data.data || [])
+      setClients(cliRes.data.data || [])
     } catch { toast.error("Failed to load tasks") }
     finally { setLoading(false) }
   }
@@ -100,18 +100,18 @@ export default function Tasks() {
         dueDate: form.dueDate || undefined,
         estimatedHours: Number(form.estimatedHours) || 0
       })
-      setTasks(prev => [data.task, ...prev])
+      setTasks(prev => [data.data, ...prev])
       toast.success("Task created! ✅")
       setShowModal(false)
       setForm({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "" })
-    } catch (err) { toast.error(err?.response?.data?.error || "Failed to create task") }
+    } catch (err) { toast.error(err?.response?.data?.message || "Failed to create task") }
     finally { setSaving(false) }
   }
 
   const moveTask = async (id, status) => {
     try {
       const { data } = await api.put(`/tasks/${id}`, { status })
-      setTasks(prev => prev.map(t => t._id === id ? data.task : t))
+      setTasks(prev => prev.map(t => t._id === id ? data.data : t))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch { toast.error("Failed to update") }
   }
@@ -119,7 +119,7 @@ export default function Tasks() {
   const updateTask = async (id, updates) => {
     try {
       const { data } = await api.put(`/tasks/${id}`, updates)
-      setTasks(prev => prev.map(t => t._id === id ? data.task : t))
+      setTasks(prev => prev.map(t => t._id === id ? data.data : t))
       setSelected(null)
       toast.success("Task updated!")
     } catch { toast.error("Failed to update") }
@@ -162,7 +162,7 @@ export default function Tasks() {
         <button onClick={() => setShowModal(true)} style={{ padding: "11px 22px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ New Task</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Tasks", value: taskStats.total, icon: "✅", color: "#6c63ff" },
           { label: "To Do", value: taskStats.todo, icon: "📋", color: "#6c63ff" },
@@ -202,7 +202,7 @@ export default function Tasks() {
       {loading ? (
         <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)" }}>Loading...</div>
       ) : view === "kanban" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px", alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(200px, 1fr))", gap: "16px", alignItems: "start" }}>
           {KANBAN_COLS.map(col => {
             const colTasks = filtered.filter(t => t.status === col.id)
             const st = STATUS[col.id]
@@ -229,8 +229,9 @@ export default function Tasks() {
           })}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase" }}>
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", minWidth: "700px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase" }}>
             <span>Task</span><span>Project</span><span>Priority</span><span>Status</span><span>Due Date</span><span>Actions</span>
           </div>
           {filtered.map(t => {
@@ -258,6 +259,7 @@ export default function Tasks() {
             )
           })}
         </div>
+        </div>
       )}
 
       {showModal && (
@@ -265,7 +267,7 @@ export default function Tasks() {
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "560px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div><h2 style={{ fontSize: "20px", fontWeight: 800 }}>New Task</h2><p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>Create a new task</p></div>
-              <button onClick={() => setShowModal(false)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={() => setShowModal(false)} aria-label="Close task form" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
@@ -283,7 +285,7 @@ export default function Tasks() {
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Description</label>
                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Add details..." rows={3} style={{ ...inp, resize: "vertical" }} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Priority</label>
                   <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} style={inp}>
@@ -318,7 +320,7 @@ export default function Tasks() {
                 <h2 style={{ fontSize: "20px", fontWeight: 800, marginBottom: "6px" }}>{selected.title}</h2>
                 <span style={{ fontSize: "11px", padding: "2px 10px", borderRadius: "99px", background: STATUS[selected.status]?.bg, color: STATUS[selected.status]?.color, border: "1px solid " + STATUS[selected.status]?.border, fontWeight: 700 }}>{STATUS[selected.status]?.label}</span>
               </div>
-              <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={() => setSelected(null)} aria-label="Close task details" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
               {selected.description && <p style={{ color: "var(--text2)", fontSize: "14px", lineHeight: "1.6" }}>{selected.description}</p>}
@@ -351,7 +353,7 @@ export default function Tasks() {
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={() => setSelected(null)} style={{ flex: 1, padding: "11px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Close</button>
-                <button onClick={() => deleteTask(selected._id)} style={{ flex: 1, padding: "11px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontWeight: 700 }}>🗑️ Delete</button>
+                <button onClick={() => deleteTask(selected._id)} style={{ flex: 1, padding: "11px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontWeight: 700 }} aria-label="Delete task">🗑️ Delete</button>
               </div>
             </div>
           </div>

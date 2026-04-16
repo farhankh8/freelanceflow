@@ -72,7 +72,7 @@ export default function Leads() {
 
   return (
     <div style={{ maxWidth: "1300px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "12px", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Leads</h1>
           <p style={{ color: "var(--text2)", fontSize: "14px" }}>{leads.length} total · {convRate}% conversion</p>
@@ -87,7 +87,7 @@ export default function Leads() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Leads", value: leads.length, icon: "🎯", color: "#6c63ff" },
           { label: "Pipeline Value", value: "₹" + totalValue.toLocaleString(), icon: "💰", color: "#ffb800" },
@@ -109,7 +109,7 @@ export default function Leads() {
       {loading ? <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)" }}>Loading...</div> : (
         <>
           {view === "pipeline" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "12px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(180px, 1fr))", gap: "12px" }}>
               {["new", "contacted", "proposal", "negotiation", "won"].map(stageId => {
                 const st = STAGES[stageId]
                 const sl = filtered.filter(l => l.stage === stageId)
@@ -143,22 +143,24 @@ export default function Leads() {
           )}
 
           {view === "list" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {filtered.map(lead => {
-                const st = STAGES[lead.stage] || STAGES.new
-                return (
-                  <div key={lead._id} onClick={() => setSelected(lead)}
-                    style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
-                    <div><div style={{ fontWeight: 700, fontSize: "14px" }}>{lead.name}</div><div style={{ fontSize: "11px", color: "var(--text2)" }}>{lead.email}</div></div>
-                    <div style={{ fontSize: "13px", color: "var(--text2)" }}>{lead.company || "—"}</div>
-                    <div style={{ fontWeight: 700, color: "var(--success)", fontSize: "14px" }}>₹{(lead.value || 0).toLocaleString()}</div>
-                    <div><span style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
-                    <div style={{ fontSize: "12px", color: "var(--text2)" }}>{lead.source}</div>
-                  </div>
-                )
-              })}
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "650px" }}>
+                {filtered.map(lead => {
+                  const st = STAGES[lead.stage] || STAGES.new
+                  return (
+                    <div key={lead._id} onClick={() => setSelected(lead)}
+                      style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
+                      <div><div style={{ fontWeight: 700, fontSize: "14px" }}>{lead.name}</div><div style={{ fontSize: "11px", color: "var(--text2)" }}>{lead.email}</div></div>
+                      <div style={{ fontSize: "13px", color: "var(--text2)" }}>{lead.company || "—"}</div>
+                      <div style={{ fontWeight: 700, color: "var(--success)", fontSize: "14px" }}>₹{(lead.value || 0).toLocaleString()}</div>
+                      <div><span style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
+                      <div style={{ fontSize: "12px", color: "var(--text2)" }}>{lead.source}</div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </>
@@ -172,7 +174,7 @@ export default function Leads() {
               <button onClick={() => setShowModal(false)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
                 {[{ label: "Name *", key: "name", type: "text", ph: "Full name" }, { label: "Company", key: "company", type: "text", ph: "Company" }, { label: "Email", key: "email", type: "email", ph: "email@example.com" }, { label: "Phone", key: "phone", type: "text", ph: "9876543210" }, { label: "Deal Value (₹)", key: "value", type: "number", ph: "50000" }].map(f => (
                   <div key={f.key}>
                     <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px" }}>{f.label}</label>

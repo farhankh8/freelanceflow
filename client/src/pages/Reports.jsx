@@ -41,11 +41,11 @@ export default function Reports() {
         api.get("/timelogs")
       ])
 
-      const invoiceData = invoices.data.invoices || []
-      const paymentData = payments.data.payments || payments.data.data || []
-      const expenseData = expenses.data.expenses || expenses.data.data || []
-      const projectData = projects.data.projects || []
-      const timeData = timelogs.data.timelogs || timelogs.data.data || []
+      const invoiceData = invoices.data.data || []
+      const paymentData = payments.data.data || []
+      const expenseData = expenses.data.data || []
+      const projectData = projects.data.data || []
+      const timeData = timelogs.data.data || []
 
       const totalRevenue = paymentData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
       const totalExpenses = expenseData.reduce((s, e) => s + (e.amount || 0), 0)
@@ -58,7 +58,7 @@ export default function Reports() {
         paidInvoices: invoiceData.filter(i => i.status === "paid").length,
         pendingInvoices: invoiceData.filter(i => i.status === "sent").length,
         overdueInvoices: invoiceData.filter(i => i.status === "overdue").length,
-        totalClients: clients.data.clients?.length || 0,
+        totalClients: clients.data.data?.length || 0,
         activeProjects: projectData.filter(p => p.status === "active").length,
         completedProjects: projectData.filter(p => p.status === "completed").length,
         totalHoursLogged: timeData.reduce((s, t) => s + (t.duration || 0), 0)
@@ -164,7 +164,7 @@ export default function Reports() {
 
   return (
     <div style={{ maxWidth: "1300px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "12px", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Reports</h1>
           <p style={{ color: "var(--text2)", fontSize: "14px" }}>Financial insights and analytics</p>
@@ -179,7 +179,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Revenue", value: "₹" + stats.totalRevenue.toLocaleString(), icon: "💰", color: "#00d97e", change: "+12%" },
           { label: "Total Expenses", value: "₹" + stats.totalExpenses.toLocaleString(), icon: "💸", color: "#ff4d6d" },
@@ -199,7 +199,7 @@ export default function Reports() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px", marginBottom: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px", marginBottom: "20px" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "22px" }}>
           <h3 style={{ fontSize: "15px", fontWeight: 700, marginBottom: "20px" }}>📈 Revenue vs Expenses</h3>
           <ResponsiveContainer width="100%" height={280}>
@@ -240,7 +240,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px", marginBottom: "20px" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "22px" }}>
           <h3 style={{ fontSize: "15px", fontWeight: 700, marginBottom: "16px" }}>👥 Top Clients by Revenue</h3>
           {clientRevenue.length > 0 ? (

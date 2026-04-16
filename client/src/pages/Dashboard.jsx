@@ -1,10 +1,23 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Link } from "react-router-dom"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+const SkeletonCard = () => (
+  <div style={{
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "14px",
+    padding: "18px 20px",
+    height: "86px",
+    animation: "pulse 1.5s ease-in-out infinite"
+  }}>
+    <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
+  </div>
+)
 
 export default function Dashboard() {
   const { user } = useAuthStore()
@@ -27,60 +40,60 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAll() }, [])
 
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
     try {
-      const [c, p, inv, l, pay, exp, tl] = await Promise.allSettled([
-        api.get("/clients"),
-        api.get("/projects"),
-        api.get("/invoices"),
-        api.get("/leads"),
-        api.get("/payments"),
-        api.get("/expenses"),
-        api.get("/timelogs"),
+      const results = await Promise.all([
+        api.get("/clients?limit=10"),
+        api.get("/projects?limit=10"),
+        api.get("/invoices?limit=10"),
+        api.get("/leads?limit=10"),
+        api.get("/payments?limit=10"),
+        api.get("/expenses?limit=10"),
+        api.get("/timelogs?limit=10"),
       ])
-      const clients      = c.value?.data?.clients   || []
-      const projs        = p.value?.data?.projects  || []
-      const invoices     = inv.value?.data?.invoices || []
-      const leadsData    = l.value?.data?.data       || []
-      // ✅ payments: try both response shapes
-      const paymentsRaw  = pay.value?.data
-      const paymentsData = paymentsRaw?.payments || paymentsRaw?.data || []
-      const expensesRaw  = exp.value?.data
-      const expensesData = expensesRaw?.expenses || expensesRaw?.data || []
-      const timelogsRaw  = tl.value?.data
-      const timelogsData = timelogsRaw?.timelogs || timelogsRaw?.data || []
+      
+      const clientsData = results[0]?.data?.data || results[0]?.data?.clients || []
+      const projectsData = results[1]?.data?.data || results[1]?.data?.projects || []
+      const invoicesData = results[2]?.data?.data || results[2]?.data?.invoices || []
+      const leadsData = results[3]?.data?.data || []
+      const paymentsData = results[4]?.data?.data || results[4]?.data?.payments || []
+      const expensesData = results[5]?.data?.data || []
+      const timelogsData = results[6]?.data?.data || []
 
-      const revenue      = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
+      const revenue = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
       const totalExpenses = expensesData.reduce((s, e) => s + (e.amount || 0), 0)
 
       setStats({
-        clients:  clients.length,
-        // ✅ Fixed: backend status is "active" not "in-progress"
-        projects: projs.filter(p => p.status === "active").length,
-        invoices: invoices.length,
+        clients: clientsData.length,
+        projects: projectsData.filter(p => p.status === "active").length,
+        invoices: invoicesData.length,
         revenue,
-        leads:    leadsData.length,
+        leads: leadsData.length,
         expenses: totalExpenses,
         payments: paymentsData.length,
         timelogs: timelogsData.reduce((s, t) => s + (t.duration || 0), 0),
       })
-      setRecentClients(clients.slice(0, 5))
-      setRecentInvoices(invoices.slice(0, 4))
-      setProjects(projs.slice(0, 4))
+      setRecentClients(clientsData.slice(0, 5))
+      setRecentInvoices(invoicesData.slice(0, 4))
+      setProjects(projectsData.slice(0, 4))
       setLeads(leadsData.slice(0, 5))
       setPayments(paymentsData.slice(0, 5))
       setExpenses(expensesData)
       setTimelogs(timelogsData)
-    } catch (e) { console.error(e) }
-    finally { setLoading(false) }
-  }
+    } catch {
+      toast.error("Failed to load dashboard data")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const loadSampleData = async () => {
+  const loadSampleData = useCallback(async () => {
     if (!window.confirm("This will add sample data (clients, projects, invoices). Continue?")) return
     setSeeding(true)
     try {
       toast.loading("Loading sample data...", { id: "seed" })
-      const { data } = await api.post("/seed/sample")
+      const { data } = await api.post("/seed/load")
       toast.success(data.message || "Sample data loaded!", { id: "seed" })
       fetchAll()
     } catch (e) {
@@ -88,44 +101,44 @@ export default function Dashboard() {
     } finally {
       setSeeding(false)
     }
-  }
+  }, [fetchAll])
 
-  const clearAllData = async () => {
+  const clearAllData = useCallback(async () => {
     if (!window.confirm("This will DELETE all your data (clients, projects, invoices). Are you sure?")) return
     try {
       toast.loading("Clearing data...", { id: "clear" })
       await api.delete("/seed/clear")
       toast.success("All data cleared!", { id: "clear" })
       fetchAll()
-    } catch (e) {
+    } catch {
       toast.error("Failed to clear data", { id: "clear" })
     }
-  }
+  }, [fetchAll])
 
   const hour = time.getHours()
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
   const greetEmoji = hour < 12 ? "🌅" : hour < 17 ? "☀️" : "🌙"
   const firstName = user?.name?.split(" ")[0] || "there"
 
-  const revenueByMonth = Array(6).fill(0).map((_, i) => {
+  const revenueByMonth = useMemo(() => Array(6).fill(0).map((_, i) => {
     const d = new Date()
     d.setMonth(d.getMonth() - (5 - i))
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
     const total = payments.filter(p => p.status === "completed" && (new Date(p.date).toISOString().substring(0, 7) === key)).reduce((s, p) => s + (p.amount || 0), 0)
     return { month: MONTHS[d.getMonth()], total }
-  })
-  const maxRevenue = Math.max(...revenueByMonth.map(r => r.total), 1)
+  }), [payments])
 
-  const expenseByMonth = Array(6).fill(0).map((_, i) => {
+  const maxRevenue = useMemo(() => Math.max(...revenueByMonth.map(r => r.total), 1), [revenueByMonth])
+
+  const expenseByMonth = useMemo(() => Array(6).fill(0).map((_, i) => {
     const d = new Date()
     d.setMonth(d.getMonth() - (5 - i))
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
     return expenses.filter(e => new Date(e.date).toISOString().substring(0, 7) === key).reduce((s, e) => s + (e.amount || 0), 0)
-  })
+  }), [expenses])
 
-  const statCards = [
+  const statCards = useMemo(() => [
     { label: "Total Clients",   value: stats.clients,  icon: "👥", color: "#6c63ff", link: "/app/clients"  },
-    // ✅ label updated to match "active" status
     { label: "Active Projects", value: stats.projects, icon: "🚀", color: "#ffb800", link: "/app/projects" },
     { label: "Total Revenue",   value: "₹" + stats.revenue.toLocaleString(), icon: "💰", color: "#00d97e", link: "/app/payments" },
     { label: "Total Leads",     value: stats.leads,    icon: "🎯", color: "#ff6584", link: "/app/leads"    },
@@ -133,9 +146,9 @@ export default function Dashboard() {
     { label: "Expenses",        value: "₹" + stats.expenses.toLocaleString(), icon: "💸", color: "#ff4d6d", link: "/app/expenses" },
     { label: "Time Logged",     value: Math.floor(stats.timelogs / 60) + "h", icon: "⏱️", color: "#a78bfa", link: "/app/time" },
     { label: "Payments",        value: stats.payments, icon: "💳", color: "#00c9a7", link: "/app/payments" },
-  ]
+  ], [stats])
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     { label: "New Client",      icon: "👥", link: "/app/clients",   color: "#6c63ff" },
     { label: "New Project",     icon: "🚀", link: "/app/projects",  color: "#ffb800" },
     { label: "New Invoice",     icon: "🧾", link: "/app/invoices",  color: "#00d97e" },
@@ -144,13 +157,24 @@ export default function Dashboard() {
     { label: "Add Expense",     icon: "💸", link: "/app/expenses",  color: "#ff4d6d" },
     { label: "New Proposal",    icon: "📝", link: "/app/proposals", color: "#2CA5E0" },
     { label: "Record Payment",  icon: "💳", link: "/app/payments",  color: "#00c9a7" },
-  ]
+  ], [])
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: "16px" }}>
-      <div style={{ width: "48px", height: "48px", border: "3px solid var(--border)", borderTopColor: "#6c63ff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-      <p style={{ color: "var(--text2)", fontSize: "14px" }}>Loading your dashboard...</p>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div style={{ maxWidth: "1300px" }}>
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ height: "32px", width: "300px", background: "var(--surface2)", borderRadius: "8px", marginBottom: "8px", animation: "pulse 1.5s ease-in-out infinite" }} />
+        <div style={{ height: "20px", width: "200px", background: "var(--surface2)", borderRadius: "6px", animation: "pulse 1.5s ease-in-out infinite" }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "14px" }}>
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+        {[...Array(2)].map((_, i) => <div key={i} style={{ height: "200px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", animation: "pulse 1.5s ease-in-out infinite" }} />)}
+      </div>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
     </div>
   )
 
@@ -166,15 +190,17 @@ export default function Dashboard() {
             {time.toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} · {time.toLocaleTimeString("en-IN")}
           </p>
         </div>
-        <button onClick={fetchAll} style={{ padding: "9px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>🔄 Refresh</button>
-        <button onClick={loadSampleData} disabled={seeding} style={{ padding: "9px 18px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "10px", color: "#6c63ff", cursor: seeding ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: seeding ? 0.7 : 1 }}>
-          {seeding ? "⏳ Loading..." : "📊 Load Sample Data"}
-        </button>
-        {stats.clients > 0 && (
-          <button onClick={clearAllData} style={{ padding: "9px 18px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
-            🗑️ Clear Data
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button onClick={fetchAll} style={{ padding: "9px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>🔄 Refresh</button>
+          <button onClick={loadSampleData} disabled={seeding} style={{ padding: "9px 18px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "10px", color: "#6c63ff", cursor: seeding ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: seeding ? 0.7 : 1 }}>
+            {seeding ? "⏳ Loading..." : "📊 Load Sample Data"}
           </button>
-        )}
+          {stats.clients > 0 && (
+            <button onClick={clearAllData} style={{ padding: "9px 18px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
+              🗑️ Clear Data
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats Row 1 */}
@@ -284,7 +310,6 @@ export default function Dashboard() {
                   <div style={{ height: "100%", width: (p.progress || 0) + "%", background: "linear-gradient(90deg,#6c63ff,#ff6584)", borderRadius: "99px" }} />
                 </div>
               </div>
-              {/* ✅ Show status badge instead of progress (backend has no progress field) */}
               <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "99px", background: "rgba(255,184,0,0.15)", color: "#ffb800", border: "1px solid rgba(255,184,0,0.3)", fontWeight: 700, flexShrink: 0 }}>Active</span>
             </div>
           ))}
@@ -344,7 +369,7 @@ export default function Dashboard() {
           ) : payments.map(p => (
             <div key={p._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
               <div>
-                <div style={{ fontSize: "13px", fontWeight: 700 }}>{p.client}</div>
+                <div style={{ fontSize: "13px", fontWeight: 700 }}>{p.client?.name || p.client || "Unknown"}</div>
                 <div style={{ fontSize: "11px", color: "var(--text2)" }}>{new Date(p.date).toLocaleDateString("en-IN")}</div>
               </div>
               <div style={{ textAlign: "right" }}>

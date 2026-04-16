@@ -138,7 +138,6 @@ async function downloadInvoicePdf(inv) {
     doc.save(`Invoice-${inv.invoiceNumber || "draft"}.pdf`)
     toast.success("PDF downloaded!", { id: "pdf" })
   } catch (e) {
-    console.error("PDF Error:", e)
     toast.error("Failed to generate PDF", { id: "pdf" })
   }
 }
@@ -163,7 +162,7 @@ function InvoiceCard({ invoice }) {
           <div style={{ fontSize: "11px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>Billed To</div>
           <div style={{ fontSize: "20px", fontWeight: 800 }}>{invoice.client?.name}</div>
           {invoice.client?.company && <div style={{ fontSize: "13px", color: "#c4b5fd", marginTop: "3px" }}>{invoice.client.company}</div>}
-          {invoice.client?.email && <div style={{ fontSize: "12px", color: "#8b9cc8", marginTop: "2px" }}>{invoice.client.email}</div>}
+          {invoice.client?.email && <div style={{ fontSize: "12px", color: "#a8aec0", marginTop: "2px" }}>{invoice.client.email}</div>}
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: "11px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>Total Amount</div>
@@ -184,11 +183,11 @@ function InvoiceCard({ invoice }) {
         ))}
       </div>
       <div style={{ marginBottom: "20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#8b9cc8" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#a8aec0" }}>
           <span>Subtotal</span><span>₹{invoice.subtotal?.toLocaleString()}</span>
         </div>
         {invoice.taxRate > 0 && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#8b9cc8" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "13px", color: "#a8aec0" }}>
             <span>GST ({invoice.taxRate}%)</span><span>₹{invoice.taxAmount?.toLocaleString()}</span>
           </div>
         )}
@@ -236,14 +235,29 @@ function ShareModal({ invoice, onClose }) {
 
   if (!invoice) return null
 
+  const sanitizeText = (text) => {
+    if (!text) return ''
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+
   const downloadCardAsImage = async () => {
     setDownloading(true)
     try {
       if (!window.html2canvas) {
         const script = document.createElement("script")
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        script.integrity = "sha512-OYW6b6Tq7fJv5T2gJ9K8lpBbH8JNFQ4r2i9n2a4gKFxG1Qbqz8U5P0U"
+        script.crossOrigin = "anonymous"
         document.head.appendChild(script)
-        await new Promise(resolve => script.onload = resolve)
+        await new Promise((resolve, reject) => {
+          script.onload = resolve
+          script.onerror = reject
+        })
       }
       const element = document.getElementById("invoice-card")
       const canvas = await window.html2canvas(element, { scale: 2, backgroundColor: null, useCORS: true })
@@ -258,7 +272,18 @@ function ShareModal({ invoice, onClose }) {
     setDownloading(false)
   }
 
-  const whatsappText = `Hi ${invoice.client?.name}! 👋\n\nYour invoice is ready:\n\n🧾 *${invoice.invoiceNumber}*\n💰 Amount: *₹${invoice.total?.toLocaleString()}*\n📅 Due: *${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("en-IN") : "N/A"}*\n\n${invoice.items?.map(i => `• ${i.description}: ₹${i.amount?.toLocaleString()}`).join("\n")}\n\nThank you for your business! 🙏\n— FreelanceFlow`
+  const whatsappText = `Hi ${sanitizeText(invoice.client?.name)}! 👋
+
+Your invoice is ready:
+
+🧾 *${sanitizeText(invoice.invoiceNumber)}*
+💰 Amount: *₹${invoice.total?.toLocaleString()}*
+📅 Due: *${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("en-IN") : "N/A"}*
+
+${(invoice.items || []).map(i => `• ${sanitizeText(i.description)}: ₹${(i.amount || 0).toLocaleString()}`).join("\n")}
+
+Thank you for your business! 🙏
+— FreelanceFlow`
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", overflowY: "auto" }}>

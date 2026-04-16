@@ -4,7 +4,7 @@ import api from "../lib/api"
 import toast from "react-hot-toast"
 
 const STATUS = {
-  draft:    { label: "Draft",       color: "#8b9cc8", bg: "rgba(139,156,200,0.15)", border: "rgba(139,156,200,0.3)" },
+  draft:    { label: "Draft",       color: "#a8aec0", bg: "rgba(168,174,192,0.15)", border: "rgba(168,174,192,0.3)" },
   sent:     { label: "Sent",        color: "#2CA5E0", bg: "rgba(44,165,224,0.15)",  border: "rgba(44,165,224,0.3)"  },
   viewed:   { label: "Viewed",      color: "#ffb800", bg: "rgba(255,184,0,0.15)",   border: "rgba(255,184,0,0.3)"   },
   accepted: { label: "Accepted ✓",  color: "#00d97e", bg: "rgba(0,217,126,0.15)",  border: "rgba(0,217,126,0.3)"  },
@@ -162,6 +162,7 @@ function ProposalDetail({ proposal, onEdit, onClose, onDelete, onUpdateStatus })
 
 export default function Proposals() {
   const [proposals, setProposals] = useState([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [showModal, setShowModal] = useState(false)
@@ -169,7 +170,10 @@ export default function Proposals() {
   const [viewProposal, setViewProposal] = useState(null)
 
   useEffect(() => {
-    api.get("/proposals").then(({ data }) => setProposals(data.proposals || data.data || [])).catch(() => {})
+    api.get("/proposals").then(({ data }) => {
+      setProposals(data?.data || [])
+      setLoading(false)
+    }).catch(() => { setLoading(false) })
   }, [])
 
   const handleCreate = async (formData) => {
@@ -237,7 +241,7 @@ export default function Proposals() {
         <button onClick={() => { setEditProposal(null); setShowModal(true) }} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ New Proposal</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[{ label: "Total Proposals", value: proposals.length, icon: "📝", color: "#6c63ff" }, { label: "Total Value", value: "₹" + totalValue.toLocaleString(), icon: "💰", color: "#ffb800" }, { label: "Accepted Value", value: "₹" + acceptedValue.toLocaleString(), icon: "🏆", color: "#00d97e" }, { label: "Accept Rate", value: acceptRate + "%", icon: "📈", color: "#ff6584" }].map(s => (
           <div key={s.label} style={{ background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "14px", padding: "18px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -256,7 +260,14 @@ export default function Proposals() {
         ))}
       </div>
 
-      {proposals.length === 0 && (
+      {loading && (
+        <div style={{ textAlign: "center", padding: "80px", color: "var(--text2, #a1a1aa)" }}>
+          <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
+          <p>Loading proposals...</p>
+        </div>
+      )}
+
+      {!loading && proposals.length === 0 && (
         <div style={{ textAlign: "center", padding: "80px 20px", background: "var(--surface, #111118)", border: "2px dashed var(--border, rgba(255,255,255,0.1))", borderRadius: "20px" }}>
           <div style={{ fontSize: "56px", marginBottom: "16px" }}>📝</div>
           <p style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>No proposals yet</p>
@@ -264,8 +275,8 @@ export default function Proposals() {
         </div>
       )}
 
-      {proposals.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "16px" }}>
+      {!loading && proposals.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
           {filtered.map(p => {
             const st = STATUS[p.status] || STATUS.draft
             const daysLeft = p.validUntil ? Math.ceil((new Date(p.validUntil) - new Date()) / 86400000) : null

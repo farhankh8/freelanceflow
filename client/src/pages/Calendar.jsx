@@ -58,7 +58,7 @@ export default function Calendar() {
         status: t.status,
       }))
       setEvents(mappedEvents)
-    } catch (e) { console.error(e) }
+    } catch { /* silent fail */ }
     finally { setLoading(false) }
   }
 
@@ -132,7 +132,7 @@ export default function Calendar() {
           priority: form.type === "deadline" ? "high" : form.type === "milestone" ? "medium" : "low",
           clientId: form.clientId || null, projectId: form.projectId || null, status: "todo"
         })
-        const newEvent = { ...data.task, type: form.type }
+        const newEvent = { ...data.data, type: form.type }
         setEvents(prev => [...prev, newEvent])
         toast.success("Event created! 🎉")
       }

@@ -4,7 +4,7 @@ import api from "../lib/api"
 import toast from "react-hot-toast"
 
 const STATUS = {
-  draft:     { label: "Draft",      color: "#8b9cc8", bg: "rgba(139,156,200,0.15)", border: "rgba(139,156,200,0.3)" },
+  draft:     { label: "Draft",      color: "#a8aec0", bg: "rgba(168,174,192,0.15)", border: "rgba(168,174,192,0.3)" },
   sent:      { label: "Sent",       color: "#2CA5E0", bg: "rgba(44,165,224,0.15)",  border: "rgba(44,165,224,0.3)"  },
   signed:    { label: "Signed ✓",   color: "#00d97e", bg: "rgba(0,217,126,0.15)",  border: "rgba(0,217,126,0.3)"  },
   active:    { label: "Active",     color: "#6c63ff", bg: "rgba(108,99,255,0.15)", border: "rgba(108,99,255,0.3)" },
@@ -207,6 +207,7 @@ function ContractDetail({ contract, onEdit, onClose, onDelete, onUpdateStatus })
 
 export default function Contracts() {
   const [contracts, setContracts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterType, setFilterType] = useState("all")
@@ -215,7 +216,10 @@ export default function Contracts() {
   const [viewContract, setViewContract] = useState(null)
 
   useEffect(() => {
-    api.get("/contracts").then(({ data }) => setContracts(data?.contracts || data?.data || [])).catch(() => {})
+    api.get("/contracts").then(({ data }) => {
+      setContracts(data?.data || [])
+      setLoading(false)
+    }).catch(() => { setLoading(false) })
   }, [])
 
   const handleCreate = async (formData) => {
@@ -282,12 +286,12 @@ export default function Contracts() {
 
   return (
     <div style={{ maxWidth: "1200px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "12px", flexWrap: "wrap" }}>
         <div><h1 style={{ fontSize: "28px", fontWeight: 800, marginBottom: "4px" }}>Contracts</h1><p style={{ color: "var(--text2, #a1a1aa)", fontSize: "14px" }}>{contracts.length} total · {signRate}% sign rate</p></div>
         <button onClick={() => { setEditContract(null); setShowModal(true) }} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ New Contract</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[{ label: "Total Contracts", value: contracts.length, icon: "📜", color: "#6c63ff" }, { label: "Total Value", value: "₹" + totalValue.toLocaleString(), icon: "💰", color: "#ffb800" }, { label: "Active Value", value: "₹" + activeValue.toLocaleString(), icon: "⚡", color: "#00d97e" }, { label: "Sign Rate", value: signRate + "%", icon: "✍️", color: "#ff6584" }].map(s => (
           <div key={s.label} style={{ background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "14px", padding: "18px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -310,7 +314,14 @@ export default function Contracts() {
         ))}
       </div>
 
-      {contracts.length === 0 && (
+      {loading && (
+        <div style={{ textAlign: "center", padding: "80px", color: "var(--text2)" }}>
+          <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
+          <p>Loading contracts...</p>
+        </div>
+      )}
+
+      {!loading && contracts.length === 0 && (
         <div style={{ textAlign: "center", padding: "80px 20px", background: "var(--surface, #111118)", border: "2px dashed var(--border, rgba(255,255,255,0.1))", borderRadius: "20px" }}>
           <div style={{ fontSize: "56px", marginBottom: "16px" }}>📜</div>
           <p style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>No contracts yet</p>
@@ -318,18 +329,18 @@ export default function Contracts() {
         </div>
       )}
 
-      {contracts.length > 0 && (
+      {!loading && contracts.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {filtered.map(c => {
             const st = STATUS[c.status] || STATUS.draft
             const daysLeft = c.endDate ? Math.ceil((new Date(c.endDate) - new Date()) / 86400000) : null
             const isExpiring = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7
             return (
-              <div key={c._id} onClick={() => setViewContract(c)} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "18px 20px", background: "var(--surface, #111118)", border: "1px solid " + (isExpiring ? "rgba(255,184,0,0.4)" : "var(--border, rgba(255,255,255,0.1))"), borderRadius: "14px", cursor: "pointer" }}>
+              <div key={c._id} onClick={() => setViewContract(c)} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "18px 20px", background: "var(--surface, #111118)", border: "1px solid " + (isExpiring ? "rgba(255,184,0,0.4)" : "var(--border, rgba(255,255,255,0.1))"), borderRadius: "14px", cursor: "pointer", flexWrap: "wrap" }}>
                 <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: st.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>📜</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: "1 1 200px", minWidth: 0 }}>
                   <div style={{ fontWeight: 800, fontSize: "15px", marginBottom: "4px" }}>{c.title}</div>
-                  <div style={{ display: "flex", gap: "12px", fontSize: "12px", color: "var(--text2, #a1a1aa)" }}>
+                  <div style={{ display: "flex", gap: "12px", fontSize: "12px", color: "var(--text2, #a1a1aa)", flexWrap: "wrap" }}>
                     <span>👤 {c.client}</span>
                     <span>📋 {c.contractType}</span>
                     {c.startDate && <span>📅 {c.startDate}{c.endDate ? " → " + c.endDate : ""}</span>}
@@ -339,7 +350,7 @@ export default function Contracts() {
                   <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span>
                   {daysLeft !== null && <div style={{ fontSize: "10px", marginTop: "5px", color: daysLeft < 0 ? "#ff4d6d" : isExpiring ? "#ffb800" : "var(--text2, #a1a1aa)", fontWeight: 600 }}>{daysLeft < 0 ? Math.abs(daysLeft) + "d overdue" : daysLeft === 0 ? "Ends today!" : daysLeft + "d left"}</div>}
                 </div>
-                <div style={{ textAlign: "right", flexShrink: 0, minWidth: "100px" }}><div style={{ fontSize: "18px", fontWeight: 800, color: "#00d97e" }}>₹{(c.value || 0).toLocaleString()}</div></div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}><div style={{ fontSize: "18px", fontWeight: 800, color: "#00d97e" }}>₹{(c.value || 0).toLocaleString()}</div></div>
                 <div style={{ display: "flex", gap: "5px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                   <button onClick={() => { setEditContract(c); setShowModal(true) }} style={{ padding: "7px 10px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.25)", borderRadius: "8px", cursor: "pointer", fontSize: "13px", color: "#6c63ff" }}>✏️</button>
                   <button onClick={() => deleteContract(c._id)} style={{ padding: "7px 10px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.25)", borderRadius: "8px", cursor: "pointer", fontSize: "13px", color: "#ff4d6d" }}>🗑️</button>

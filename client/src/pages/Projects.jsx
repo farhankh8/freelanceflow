@@ -71,7 +71,7 @@ export default function Projects() {
   const fetchProjects = async () => {
     try {
       const { data } = await api.get("/projects")
-      setProjects(data.projects || [])
+      setProjects(data.data || [])
     } catch {
       toast.error("Failed to load projects")
     } finally {
@@ -107,7 +107,7 @@ export default function Projects() {
   const moveProject = async (id, status) => {
     try {
       const { data } = await api.put(`/projects/${id}`, { status })
-      setProjects(prev => prev.map(p => p._id === id ? data.project : p))
+      setProjects(prev => prev.map(p => p._id === id ? data.data : p))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch {
       toast.error("Failed to update")
@@ -142,12 +142,12 @@ export default function Projects() {
     <div style={{ maxWidth: "1300px" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "12px", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Projects</h1>
           <p style={{ color: "var(--text2)", fontSize: "14px" }}>{projects.length} total · {activeCount} active</p>
         </div>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", overflow: "hidden" }}>
             {[{ id: "kanban", label: "📌 Kanban" }, { id: "list", label: "📋 List" }, { id: "grid", label: "⊞ Grid" }].map(v => (
               <button key={v.id} onClick={() => setView(v.id)} style={{ padding: "8px 14px", border: "none", background: view === v.id ? "var(--accent)" : "transparent", color: view === v.id ? "#fff" : "var(--text2)", cursor: "pointer", fontSize: "12px", fontWeight: 600, transition: "all 0.15s" }}>{v.label}</button>
@@ -158,7 +158,7 @@ export default function Projects() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Projects", value: projects.length, icon: "🚀", color: "#6c63ff" },
           { label: "In Progress",    value: activeCount,     icon: "⚡", color: "#ffb800" },
@@ -190,7 +190,7 @@ export default function Projects() {
         <>
           {/* KANBAN VIEW */}
           {view === "kanban" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "16px", alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(200px, 1fr))", gap: "16px", alignItems: "start", overflowX: "auto" }}>
               {KANBAN_COLS.map(col => {
                 const colProjects = filtered.filter(p => p.status === col.id)
                 const st = STATUS[col.id]
@@ -220,34 +220,36 @@ export default function Projects() {
 
           {/* LIST VIEW */}
           {view === "list" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                <span>Project</span><span>Client</span><span>Status</span><span>Budget</span><span>Deadline</span>
-              </div>
-              {filtered.map(p => {
-                const st = STATUS[p.status] || STATUS.planning
-                const daysLeft = p.deadline ? Math.ceil((new Date(p.deadline) - new Date()) / 86400000) : null
-                return (
-                  <div key={p._id} onClick={() => setSelected(p)}
-                    style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", cursor: "pointer", transition: "border-color 0.15s" }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
-                    <div style={{ fontWeight: 700, fontSize: "14px" }}>{p.title}</div>
-                    <div style={{ fontSize: "13px", color: "var(--text2)" }}>{p.client?.name || "—"}</div>
-                    <div><span style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
-                    <div style={{ fontWeight: 700, color: "var(--success)", fontSize: "13px" }}>₹{(p.budget || 0).toLocaleString()}</div>
-                    <div style={{ fontSize: "12px", color: daysLeft !== null && daysLeft < 0 ? "#ff4d6d" : daysLeft !== null && daysLeft < 5 ? "#ffb800" : "var(--text2)" }}>
-                      {p.deadline ? new Date(p.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", minWidth: "600px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  <span>Project</span><span>Client</span><span>Status</span><span>Budget</span><span>Deadline</span>
+                </div>
+                {filtered.map(p => {
+                  const st = STATUS[p.status] || STATUS.planning
+                  const daysLeft = p.deadline ? Math.ceil((new Date(p.deadline) - new Date()) / 86400000) : null
+                  return (
+                    <div key={p._id} onClick={() => setSelected(p)}
+                      style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", cursor: "pointer", transition: "border-color 0.15s" }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
+                      <div style={{ fontWeight: 700, fontSize: "14px" }}>{p.title}</div>
+                      <div style={{ fontSize: "13px", color: "var(--text2)" }}>{p.client?.name || "—"}</div>
+                      <div><span style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
+                      <div style={{ fontWeight: 700, color: "var(--success)", fontSize: "13px" }}>₹{(p.budget || 0).toLocaleString()}</div>
+                      <div style={{ fontSize: "12px", color: daysLeft !== null && daysLeft < 0 ? "#ff4d6d" : daysLeft !== null && daysLeft < 5 ? "#ffb800" : "var(--text2)" }}>
+                        {p.deadline ? new Date(p.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           )}
 
           {/* GRID VIEW */}
           {view === "grid" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
               {filtered.map(p => {
                 const st = STATUS[p.status] || STATUS.planning
                 const daysLeft = p.deadline ? Math.ceil((new Date(p.deadline) - new Date()) / 86400000) : null
@@ -304,7 +306,7 @@ export default function Projects() {
                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="What is this project about?" rows={3} style={{ ...inp, resize: "vertical" }} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
                 {/* ✅ Status options match backend enum exactly */}
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</label>

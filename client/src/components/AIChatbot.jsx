@@ -1,6 +1,10 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
+
+const MAX_MESSAGES = 50
+
+const trimMessages = (msgs) => msgs.length > MAX_MESSAGES ? msgs.slice(msgs.length - MAX_MESSAGES) : msgs
 
 const QUICK = [
   { label: "Create invoice for ₹50,000", action: "create_invoice_50000" },
@@ -39,7 +43,7 @@ export default function AIChatbot() {
     const q = text || input.trim()
     if (!q) return
     setInput("")
-    setMessages(m => [...m, { role: "user", text: q }])
+    setMessages(m => trimMessages([...m, { role: "user", text: q }]))
     setTyping(true)
 
     try {
@@ -59,10 +63,10 @@ export default function AIChatbot() {
           const responseText = `📋 Invoice Creation Ready!\n\nI'll create an invoice with:\n• Client: ${clients.clients[0].name}\n• Amount: ₹${(params.amount || 0).toLocaleString()}\n• Items: ${items.map(i => i.description).join(', ')}\n\nGo to Invoices page to create it, or ask me for more specific details!`
           
           setTyping(false)
-          setMessages(m => [...m, { role: "bot", text: responseText }])
+          setMessages(m => trimMessages([...m, { role: "bot", text: responseText }]))
         } else {
           setTyping(false)
-          setMessages(m => [...m, { role: "bot", text: "To create an invoice, I first need you to add a client. Would you like me to help you add one?" }])
+          setMessages(m => trimMessages([...m, { role: "bot", text: "To create an invoice, I first need you to add a client. Would you like me to help you add one?" }]))
         }
       } else if (parsedIntent.action === 'revenue_query') {
         try {
@@ -79,7 +83,7 @@ export default function AIChatbot() {
           const responseText = `💰 Revenue Report\n\nThis month (${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}):\n\n• Total collected: ₹${revenue.toLocaleString()}\n• Payments received: ${monthPayments.length}\n• Invoices sent: ${(invoices.data.invoices || []).filter(i => i.status === 'sent').length}\n• Overdue: ${(invoices.data.invoices || []).filter(i => i.status === 'overdue').length}`
           
           setTyping(false)
-          setMessages(m => [...m, { role: "bot", text: responseText }])
+          setMessages(m => trimMessages([...m, { role: "bot", text: responseText }]))
         } catch {
           throw new Error('Failed to fetch data')
         }
@@ -100,42 +104,23 @@ export default function AIChatbot() {
           }
           
           setTyping(false)
-          setMessages(m => [...m, { role: "bot", text: responseText }])
+          setMessages(m => trimMessages([...m, { role: "bot", text: responseText }]))
         } catch {
           throw new Error('Failed to fetch invoices')
         }
       } else {
         const history = messages.map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }))
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY || "",
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1024,
-            system: `You are an AI assistant built into FreelanceFlow, a freelance management SaaS app. Help freelancers with:
-1. Using the app features (invoices, clients, projects, time tracking)
-2. Financial advice (pricing, revenue optimization)
-3. Business growth tips (finding clients, proposals)
-4. India-specific GST/TDS/freelance tax questions
-5. General freelancing questions
-
-Be concise, helpful, and friendly. Use emojis sparingly. Focus on actionable advice.`,
-            messages: [...history, { role: "user", content: q }]
-          })
+        const { data } = await api.post('/ai/chat', {
+          messages: [...history, { role: "user", content: q }]
         })
         
-        const data = await response.json()
-        const answer = data.content?.[0]?.text || "I couldn't process that. Please try again!"
+        const answer = data.content || "I couldn't process that. Please try again!"
         setTyping(false)
-        setMessages(m => [...m, { role: "bot", text: answer }])
+        setMessages(m => trimMessages([...m, { role: "bot", text: answer }]))
       }
     } catch {
       setTyping(false)
-      setMessages(m => [...m, { role: "bot", text: "I'm having trouble connecting. Please try again or ask something else!" }])
+      setMessages(m => trimMessages([...m, { role: "bot", text: "I'm having trouble connecting. Please try again or ask something else!" }]))
     }
   }
 
@@ -160,32 +145,32 @@ Be concise, helpful, and friendly. Use emojis sparingly. Focus on actionable adv
 
   return (
     <>
-      <div onClick={() => setOpen(o => !o)} style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 9000, width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "24px", boxShadow: "0 4px 24px rgba(108,99,255,0.5)", transition: "transform 0.2s", pointerEvents: "auto" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} title="AI Assistant — Ask anything!">
+      <button onClick={() => setOpen(o => !o)} aria-label={open ? "Close AI Assistant" : "Open AI Assistant"} style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 9000, width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "24px", boxShadow: "0 4px 24px rgba(108,99,255,0.5)", transition: "transform 0.2s", border: "none", color: "#fff" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
         {open ? "×" : "🤖"}
-      </div>
+      </button>
 
       {open && (
-        <div style={{ position: "fixed", bottom: "96px", right: "28px", zIndex: 9000, width: "380px", height: "560px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        <div role="dialog" aria-modal="true" aria-label="FreelanceFlow AI Assistant" aria-labelledby="chatbot-title" style={{ position: "fixed", bottom: "96px", right: "28px", zIndex: 9000, width: "380px", height: "560px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", background: "linear-gradient(135deg,rgba(108,99,255,0.2),rgba(255,101,132,0.2))", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🤖</div>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }} aria-hidden="true">🤖</div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "14px" }}>FreelanceFlow AI</div>
+                <div id="chatbot-title" style={{ fontWeight: 700, fontSize: "14px" }}>FreelanceFlow AI</div>
                 <div style={{ fontSize: "11px", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--success)" }} /> Powered by Claude
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--success)" }} aria-hidden="true" /> Powered by Claude
                 </div>
               </div>
             </div>
-            <select value={mode} onChange={e => setMode(e.target.value)} style={{ padding: "4px 8px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text)", fontSize: "11px" }}>
+            <select value={mode} onChange={e => setMode(e.target.value)} aria-label="Chat mode" style={{ padding: "4px 8px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text)", fontSize: "11px" }}>
               <option value="chat">Chat</option>
               <option value="invoice">Invoice AI</option>
             </select>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} role="log" aria-label="Chat messages" aria-live="polite">
             {messages.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-                <div style={{ maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: m.role === "user" ? "linear-gradient(135deg,#6c63ff,#ff6584)" : "var(--surface2)", border: m.role === "bot" ? "1px solid var(--border)" : "none", fontSize: "13px", lineHeight: "1.5", color: "var(--text)", whiteSpace: "pre-wrap" }}>
+                <div style={{ maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: m.role === "user" ? "linear-gradient(135deg,#6c63ff,#ff6584)" : "var(--surface2)", border: m.role === "bot" ? "1px solid var(--border)" : "none", fontSize: "13px", lineHeight: "1.5", color: "var(--text)", whiteSpace: "pre-wrap" }} role={m.role === "user" ? "listitem" : undefined}>
                   {m.text}
                 </div>
               </div>
@@ -193,7 +178,7 @@ Be concise, helpful, and friendly. Use emojis sparingly. Focus on actionable adv
             {typing && (
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <div style={{ padding: "10px 16px", borderRadius: "14px 14px 14px 4px", background: "var(--surface2)", border: "1px solid var(--border)", display: "flex", gap: "4px", alignItems: "center" }}>
-                  {[0,1,2].map(i => <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--text2)", animation: `bounce 1s ease ${i*0.2}s infinite` }} />)}
+                  {[0,1,2].map(i => <div key={i} aria-hidden="true" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--text2)", animation: `bounce 1s ease ${i*0.2}s infinite` }} />)}
                 </div>
               </div>
             )}
@@ -202,15 +187,17 @@ Be concise, helpful, and friendly. Use emojis sparingly. Focus on actionable adv
 
           <div style={{ padding: "8px 12px", display: "flex", gap: "6px", overflowX: "auto", borderTop: "1px solid var(--border)" }}>
             {QUICK.map(q => (
-              <button key={q.action} onClick={() => handleAction(q.action)} style={{ padding: "5px 10px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "99px", color: "var(--text2)", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500 }}>
+              <button key={q.action} onClick={() => handleAction(q.action)} aria-label={q.label} style={{ padding: "5px 10px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "99px", color: "var(--text2)", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500 }}>
                 {q.label}
               </button>
             ))}
           </div>
 
           <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", display: "flex", gap: "8px" }}>
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()} placeholder="Ask me anything..." style={{ flex: 1, padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
-            <button onClick={() => send()} disabled={typing} style={{ padding: "10px 14px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", cursor: typing ? "not-allowed" : "pointer", fontSize: "16px", opacity: typing ? 0.7 : 1 }}>→</button>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()} placeholder="Ask me anything..." aria-label="Chat message input" style={{ flex: 1, padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
+            <button onClick={() => send()} disabled={typing} aria-label="Send message" style={{ padding: "10px 14px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", cursor: typing ? "not-allowed" : "pointer", fontSize: "16px", opacity: typing ? 0.7 : 1 }}>
+              Send
+            </button>
           </div>
         </div>
       )}

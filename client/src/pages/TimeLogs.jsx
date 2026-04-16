@@ -248,7 +248,7 @@ export default function TimeLogs() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Time",      value: formatDuration(totalMins),                          icon: "⏱️", color: "#6c63ff" },
           { label: "Unbilled Time",   value: formatDuration(unbilledMins),                       icon: "🕐", color: "#ffb800" },
@@ -268,7 +268,7 @@ export default function TimeLogs() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(300px, 340px)", gap: "20px", alignItems: "start" }}>
 
         {/* ── Left: Log List ──────────────────────────────────────────────── */}
         <div>
@@ -328,7 +328,7 @@ export default function TimeLogs() {
                         style={{ padding: "6px 8px", background: log.billed ? "rgba(0,217,126,0.1)" : "rgba(255,184,0,0.1)", border: "1px solid " + (log.billed ? "rgba(0,217,126,0.3)" : "rgba(255,184,0,0.3)"), borderRadius: "6px", color: log.billed ? "#00d97e" : "#ffb800", cursor: "pointer", fontSize: "12px" }}>
                         {log.billed ? "✓" : "○"}
                       </button>
-                      <button onClick={() => deleteLog(log._id)} style={{ padding: "6px 8px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
+                      <button onClick={() => deleteLog(log._id)} aria-label="Delete time log" style={{ padding: "6px 8px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
                     </div>
                   </div>
                 )
@@ -393,7 +393,7 @@ export default function TimeLogs() {
               ) : (
                 <>
                   <button onClick={stopTimer} style={{ flex: 2, padding: "13px", background: "linear-gradient(135deg,#00d97e,#00c9a7)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>⏹ Stop & Save</button>
-                  <button onClick={resetTimer} style={{ flex: 1, padding: "13px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>✕</button>
+                  <button onClick={resetTimer} aria-label="Reset timer" style={{ flex: 1, padding: "13px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>✕</button>
                 </>
               )}
             </div>
@@ -463,14 +463,14 @@ export default function TimeLogs() {
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "500px" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div><h2 style={{ fontSize: "20px", fontWeight: 800 }}>Manual Time Entry</h2><p style={{ fontSize: "13px", color: "var(--text2)", marginTop: "2px" }}>Log time worked manually</p></div>
-              <button onClick={() => setShowModal(false)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <button onClick={() => setShowModal(false)} aria-label="Close time log form" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Task *</label>
                 <input value={form.task} onChange={e => setForm(f => ({ ...f, task: e.target.value }))} placeholder="What did you work on?" style={inp} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Project</label>
                   <select value={form.project} onChange={e => setForm(f => ({ ...f, project: e.target.value }))} style={inp}>

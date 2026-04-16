@@ -11,32 +11,17 @@ const STATUS = {
 
 const METHODS = {
   upi:           { label: "UPI",         icon: "📱", color: "#00d97e" },
-  card:          { label: "Card",        icon: "💳", color: "#6c63ff" },
-  bank_transfer:  { label: "Net Banking", icon: "🏦", color: "#2CA5E0" },
-  cash:          { label: "Cash",        icon: "💵", color: "#ffb800" },
-  check:         { label: "Cheque",      icon: "📄", color: "#ff6584" },
+  card:           { label: "Card",        icon: "💳", color: "#6c63ff" },
+  bank_transfer: { label: "Net Banking", icon: "🏦", color: "#2CA5E0" },
+  cash:           { label: "Cash",        icon: "💵", color: "#ffb800" },
+  check:          { label: "Cheque",      icon: "📄", color: "#ff6584" },
 }
 
-const LS_KEY = "freelanceflow_payments"
-const EMPTY_FORM = { client: "", invoiceNo: "", amount: "", method: "upi", status: "completed", date: new Date().toISOString().split("T")[0], txnId: "", notes: "" }
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
-    }
-  } catch (_) {}
-  return []
-}
-
-function saveToStorage(data) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(data)) } catch (_) {}
-}
+const EMPTY_FORM = { clientId: "", clientName: "", invoiceNo: "", amount: "", method: "upi", status: "completed", date: new Date().toISOString().split("T")[0], txnId: "", notes: "" }
 
 export default function Payments() {
-  const [payments, setPayments] = useState(() => loadFromStorage())
+  const [payments, setPayments] = useState([])
+  const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState(null)
@@ -44,47 +29,47 @@ export default function Payments() {
   const [filterStatus, setFilterStatus] = useState("all")
   const [form, setForm] = useState(EMPTY_FORM)
 
-  useEffect(() => { fetchPayments() }, [])
+  useEffect(() => {
+    fetchPayments()
+  }, [])
 
   const fetchPayments = async () => {
     try {
-      const { data } = await api.get("/payments")
-      const apiList = data?.payments || data?.data || (Array.isArray(data) ? data : [])
-
-      // ✅ KEY FIX: never throw away local-only payments (local_ prefix)
-      // Merge: API data is source of truth for real IDs, keep local_ ones on top
-      setPayments(prev => {
-        const localOnly = prev.filter(p => String(p._id).startsWith("local_"))
-        const apiIds = new Set(apiList.map(p => p._id))
-        const stillLocalOnly = localOnly.filter(p => !apiIds.has(p._id))
-        const merged = [...stillLocalOnly, ...apiList]
-        saveToStorage(merged)
-        return merged
+      const [payRes, cliRes] = await Promise.all([
+        api.get("/payments"),
+        api.get("/clients?limit=100"),
+      ])
+      
+      const paymentsList = payRes?.data?.data || payRes?.data?.payments || []
+      const clientsList = cliRes?.data?.data || cliRes?.data?.clients || []
+      
+      const paymentsWithClients = paymentsList.map(p => {
+        const client = clientsList.find(c => c._id === p.client || c._id === p.client?.id)
+        return {
+          ...p,
+          clientName: p.client?.name || client?.name || 'Unknown Client',
+          clientId: p.client?._id || p.client
+        }
       })
-    } catch {
-      // API failed — keep whatever is in state (already loaded from localStorage)
+      
+      setPayments(paymentsWithClients)
+      setClients(clientsList)
+    } catch (e) {
+      toast.error("Failed to load payments")
     } finally {
       setLoading(false)
     }
   }
 
-  // ✅ Every state change saves to localStorage immediately
-  const updatePayments = (fn) => {
-    setPayments(prev => {
-      const next = typeof fn === "function" ? fn(prev) : fn
-      saveToStorage(next)
-      return next
-    })
-  }
-
   const handleCreate = async () => {
-    if (!form.client || !form.amount) { toast.error("Client and amount required"); return }
+    if (!form.clientId || !form.amount) { 
+      toast.error("Client and amount required"); 
+      return 
+    }
     
-    // Map frontend field names to backend field names
     const methodMap = { netbanking: 'bank_transfer', cheque: 'check' }
     const payload = {
-      client: form.client,
-      invoiceNumber: form.invoiceNo,
+      client: form.clientId,
       amount: Number(form.amount),
       method: methodMap[form.method] || form.method,
       status: form.status,
@@ -93,44 +78,53 @@ export default function Payments() {
       notes: form.notes
     }
 
-    // ✅ Optimistically add to UI & localStorage FIRST — never lost even if API fails
-    const tempId = "local_" + Date.now()
-    const optimistic = { _id: tempId, ...payload, createdAt: new Date().toISOString() }
-    updatePayments(prev => [optimistic, ...prev])
-    setShowModal(false)
-    setForm(EMPTY_FORM)
-    toast.success("Payment recorded! 💳")
-
-    // Then try to save to API and replace temp ID with real one
     try {
       const { data } = await api.post("/payments", payload)
-      const saved = data?.data
-      if (saved?._id) {
-        // Replace temp entry with the real API entry
-        updatePayments(prev => prev.map(p => p._id === tempId ? saved : p))
+      const savedPayment = data?.data || data
+      
+      const savedWithClient = {
+        ...savedPayment,
+        clientName: clients.find(c => c._id === form.clientId)?.name || 'Unknown'
       }
-    } catch {
-      // Already saved locally — will sync next time API is available
+      
+      setPayments(prev => [savedWithClient, ...prev])
+      setShowModal(false)
+      setForm(EMPTY_FORM)
+      toast.success("Payment recorded! 💳")
+    } catch (e) {
+      toast.error(e?.response?.data?.error || "Failed to create payment")
     }
   }
 
   const updateStatus = async (id, status) => {
-    updatePayments(prev => prev.map(p => p._id === id ? { ...p, status } : p))
-    setSelected(s => s?._id === id ? { ...s, status } : s)
-    toast.success("Status updated!")
-    try { await api.put(`/payments/${id}`, { status }) } catch (_) {}
+    try {
+      await api.put(`/payments/${id}`, { status })
+      setPayments(prev => prev.map(p => p._id === id ? { ...p, status } : p))
+      if (selected?._id === id) {
+        setSelected(prev => prev ? { ...prev, status } : null)
+      }
+      toast.success("Status updated!")
+    } catch (e) {
+      toast.error("Failed to update status")
+    }
   }
 
   const deletePayment = async (id) => {
     if (!window.confirm("Delete this payment?")) return
-    updatePayments(prev => prev.filter(p => p._id !== id))
-    setSelected(null)
-    toast.success("Deleted")
-    try { await api.delete(`/payments/${id}`) } catch (_) {}
+    try {
+      await api.delete(`/payments/${id}`)
+      setPayments(prev => prev.filter(p => p._id !== id))
+      setSelected(null)
+      toast.success("Payment deleted")
+    } catch (e) {
+      toast.error("Failed to delete payment")
+    }
   }
 
   const filtered = payments.filter(p => {
-    const matchSearch = !search || p.client?.toLowerCase().includes(search.toLowerCase()) || p.invoiceNo?.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = !search || 
+      p.clientName?.toLowerCase().includes(search.toLowerCase()) || 
+      p.invoiceNumber?.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus === "all" || p.status === filterStatus
     return matchSearch && matchStatus
   })
@@ -190,19 +184,15 @@ export default function Payments() {
           {filtered.map(p => {
             const st = STATUS[p.status] || STATUS.pending
             const mt = METHODS[p.method] || METHODS.upi
-            const isLocal = String(p._id).startsWith("local_")
             return (
               <div key={p._id} onClick={() => setSelected(p)}
-                style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 18px", background: "var(--surface)", border: "1px solid " + (isLocal ? "rgba(255,184,0,0.3)" : "var(--border)"), borderRadius: "12px", cursor: "pointer", transition: "all 0.15s" }}
+                style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", cursor: "pointer", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"; e.currentTarget.style.transform = "translateX(3px)" }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = isLocal ? "rgba(255,184,0,0.3)" : "var(--border)"; e.currentTarget.style.transform = "translateX(0)" }}>
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateX(0)" }}>
                 <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: mt.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>{mt.icon}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>
-                    {p.client}
-                    {isLocal && <span style={{ fontSize: "9px", marginLeft: "8px", padding: "1px 6px", borderRadius: "99px", background: "rgba(255,184,0,0.15)", color: "#ffb800", border: "1px solid rgba(255,184,0,0.3)", fontWeight: 700 }}>LOCAL</span>}
-                  </div>
-                  <div style={{ fontSize: "11px", color: "var(--text2)" }}>{mt.label} · {p.invoiceNo || "No invoice"} · {new Date(p.date).toLocaleDateString("en-IN")}</div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>{p.clientName}</div>
+                  <div style={{ fontSize: "11px", color: "var(--text2)" }}>{mt.label} · {p.invoiceNumber || "No invoice"} · {new Date(p.date).toLocaleDateString("en-IN")}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: "16px", fontWeight: 800, color: p.status === "completed" ? "#00d97e" : p.status === "pending" ? "#ffb800" : "#ff4d6d" }}>₹{(p.amount || 0).toLocaleString()}</div>
@@ -230,7 +220,13 @@ export default function Payments() {
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-                <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Client *</label><input value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} placeholder="Client name" style={inp} /></div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Client *</label>
+                  <select value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))} style={inp}>
+                    <option value="">Select a client...</option>
+                    {clients.map(c => <option key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ""}</option>)}
+                  </select>
+                </div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Invoice No</label><input value={form.invoiceNo} onChange={e => setForm(f => ({ ...f, invoiceNo: e.target.value }))} placeholder="FF-2026-001" style={inp} /></div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Amount (₹) *</label><input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="0" style={inp} /></div>
                 <div><label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Date</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={inp} /></div>
@@ -252,14 +248,14 @@ export default function Payments() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "440px" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ fontSize: "18px", fontWeight: 800 }}>{selected.client}</h2>
+              <h2 style={{ fontSize: "18px", fontWeight: 800 }}>{selected.clientName}</h2>
               <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div style={{ textAlign: "center", padding: "20px", background: selected.status === "completed" ? "rgba(0,217,126,0.08)" : "rgba(255,184,0,0.08)", borderRadius: "12px" }}>
                 <div style={{ fontSize: "36px", fontWeight: 800, color: selected.status === "completed" ? "#00d97e" : "#ffb800" }}>₹{(selected.amount || 0).toLocaleString()}</div>
                 <div style={{ fontSize: "13px", color: "var(--text2)", marginTop: "4px" }}>{new Date(selected.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</div>
-                {selected.txnId && <div style={{ fontSize: "11px", color: "var(--text2)", marginTop: "4px" }}>TXN: {selected.txnId}</div>}
+                {selected.transactionId && <div style={{ fontSize: "11px", color: "var(--text2)", marginTop: "4px" }}>TXN: {selected.transactionId}</div>}
               </div>
               <div>
                 <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "10px", textTransform: "uppercase" }}>Update Status</div>

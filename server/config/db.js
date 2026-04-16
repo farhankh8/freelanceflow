@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { logger } = require('./logger');
 
 const connectDB = async () => {
   try {
@@ -8,9 +9,9 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info({ host: conn.connection.host }, 'MongoDB connected');
   } catch (error) {
-    console.error(`Database connection error: ${error.message}`);
+    logger.error({ error: error.message }, 'Database connection failed');
     process.exit(1);
   }
 };
