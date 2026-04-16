@@ -99,7 +99,7 @@ export default function Projects() {
       setShowModal(false)
       setForm({ title: "", description: "", clientId: "", status: "active", budget: "", deadline: "" })
     } catch (err) {
-      toast.error(err?.response?.data?.error || "Failed to create project")
+      toast.error(err?.response?.data?.message || "Failed to create project")
     } finally {
       setSaving(false)
     }

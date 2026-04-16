@@ -97,7 +97,7 @@ export default function Dashboard() {
       toast.success(data.message || "Sample data loaded!", { id: "seed" })
       fetchAll()
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to load sample data", { id: "seed" })
+      toast.error(e?.response?.data?.message || "Failed to load sample data", { id: "seed" })
     } finally {
       setSeeding(false)
     }

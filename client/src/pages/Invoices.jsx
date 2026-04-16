@@ -389,7 +389,7 @@ export default function Invoices() {
       setShowModal(false)
       setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
     } catch (err) {
-      toast.error(err?.response?.data?.error || "Failed to create invoice")
+      toast.error(err?.response?.data?.message || "Failed to create invoice")
     } finally { setSaving(false) }
   }
 

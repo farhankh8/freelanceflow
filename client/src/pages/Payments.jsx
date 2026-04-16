@@ -92,7 +92,7 @@ export default function Payments() {
       setForm(EMPTY_FORM)
       toast.success("Payment recorded! 💳")
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Failed to create payment")
+      toast.error(e?.response?.data?.message || "Failed to create payment")
     }
   }
 
