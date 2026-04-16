@@ -344,6 +344,9 @@ export default function Invoices() {
   const [search, setSearch] = useState("")
   const [form, setForm] = useState({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
 
+  const safeClients = clients || []
+  const safeInvoices = invoices || []
+
   useEffect(() => { fetchAll() }, [])
 
   const fetchAll = async () => {
@@ -422,7 +425,8 @@ export default function Invoices() {
   const totalPending = useMemo(() => (invoices || []).filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0), [invoices])
   const totalOverdue = useMemo(() => (invoices || []).filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0), [invoices])
 
-  return (
+  try {
+    return (
     <div style={{ maxWidth: "1100px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
         <div>
@@ -475,7 +479,7 @@ export default function Invoices() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             <span>Invoice #</span><span>Client</span><span>Amount</span><span>Due Date</span><span>Status</span><span>Actions</span>
           </div>
-          {(filtered || []).map(inv => {
+          {(filtered || []).map((inv) => {
             const st = STATUS_COLORS[inv.status] || STATUS_COLORS.draft
             return (
               <div key={inv._id} style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s" }}
@@ -519,7 +523,7 @@ export default function Invoices() {
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Client *</label>
                 <select value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))} style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }}>
                   <option value="">Select a client...</option>
-                  {(clients || []).map(c => <option key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ""}</option>)}
+                  {safeClients.map(c => <option key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ""}</option>)}
                 </select>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "18px" }}>
@@ -629,4 +633,15 @@ export default function Invoices() {
       <ShareModal invoice={shareInvoice} onClose={() => setShareInvoice(null)} />
     </div>
   )
+  } catch (e) {
+    console.error("Invoices render error:", e)
+    return (
+      <div style={{ maxWidth: "1100px", padding: "40px", textAlign: "center" }}>
+        <div style={{ fontSize: "48px", marginBottom: "16px" }}>🧾</div>
+        <h2 style={{ fontSize: "20px", color: "#fff", marginBottom: "8px" }}>Something went wrong</h2>
+        <p style={{ color: "#888", marginBottom: "20px" }}>Try refreshing the page</p>
+        <button onClick={() => window.location.reload()} style={{ padding: "10px 24px", background: "var(--accent)", border: "none", borderRadius: "8px", color: "#fff", cursor: "pointer", fontWeight: 600 }}>Refresh</button>
+      </div>
+    )
+  }
 }
