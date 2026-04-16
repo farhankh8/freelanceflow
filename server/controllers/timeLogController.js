@@ -5,10 +5,10 @@ const { z } = require('zod');
 
 const timeLogCreateSchema = z.object({
   description: z.string().min(1, 'Description is required').max(500),
-  projectId: z.string().min(1, 'Project is required'),
-  clientId: z.string().optional(),
-  taskId: z.string().optional(),
-  duration: z.number().min(0.25, 'Duration must be at least 0.25 hours').max(24, 'Duration cannot exceed 24 hours'),
+  project: z.string().min(1, 'Project is required'),
+  client: z.string().optional(),
+  task: z.string().optional(),
+  duration: z.number().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours'),
   rate: z.number().min(0).optional(),
   date: z.string().optional(),
   notes: z.string().max(500).optional(),
@@ -16,10 +16,10 @@ const timeLogCreateSchema = z.object({
 
 const timeLogUpdateSchema = z.object({
   description: z.string().min(1).max(500).optional(),
-  projectId: z.string().optional(),
-  clientId: z.string().optional(),
-  taskId: z.string().optional(),
-  duration: z.number().min(0.25).max(24).optional(),
+  project: z.string().optional(),
+  client: z.string().optional(),
+  task: z.string().optional(),
+  duration: z.number().min(1).max(1440).optional(),
   rate: z.number().min(0).optional(),
   date: z.string().optional(),
   notes: z.string().max(500).optional(),
@@ -40,7 +40,7 @@ const create = asyncHandler(async (req, res) => {
       errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
   }
-  const { description, projectId, clientId, taskId, duration, rate, date, notes } = parsed.data;
+  const { description, project: projectId, client: clientId, task: taskId, duration, rate, date, notes } = parsed.data;
 
   const project = await Project.findOne({ _id: projectId, user: req.user.id });
   if (!project) {
@@ -71,7 +71,7 @@ const update = asyncHandler(async (req, res) => {
       errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
   }
-  const { description, projectId, clientId, taskId, duration, rate, date, notes, billed } = parsed.data;
+  const { description, project: projectId, client: clientId, task: taskId, duration, rate, date, notes, billed } = parsed.data;
 
   if (projectId) {
     const project = await Project.findOne({ _id: projectId, user: req.user.id });

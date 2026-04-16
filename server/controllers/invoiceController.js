@@ -84,11 +84,10 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
   // Build time log filter
   const timeLogFilter = { 
     user: req.user.id,
-    client: clientId,
-    billable: true,
-    invoice: { $exists: false }
+    billed: false,
+    invoiceId: { $exists: false }
   };
-
+  
   if (projectId) timeLogFilter.project = projectId;
   
   if (startDate || endDate) {
@@ -108,7 +107,8 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
   
   timeLogs.forEach(log => {
     const pid = log.project?._id?.toString() || 'unassigned';
-    const rate = log.rate || req.user?.settings?.defaultRate || 500;
+    const rate = log.rate || 500;
+    const hours = (log.duration || 0) / 60;
     
     if (!projectTotals[pid]) {
       projectTotals[pid] = {
@@ -119,8 +119,8 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
       };
     }
     
-    projectTotals[pid].hours += log.duration || 0;
-    projectTotals[pid].amount += (log.duration || 0) * rate;
+    projectTotals[pid].hours += hours;
+    projectTotals[pid].amount += hours * rate;
   });
 
   // Convert to invoice items
