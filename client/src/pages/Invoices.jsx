@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 import api from "../lib/api"
@@ -367,9 +367,9 @@ export default function Invoices() {
   }
 
   const addItem = () => setForm(f => ({ ...f, items: [...f.items, { ...EMPTY_ITEM }] }))
-  const removeItem = (i) => setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }))
+  const removeItem = (i) => setForm(f => ({ ...f, items: (f.items || []).filter((_, idx) => idx !== i) }))
 
-  const subtotal = form.items.reduce((s, i) => s + (i.amount || 0), 0)
+  const subtotal = (form.items || []).reduce((s, i) => s + (i.amount || 0), 0)
   const taxAmount = subtotal * ((parseFloat(form.taxRate) || 0) / 100)
   const total = subtotal + taxAmount
 
@@ -412,15 +412,15 @@ export default function Invoices() {
     } catch { toast.error("Failed to delete") }
   }
 
-  const filtered = invoices.filter(inv => {
+  const filtered = useMemo(() => (invoices || []).filter(inv => {
     const matchStatus = filterStatus === "all" || inv.status === filterStatus
     const matchSearch = !search || inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) || inv.client?.name?.toLowerCase().includes(search.toLowerCase())
     return matchStatus && matchSearch
-  })
+  }), [invoices, filterStatus, search])
 
-  const totalRevenue = invoices.filter(i => i.status === "paid").reduce((s, i) => s + (i.total || 0), 0)
-  const totalPending = invoices.filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0)
-  const totalOverdue = invoices.filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0)
+  const totalRevenue = useMemo(() => (invoices || []).filter(i => i.status === "paid").reduce((s, i) => s + (i.total || 0), 0), [invoices])
+  const totalPending = useMemo(() => (invoices || []).filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0), [invoices])
+  const totalOverdue = useMemo(() => (invoices || []).filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0), [invoices])
 
   return (
     <div style={{ maxWidth: "1100px" }}>
