@@ -31,7 +31,7 @@ expenseSchema.index({ user: 1, date: -1 })
 expenseSchema.index({ user: 1, category: 1 })
 expenseSchema.index({ client: 1 })
 
-expenseSchema.pre('save', function () {
+expenseSchema.pre('save', async function () {
   if (this.paymentMethod) {
     const METHOD_MAP = {
       'UPI': 'upi',

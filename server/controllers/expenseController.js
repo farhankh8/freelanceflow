@@ -2,7 +2,7 @@ const Expense = require('../models/Expense');
 const asyncHandler = require('../middleware/asyncHandler');
 const { z } = require('zod');
 
-const VALID_CATEGORIES = ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'other'];
+const VALID_CATEGORIES = ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'education', 'subscription', 'other'];
 const VALID_METHODS = ['upi', 'bank_transfer', 'cash', 'card', 'check', 'other'];
 
 const expenseCreateSchema = z.object({
