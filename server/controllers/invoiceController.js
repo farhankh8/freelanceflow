@@ -124,7 +124,8 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
   });
 
   // Convert to invoice items
-  const items = Object.entries(projectTotals).map(([_, item]) => ({
+  const projectTotalsEntries = Object.entries(projectTotals || {});
+  const items = projectTotalsEntries.map(([_, item]) => ({
     description: item.description,
     hours: Math.round(item.hours * 100) / 100,
     rate: item.rate,
@@ -255,13 +256,15 @@ const updateInvoice = asyncHandler(async (req, res) => {
     }
   });
 
-  if (updateData.items) {
+  if (updateData.items && Array.isArray(updateData.items)) {
     updateData.items = updateData.items.map(item => ({
       description: item.description || 'Service',
       hours: parseFloat(item.hours) || 0,
       rate: parseFloat(item.rate) || 0,
       amount: parseFloat((item.hours * item.rate).toFixed(2)) || 0
     }));
+  } else if (updateData.items) {
+    delete updateData.items;
   }
   if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate);
   if (updateData.taxRate !== undefined) updateData.taxRate = Number(updateData.taxRate);

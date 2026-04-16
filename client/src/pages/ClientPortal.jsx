@@ -127,8 +127,8 @@ export default function ClientPortal() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 120px", gap: "12px", padding: "12px 20px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid var(--border)" }}>
                 <span>Invoice #</span><span>Amount</span><span>Due Date</span><span>Status</span><span>Actions</span>
               </div>
-              {invoices.map(inv => {
-                const st = STATUS_COLORS[inv.status] || STATUS_COLORS.draft
+              {(invoices || []).map(inv => {
+                const st = STATUS_COLORS[inv?.status] || STATUS_COLORS.draft
                 return (
                   <div key={inv._id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 120px", gap: "12px", padding: "16px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", transition: "background 0.15s" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--surface2)"}
@@ -166,7 +166,7 @@ export default function ClientPortal() {
               <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: "12px", padding: "12px 20px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid var(--border)" }}>
                 <span>Client</span><span>Amount</span><span>Date</span><span>Status</span>
               </div>
-              {completedPayments.map(pay => (
+              {(completedPayments || []).map(pay => (
                 <div key={pay._id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: "12px", padding: "16px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", transition: "background 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--surface2)"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
@@ -199,8 +199,8 @@ export default function ClientPortal() {
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "12px", padding: "12px 20px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid var(--border)" }}>
                 <span>Project</span><span>Budget</span><span>Deadline</span><span>Status</span>
               </div>
-              {projects.map(proj => {
-                const st = PROJECT_STATUS[proj.status] || PROJECT_STATUS.planning
+              {(projects || []).map(proj => {
+                const st = PROJECT_STATUS[proj?.status] || PROJECT_STATUS.planning
                 return (
                   <div key={proj._id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "12px", padding: "16px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", transition: "background 0.15s" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--surface2)"}

@@ -127,9 +127,11 @@ export default function Reports() {
   }
 
   const generateRecentTransactions = (payments, expenses) => {
+    const trPayments = Array.isArray(payments) ? payments : [];
+    const trExpenses = Array.isArray(expenses) ? expenses : [];
     const transactions = [
-      ...payments.map(p => ({ ...p, type: "payment", id: p._id })),
-      ...expenses.map(e => ({ ...e, type: "expense", id: e._id }))
+      ...trPayments.map(p => ({ ...p, type: "payment", id: p._id })),
+      ...trExpenses.map(e => ({ ...e, type: "expense", id: e._id }))
     ].sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)).slice(0, 10)
     
     setRecentTransactions(transactions)

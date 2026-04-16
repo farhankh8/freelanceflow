@@ -366,7 +366,7 @@ export default function Dashboard() {
               <p style={{ fontSize: "13px" }}>No payments yet</p>
               <Link to="/app/payments" style={{ fontSize: "12px", color: "#6c63ff", textDecoration: "none" }}>+ Record payment</Link>
             </div>
-          ) : payments.map(p => (
+          ) : (payments || []).map(p => (
             <div key={p._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
               <div>
                 <div style={{ fontSize: "13px", fontWeight: 700 }}>{p.client?.name || p.client || "Unknown"}</div>
