@@ -45,7 +45,9 @@ export default function Register() {
     setLoading(true)
     try {
       const response = await api.post('/auth/register', { name, email, password })
+      if (response.data.accessToken) localStorage.setItem("ff_token", response.data.accessToken)
       setAuth(response.data.user)
+      localStorage.setItem("ff_user", JSON.stringify(response.data.user))
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
       navigate('/app')
     } catch (err) {

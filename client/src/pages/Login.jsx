@@ -22,7 +22,9 @@ export default function Login() {
     setLoading(true)
     try {
       const { data } = await api.post("/auth/login", form)
+      if (data.accessToken) localStorage.setItem("ff_token", data.accessToken)
       setAuth(data.user)
+      localStorage.setItem("ff_user", JSON.stringify(data.user))
       toast.success("Welcome back!")
       navigate("/app")
     } catch (error) {

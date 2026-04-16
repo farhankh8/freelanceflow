@@ -78,11 +78,11 @@ const register = [
     }
     
     res.cookie('refreshToken', refreshToken, { ...cookieOptions, httpOnly: true })
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-    
+
     return res.status(201).json({
       success: true,
       message: 'Registration successful',
+      accessToken,
       user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
       timestamp: new Date().toISOString()
     })
@@ -168,11 +168,11 @@ const login = [
     }
     
     res.cookie('refreshToken', refreshToken, { ...cookieOptions, httpOnly: true })
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-    
+
     return res.status(200).json({
       success: true,
       message: 'Login successful',
+      accessToken,
       user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
       timestamp: new Date().toISOString()
     })
@@ -219,10 +219,11 @@ const refresh = asyncHandler(async (req, res) => {
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000
     })
-    
+
     return res.status(200).json({
       success: true,
       message: 'Token refreshed',
+      accessToken,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
