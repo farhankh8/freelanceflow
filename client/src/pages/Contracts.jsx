@@ -19,7 +19,7 @@ const PAYMENT_TERMS = ["50% upfront, 50% on delivery", "100% upfront", "Monthly 
 const EMPTY_FORM = {
   title: "", client: "", company: "", contractType: "Fixed Price",
   value: "", startDate: "", endDate: "", paymentTerms: "50% upfront, 50% on delivery",
-  scope: "", deliverables: "", revisions: "2", status: "draft", notes: "", signedDate: "",
+  terms: "", deliverables: "", revisions: "2", status: "draft", notes: "", signedAt: "",
 }
 
 const inputStyle = {
@@ -35,9 +35,9 @@ function ContractModal({ contract, onSubmit, onClose }) {
     contractType: contract.contractType || "Fixed Price", value: contract.value || "",
     startDate: contract.startDate || "", endDate: contract.endDate || "",
     paymentTerms: contract.paymentTerms || "50% upfront, 50% on delivery",
-    scope: contract.scope || "", deliverables: contract.deliverables || "",
+    terms: contract.terms || "", deliverables: contract.deliverables || "",
     revisions: contract.revisions || "2", status: contract.status || "draft",
-    notes: contract.notes || "", signedDate: contract.signedDate || "",
+    notes: contract.notes || "", signedAt: contract.signedAt || "",
   } : EMPTY_FORM)
   const [activeTab, setActiveTab] = useState("details")
 
@@ -50,7 +50,8 @@ function ContractModal({ contract, onSubmit, onClose }) {
       toast.error("Title and client are required")
       return
     }
-    const data = { ...form, value: Number(form.value) || 0, revisions: Number(form.revisions) || 2 }
+    const data = { ...form, value: Number(form.value) || 0, revisions: Number(form.revisions) || 2, terms: form.terms || '', services: form.deliverables ? form.deliverables.split(',').map(s => s.trim()).filter(Boolean) : [] }
+    delete data.scope
     if (contract?._id) data._id = contract._id
     onSubmit(data)
   }
@@ -110,7 +111,7 @@ function ContractModal({ contract, onSubmit, onClose }) {
             <>
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2, #a1a1aa)", marginBottom: "6px" }}>Scope of Work</label>
-                <textarea value={form.scope} onChange={e => setField("scope", e.target.value)} rows={5} placeholder="Describe what is included..." style={{ ...inputStyle, resize: "vertical" }} />
+                <textarea value={form.terms} onChange={e => setField("terms", e.target.value)} rows={5} placeholder="Describe what is included..." style={{ ...inputStyle, resize: "vertical" }} />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2, #a1a1aa)", marginBottom: "6px" }}>Deliverables</label>
@@ -176,7 +177,7 @@ function ContractDetail({ contract, onEdit, onClose, onDelete, onUpdateStatus })
             <div style={{ marginLeft: "auto", textAlign: "right" }}><div style={{ fontSize: "12px", color: "var(--text2, #a1a1aa)" }}>Type</div><div style={{ fontSize: "13px", fontWeight: 700 }}>{contract.contractType}</div></div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "10px" }}>
-            {[{ label: "Start Date", value: contract.startDate || "—" }, { label: "End Date", value: contract.endDate || "—" }, { label: "Revisions", value: (contract.revisions ?? "—") + " included" }, { label: "Payment", value: contract.paymentTerms?.split(",")[0] || "—" }, { label: "Created", value: contract.createdAt || "—" }, { label: "Signed", value: contract.signedDate || "Not yet" }].map(item => (
+            {[{ label: "Start Date", value: contract.startDate || "—" }, { label: "End Date", value: contract.endDate || "—" }, { label: "Revisions", value: (contract.revisions ?? "—") + " included" }, { label: "Payment", value: contract.paymentTerms?.split(",")[0] || "—" }, { label: "Created", value: contract.createdAt || "—" }, { label: "Signed", value: contract.signedAt || "Not yet" }].map(item => (
               <div key={item.label} style={{ background: "var(--surface2, #1a1a24)", borderRadius: "10px", padding: "12px 14px" }}>
                 <div style={{ fontSize: "10px", color: "var(--text2, #a1a1aa)", marginBottom: "4px" }}>{item.label}</div>
                 <div style={{ fontSize: "13px", fontWeight: 700 }}>{item.value}</div>
@@ -248,7 +249,7 @@ export default function Contracts() {
   }
 
   const updateStatus = async (id, status) => {
-    const extra = status === "signed" ? { signedDate: new Date().toISOString().split("T")[0] } : {}
+    const extra = status === "signed" ? { signedAt: new Date().toISOString().split("T")[0] } : {}
     try {
       const { data } = await api.put(`/contracts/${id}`, { status, ...extra })
       setContracts(prev => prev.map(c => c._id === id ? data.data : c))
