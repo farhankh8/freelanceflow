@@ -1,12 +1,13 @@
 const Payment = require('../models/Payment');
 const asyncHandler = require('../middleware/asyncHandler');
 const { z } = require('zod');
+const { sendSuccess } = require('../utils/apiResponse');
 
 const VALID_METHODS = ['upi', 'bank_transfer', 'cash', 'card', 'check', 'other'];
 const VALID_STATUSES = ['completed', 'pending', 'failed', 'refunded'];
 
 const paymentCreateSchema = z.object({
-  clientId: z.string().min(1, 'Client is required'),
+  client: z.string().min(1, 'Client is required'),
   invoiceId: z.string().optional(),
   invoiceNumber: z.string().max(50).optional(),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
@@ -37,7 +38,7 @@ const create = asyncHandler(async (req, res) => {
       errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
   }
-  const { clientId, invoiceId, invoiceNumber, amount, currency, method, status, date, transactionId, utr, notes, tdsDeducted, tdsCertificate } = parsed.data;
+  const { client: clientId, invoiceId, invoiceNumber, amount, currency, method, status, date, transactionId, utr, notes, tdsDeducted, tdsCertificate } = parsed.data;
 
   const item = await Payment.create({
     user: req.user.id,

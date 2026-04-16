@@ -67,11 +67,11 @@ export default function Payments() {
       return 
     }
     
-    const methodMap = { netbanking: 'bank_transfer', cheque: 'check' }
+    const methodMap = { 'UPI': 'upi', 'Credit Card': 'card', 'Debit Card': 'card', 'Net Banking': 'bank_transfer', 'Cash': 'cash', 'Cheque': 'check' }
     const payload = {
       client: form.clientId,
       amount: Number(form.amount),
-      method: methodMap[form.method] || form.method,
+      method: methodMap[form.method] || 'other',
       status: form.status,
       date: form.date,
       transactionId: form.txnId,
