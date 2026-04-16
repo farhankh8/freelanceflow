@@ -234,7 +234,7 @@ export default function Tasks() {
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase" }}>
             <span>Task</span><span>Project</span><span>Priority</span><span>Status</span><span>Due Date</span><span>Actions</span>
           </div>
-          {filtered.map(t => {
+          {(filtered || []).map(t => {
             const st = STATUS[t.status] || STATUS.todo
             const pr = PRIORITY[t.priority] || PRIORITY.medium
             return (

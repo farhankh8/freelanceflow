@@ -313,7 +313,7 @@ export default function Clients() {
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               <span>Client</span><span>Email</span><span>Company</span><span>Status</span><span>Rate</span><span>Actions</span>
             </div>
-            {filtered.map((c, idx) => {
+{(filtered || []).map((c, idx) => {
               const color = COLORS[idx % COLORS.length]
               const st = STATUSES[c.status] || STATUSES.active
               return (

@@ -207,7 +207,7 @@ export default function Projects() {
                       </div>
                       <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "99px", background: st.bg, color: st.color, fontWeight: 700 }}>{colProjects.length}</span>
                     </div>
-                    {colProjects.map(p => (
+                    {(colProjects || []).map(p => (
                       <KanbanCard key={p._id} project={p} onDragStart={() => setDragId(p._id)} onClick={() => setSelected(p)} />
                     ))}
                     {colProjects.length === 0 && (
@@ -226,7 +226,7 @@ export default function Projects() {
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: "12px", padding: "10px 16px", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   <span>Project</span><span>Client</span><span>Status</span><span>Budget</span><span>Deadline</span>
                 </div>
-                {filtered.map(p => {
+{(filtered || []).map(p => {
                   const st = STATUS[p.status] || STATUS.planning
                   const daysLeft = p.deadline ? Math.ceil((new Date(p.deadline) - new Date()) / 86400000) : null
                   return (

@@ -332,7 +332,7 @@ export default function Contracts() {
 
       {!loading && contracts.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {filtered.map(c => {
+          {(filtered || []).map(c => {
             const st = STATUS[c.status] || STATUS.draft
             const daysLeft = c.endDate ? Math.ceil((new Date(c.endDate) - new Date()) / 86400000) : null
             const isExpiring = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7

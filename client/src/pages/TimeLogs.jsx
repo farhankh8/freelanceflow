@@ -86,7 +86,7 @@ export default function TimeLogs() {
   // ── Persist logs on every change ─────────────────────────────────────────
   const updateLogs = (fn) => {
     setLogs(prev => {
-      const next = typeof fn === "function" ? fn(prev) : fn
+      const next = typeof fn === "function" ? fn(prev || []) : fn
       saveLogs(next)
       return next
     })

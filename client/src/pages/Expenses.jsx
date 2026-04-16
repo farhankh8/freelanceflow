@@ -116,7 +116,7 @@ export default function Expenses() {
           </div>
           {loading ? <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)" }}>Loading...</div> : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {filtered.map(e => {
+              {(filtered || []).map(e => {
                 const cat = CATEGORIES[e.category] || CATEGORIES.other
                 return (
                   <div key={e._id} onClick={() => setSelected(e)}

@@ -208,7 +208,7 @@ export default function Meetings() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {filteredMeetings.map(meeting => {
+          {(filteredMeetings || []).map(meeting => {
             const platform = PLATFORMS.find(p => p.id === meeting.platform) || PLATFORMS[6]
             const isToday = meeting.date === new Date().toISOString().split("T")[0]
             const isPast = meeting.date < new Date().toISOString().split("T")[0]

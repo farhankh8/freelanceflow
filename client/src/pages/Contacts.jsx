@@ -286,7 +286,7 @@ export default function Contacts() {
 
       {view === "grid" && contacts.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
-          {filtered.map(c => {
+          {(filtered || []).map(c => {
             const tc = TAG_COLORS[c.tag] || TAG_COLORS.Other
             return (
               <div key={c._id} onClick={() => setSelected(c)} style={{ background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "16px", padding: "20px", cursor: "pointer" }}>
@@ -305,7 +305,7 @@ export default function Contacts() {
       {view === "list" && contacts.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "750px" }}>
-            {filtered.map(c => {
+{(filtered || []).map(c => {
               const tc = TAG_COLORS[c.tag] || TAG_COLORS.Other
               return (
                 <div key={c._id} onClick={() => setSelected(c)} style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1.2fr 0.8fr 0.8fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface, #111118)", border: "1px solid var(--border, rgba(255,255,255,0.1))", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}>

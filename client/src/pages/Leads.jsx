@@ -112,7 +112,7 @@ export default function Leads() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(180px, 1fr))", gap: "12px" }}>
               {["new", "contacted", "proposal", "negotiation", "won"].map(stageId => {
                 const st = STAGES[stageId]
-                const sl = filtered.filter(l => l.stage === stageId)
+                const sl = (filtered || []).filter(l => l.stage === stageId)
                 return (
                   <div key={stageId}
                     onDragOver={e => { e.preventDefault(); setDragOver(stageId) }}
