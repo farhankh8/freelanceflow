@@ -53,11 +53,11 @@ export default function Dashboard() {
         api.get("/timelogs?limit=10"),
       ])
       
-      const clientsData = results[0]?.data?.data || results[0]?.data?.clients || []
-      const projectsData = results[1]?.data?.data || results[1]?.data?.projects || []
-      const invoicesData = results[2]?.data?.data || results[2]?.data?.invoices || []
+      const clientsData = results[0]?.data?.data || []
+      const projectsData = results[1]?.data?.data || []
+      const invoicesData = results[2]?.data?.data || []
       const leadsData = results[3]?.data?.data || []
-      const paymentsData = results[4]?.data?.data || results[4]?.data?.payments || []
+      const paymentsData = results[4]?.data?.data || []
       const expensesData = results[5]?.data?.data || []
       const timelogsData = results[6]?.data?.data || []
 

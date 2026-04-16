@@ -56,7 +56,7 @@ export default function TimeLogs() {
   useEffect(() => {
     api.get("/projects")
       .then(({ data }) => {
-        const list = (data?.projects || []).map(p => ({ id: p._id, name: p.title }))
+        const list = (data?.data || []).map(p => ({ id: p._id, name: p.title }))
         setProjects(list)
         if (list.length > 0 && !timerProject) setTimerProject(list[0].name)
       })
@@ -67,7 +67,7 @@ export default function TimeLogs() {
   useEffect(() => {
     api.get("/timelogs")
       .then(({ data }) => {
-        const apiList = data?.timelogs || data?.data || (Array.isArray(data) ? data : [])
+        const apiList = data?.data || (Array.isArray(data) ? data : [])
         if (apiList.length > 0) {
           setLogs(prev => {
             const localOnly = prev.filter(l => String(l._id).startsWith("local_"))

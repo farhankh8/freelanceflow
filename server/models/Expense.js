@@ -6,18 +6,18 @@ const expenseSchema = new mongoose.Schema({
   project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
   title: { type: String, required: true },
   description: { type: String },
-  category: { 
-    type: String, 
-    enum: ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'other'],
-    default: 'other' 
+  category: {
+    type: String,
+    enum: ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'education', 'subscription', 'other'],
+    default: 'other'
   },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'INR' },
   date: { type: Date, default: Date.now },
-  paymentMethod: { 
-    type: String, 
+  paymentMethod: {
+    type: String,
     enum: ['upi', 'bank_transfer', 'cash', 'card', 'check', 'other'],
-    default: 'upi' 
+    default: 'upi'
   },
   notes: String,
   hasReceipt: { type: Boolean, default: false },
@@ -30,5 +30,48 @@ const expenseSchema = new mongoose.Schema({
 expenseSchema.index({ user: 1, date: -1 })
 expenseSchema.index({ user: 1, category: 1 })
 expenseSchema.index({ client: 1 })
+
+expenseSchema.pre('save', function () {
+  if (this.paymentMethod) {
+    const METHOD_MAP = {
+      'UPI': 'upi',
+      'Credit Card': 'card',
+      'Debit Card': 'card',
+      'Net Banking': 'bank_transfer',
+      'Bank Transfer': 'bank_transfer',
+      'Cash': 'cash',
+      'Cheque': 'check',
+      'upi': 'upi',
+      'bank_transfer': 'bank_transfer',
+      'cash': 'cash',
+      'card': 'card',
+      'check': 'check',
+      'other': 'other'
+    }
+    this.paymentMethod = METHOD_MAP[this.paymentMethod] || 'upi'
+  }
+  if (this.category) {
+    const CATEGORY_MAP = {
+      'Software & Tools': 'software',
+      'Hardware': 'hardware',
+      'Travel': 'travel',
+      'Food & Dining': 'food',
+      'Marketing': 'marketing',
+      'Office & Supplies': 'office',
+      'Professional': 'professional',
+      'Communication': 'communication',
+      'Utilities': 'utilities',
+      'Taxes': 'taxes',
+      'Insurance': 'insurance',
+      'Training': 'training',
+      'Education': 'education',
+      'Subscriptions': 'subscription',
+      'Other': 'other'
+    }
+    if (CATEGORY_MAP[this.category]) {
+      this.category = CATEGORY_MAP[this.category]
+    }
+  }
+})
 
 module.exports = mongoose.model('Expense', expenseSchema)

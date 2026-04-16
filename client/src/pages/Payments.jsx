@@ -40,8 +40,8 @@ export default function Payments() {
         api.get("/clients?limit=100"),
       ])
       
-      const paymentsList = payRes?.data?.data || payRes?.data?.payments || []
-      const clientsList = cliRes?.data?.data || cliRes?.data?.clients || []
+      const paymentsList = payRes?.data?.data || []
+      const clientsList = cliRes?.data?.data || []
       
       const paymentsWithClients = paymentsList.map(p => {
         const client = clientsList.find(c => c._id === p.client || c._id === p.client?.id)

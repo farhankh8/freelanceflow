@@ -41,7 +41,7 @@ export default function Meetings() {
   const fetchData = async () => {
     try {
       const [cliRes] = await Promise.allSettled([api.get("/clients")])
-      setClients(cliRes.value?.data?.clients || [])
+      setClients(cliRes.status === 'fulfilled' ? (cliRes.value?.data?.data || []) : [])
       const sampleMeetings = [
         {
           _id: "1", title: "Project Kickoff Call", description: "Discuss project scope and timeline",

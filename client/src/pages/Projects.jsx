@@ -65,13 +65,14 @@ export default function Projects() {
 
   useEffect(() => {
     fetchProjects()
-    api.get("/clients").then(({ data }) => setClients(data.clients || [])).catch(() => {})
+    api.get("/clients").then(({ data }) => setClients(data.data || [])).catch(() => {})
   }, [])
 
   const fetchProjects = async () => {
     try {
       const { data } = await api.get("/projects")
       setProjects(data.data || [])
+      setClients(data.data || [])
     } catch {
       toast.error("Failed to load projects")
     } finally {
@@ -93,7 +94,7 @@ export default function Projects() {
         budget: Number(form.budget) || 0,
         deadline: form.deadline || undefined,
       })
-      setProjects(prev => [data.project, ...prev])
+      setProjects(prev => [data.data, ...prev])
       toast.success("Project created! 🚀")
       setShowModal(false)
       setForm({ title: "", description: "", clientId: "", status: "active", budget: "", deadline: "" })

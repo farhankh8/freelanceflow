@@ -347,8 +347,8 @@ export default function Invoices() {
   const fetchAll = async () => {
     try {
       const [inv, cli] = await Promise.all([api.get("/invoices"), api.get("/clients")])
-      setInvoices(inv.data.invoices || [])
-      setClients(cli.data.clients || [])
+      setInvoices(inv.data.data || [])
+      setClients(cli.data.data || [])
     } catch { toast.error("Failed to load") }
     finally { setLoading(false) }
   }
@@ -384,7 +384,7 @@ export default function Invoices() {
         items: validItems, taxRate: Number(form.taxRate || 0),
         dueDate: form.dueDate || null, notes: form.notes || ""
       })
-      setInvoices(prev => [data.invoice, ...prev])
+      setInvoices(prev => [data.data, ...prev])
       toast.success("Invoice created! 🎉")
       setShowModal(false)
       setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
@@ -396,7 +396,7 @@ export default function Invoices() {
   const markPaid = async (id) => {
     try {
       const { data } = await api.put(`/invoices/${id}/pay`)
-      setInvoices(inv => inv.map(i => i._id === id ? data.invoice : i))
+      setInvoices(inv => inv.map(i => i._id === id ? data.data : i))
       toast.success("Marked as paid! 🎉")
     } catch { toast.error("Failed to update") }
   }

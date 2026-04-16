@@ -41,7 +41,7 @@ export default function Clients() {
       if (filterStatus !== "all") params.append("status", filterStatus)
       if (sortBy) { params.append("sortBy", sortBy === "newest" ? "createdAt" : sortBy === "oldest" ? "createdAt" : sortBy === "name" ? "name" : sortBy === "rate" ? "defaultHourlyRate" : "createdAt"); params.append("sortOrder", sortBy === "oldest" ? "asc" : "desc") }
       const res = await api.get(`/clients?${params}`)
-      const clientList = res.data?.clients || res.data?.data || []
+      const clientList = res.data?.data || []
       setClients(clientList)
       if (res.data?.pagination) {
         setTotalPages(res.data.pagination.totalPages || 1)
@@ -65,14 +65,14 @@ export default function Clients() {
     try {
       if (editMode && showDetail) {
         const { data } = await api.put(`/clients/${showDetail._id}`, form)
-        const updatedClient = data.client || data.data
+        const updatedClient = data.data
         setClients(prev => prev.map(c => c._id === showDetail._id ? updatedClient : c))
         setShowDetail(updatedClient)
         toast.success("Client updated! ✅")
         setShowModal(false)
       } else {
         const { data } = await api.post("/clients", form)
-        const newClient = data.client || data.data
+        const newClient = data.data
         setClients(prev => [newClient, ...prev])
         toast.success("Client added! 🎉")
         setShowModal(false)

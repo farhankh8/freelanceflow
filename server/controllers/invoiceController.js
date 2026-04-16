@@ -216,11 +216,36 @@ const createInvoice = [
  * Update invoice
  */
 const updateInvoice = asyncHandler(async (req, res) => {
-  const { _id, id, ...updateData } = req.body;
-  
+  const allowedFields = [
+    'clientId', 'projectId', 'items', 'taxRate', 'dueDate', 'notes',
+    'isGstInvoice', 'clientGstin', 'placeOfSupply', 'status',
+    'upiTransactionId', 'paymentMethod'
+  ];
+  const updateData = {};
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      const modelField = field === 'clientId' ? 'client'
+        : field === 'projectId' ? 'project'
+        : field;
+      updateData[modelField] = req.body[field];
+    }
+  });
+
+  if (updateData.items) {
+    updateData.items = updateData.items.map(item => ({
+      description: item.description || 'Service',
+      hours: parseFloat(item.hours) || 0,
+      rate: parseFloat(item.rate) || 0,
+      amount: parseFloat((item.hours * item.rate).toFixed(2)) || 0
+    }));
+  }
+  if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate);
+  if (updateData.taxRate !== undefined) updateData.taxRate = Number(updateData.taxRate);
+  if (updateData.status) updateData.status = updateData.status;
+
   const invoice = await Invoice.findOneAndUpdate(
     { _id: req.params.id, user: req.user.id },
-    updateData,
+    { $set: updateData },
     { new: true, runValidators: true }
   )
     .populate("client", "name email company")

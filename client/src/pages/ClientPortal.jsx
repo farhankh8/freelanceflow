@@ -23,9 +23,9 @@ export default function ClientPortal() {
         api.get("/payments"),
         api.get("/projects"),
       ])
-      setInvoices(invRes.value?.data?.invoices || [])
-      setPayments(payRes.value?.data?.payments || payRes.value?.data?.data || [])
-      setProjects(projRes.value?.data?.projects || [])
+      setInvoices(invRes.status === 'fulfilled' ? (invRes.value?.data?.data || []) : [])
+      setPayments(payRes.status === 'fulfilled' ? (payRes.value?.data?.data || []) : [])
+      setProjects(projRes.status === 'fulfilled' ? (projRes.value?.data?.data || []) : [])
     } catch { /* silent fail */ }
     finally { setLoading(false) }
   }
