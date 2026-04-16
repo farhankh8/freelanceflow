@@ -6,7 +6,7 @@ const { z } = require('zod');
 const taskCreateSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(2000).optional(),
-  projectId: z.string().min(1, 'Project is required'),
+  projectId: z.string().optional().nullable(),
   status: z.enum(['todo', 'in_progress', 'done']).optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   dueDate: z.string().optional(),
@@ -51,15 +51,18 @@ const createTask = asyncHandler(async (req, res) => {
   }
   const { title, description, projectId, status, priority, dueDate, estimatedHours } = parsed.data;
 
-  const project = await Project.findOne({ _id: projectId, user: req.user.id });
-  if (!project) {
-    return res.status(403).json({ success: false, message: 'Project not found or access denied' });
+  let project = null;
+  if (projectId) {
+    project = await Project.findOne({ _id: projectId, user: req.user.id });
+    if (!project) {
+      return res.status(403).json({ success: false, message: 'Project not found or access denied' });
+    }
   }
 
   const task = await Task.create({
     user: req.user.id,
-    project: projectId,
-    client: project.client,
+    project: projectId || null,
+    client: project?.client || null,
     title,
     description: description || '',
     status: status || 'todo',

@@ -123,7 +123,7 @@ export default function Calendar() {
           priority: form.type === "deadline" ? "high" : form.type === "milestone" ? "medium" : "low",
           status: selectedEvent.status
         })
-        setEvents(prev => prev.map(e => e._id === selectedEvent._id ? { ...e, ...form } : e))
+        setEvents(prev => (prev || []).map(e => e._id === selectedEvent._id ? { ...e, ...form } : e))
         toast.success("Event updated! ✅")
       } else {
         const { data } = await api.post("/tasks", {
