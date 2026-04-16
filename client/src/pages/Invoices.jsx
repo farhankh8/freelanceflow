@@ -143,7 +143,8 @@ async function downloadInvoicePdf(inv) {
 }
 
 function InvoiceCard({ invoice }) {
-  const st = STATUS_COLORS[invoice.status] || STATUS_COLORS.draft
+  if (!invoice) return null
+  const st = STATUS_COLORS[invoice?.status] || STATUS_COLORS.draft
   return (
     <div id="invoice-card" style={{ width: "480px", background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)", borderRadius: "20px", padding: "32px", fontFamily: "Arial,sans-serif", color: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
@@ -229,6 +230,7 @@ function InvoiceCard({ invoice }) {
 }
 
 function ShareModal({ invoice, onClose }) {
+  if (!invoice) return null
   const cardRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -538,7 +540,7 @@ export default function Invoices() {
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 32px", gap: "8px", padding: "6px 0", fontSize: "11px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase" }}>
                   <span>Description</span><span>Hours</span><span>Rate (₹)</span><span>Amount</span><span></span>
                 </div>
-                {form.items.map((item, i) => (
+                {(form.items || []).map((item, i) => (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 32px", gap: "8px", marginBottom: "8px", alignItems: "center" }}>
                     <input value={item.description} onChange={e => updateItem(i, "description", e.target.value)} placeholder="Service description..." style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
                     <input type="number" value={item.hours} onChange={e => updateItem(i, "hours", e.target.value)} placeholder="0" style={{ padding: "9px 12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none" }} />
