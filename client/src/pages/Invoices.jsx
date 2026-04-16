@@ -415,15 +415,27 @@ export default function Invoices() {
     } catch { toast.error("Failed to delete") }
   }
 
-  const filtered = useMemo(() => (invoices || []).filter(inv => {
-    const matchStatus = filterStatus === "all" || inv.status === filterStatus
-    const matchSearch = !search || inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) || inv.client?.name?.toLowerCase().includes(search.toLowerCase())
-    return matchStatus && matchSearch
-  }), [invoices, filterStatus, search])
+  const filtered = useMemo(() => {
+    const invs = invoices || []
+    return invs.filter(inv => {
+      const matchStatus = filterStatus === "all" || inv.status === filterStatus
+      const matchSearch = !search || (inv.invoiceNumber || '').toLowerCase().includes(search.toLowerCase()) || (inv.client?.name || '').toLowerCase().includes(search.toLowerCase())
+      return matchStatus && matchSearch
+    })
+  }, [invoices, filterStatus, search])
 
-  const totalRevenue = useMemo(() => (invoices || []).filter(i => i.status === "paid").reduce((s, i) => s + (i.total || 0), 0), [invoices])
-  const totalPending = useMemo(() => (invoices || []).filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0), [invoices])
-  const totalOverdue = useMemo(() => (invoices || []).filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0), [invoices])
+  const totalRevenue = useMemo(() => {
+    const invs = invoices || []
+    return invs.filter(i => i.status === "paid").reduce((s, i) => s + (i.total || 0), 0)
+  }, [invoices])
+  const totalPending = useMemo(() => {
+    const invs = invoices || []
+    return invs.filter(i => i.status === "sent").reduce((s, i) => s + (i.total || 0), 0)
+  }, [invoices])
+  const totalOverdue = useMemo(() => {
+    const invs = invoices || []
+    return invs.filter(i => i.status === "overdue").reduce((s, i) => s + (i.total || 0), 0)
+  }, [invoices])
 
   try {
     return (
@@ -480,29 +492,30 @@ export default function Invoices() {
             <span>Invoice #</span><span>Client</span><span>Amount</span><span>Due Date</span><span>Status</span><span>Actions</span>
           </div>
           {(filtered || []).map((inv) => {
-            const st = STATUS_COLORS[inv.status] || STATUS_COLORS.draft
+            const inv2 = inv || {}
+            const st = STATUS_COLORS[inv2.status] || STATUS_COLORS.draft
             return (
-              <div key={inv._id} style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s" }}
+              <div key={inv2._id} style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr 1fr 1fr 1.5fr", gap: "12px", padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s" }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
                 onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
-                <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--accent)" }}>{inv.invoiceNumber}</div>
+                <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--accent)" }}>{inv2.invoiceNumber}</div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "14px" }}>{inv.client?.name || "—"}</div>
-                  <div style={{ fontSize: "12px", color: "var(--text2)" }}>{inv.client?.company || inv.client?.email || ""}</div>
+                  <div style={{ fontWeight: 600, fontSize: "14px" }}>{inv2.client?.name || "—"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--text2)" }}>{inv2.client?.company || inv2.client?.email || ""}</div>
                 </div>
-                <div style={{ fontWeight: 800, fontSize: "15px" }}>₹{(inv.total || 0).toLocaleString()}</div>
-                <div style={{ fontSize: "13px", color: inv.status === "overdue" ? "var(--danger)" : "var(--text2)" }}>
-                  {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                <div style={{ fontWeight: 800, fontSize: "15px" }}>₹{(inv2.total || 0).toLocaleString()}</div>
+                <div style={{ fontSize: "13px", color: inv2.status === "overdue" ? "var(--danger)" : "var(--text2)" }}>
+                  {inv2.dueDate ? new Date(inv2.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                 </div>
                 <div><span style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "99px", background: st.bg, color: st.color, border: "1px solid " + st.border, fontWeight: 700 }}>{st.label}</span></div>
                 <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
-                  <button onClick={() => setShowPreview(inv)} title="Preview" style={{ padding: "6px 8px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text)", cursor: "pointer", fontSize: "12px" }}>👁️</button>
-                  <button onClick={() => downloadInvoicePdf(inv)} title="Download PDF" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>📄 PDF</button>
-                  <button onClick={() => setShareInvoice(inv)} title="Share as Card" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>🔗</button>
-                  {inv.status !== "paid" && (
-                    <button onClick={() => markPaid(inv._id)} title="Mark Paid" style={{ padding: "6px 8px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "6px", color: "#00d97e", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>✓</button>
+                  <button onClick={() => setShowPreview(inv2)} title="Preview" style={{ padding: "6px 8px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text)", cursor: "pointer", fontSize: "12px" }}>👁️</button>
+                  <button onClick={() => downloadInvoicePdf(inv2)} title="Download PDF" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>📄 PDF</button>
+                  <button onClick={() => setShareInvoice(inv2)} title="Share as Card" style={{ padding: "6px 8px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "6px", color: "#6c63ff", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>🔗</button>
+                  {inv2.status !== "paid" && (
+                    <button onClick={() => markPaid(inv2._id)} title="Mark Paid" style={{ padding: "6px 8px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "6px", color: "#00d97e", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>✓</button>
                   )}
-                  <button onClick={() => deleteInvoice(inv._id)} title="Delete" style={{ padding: "6px 8px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
+                  <button onClick={() => deleteInvoice(inv2._id)} title="Delete" style={{ padding: "6px 8px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "6px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
                 </div>
               </div>
             )
