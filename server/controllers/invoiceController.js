@@ -9,7 +9,26 @@ const Client = require("../models/Client");
 const AuditLog = require("../models/AuditLog");
 const { ApiResponse, asyncHandler, sendSuccess, sendError, sendPaginated } = require('../utils/apiResponse');
 const { logger } = require('../config/logger');
-const { validate, invoiceSchema } = require('../utils/validators');
+const { z } = require('zod');
+
+const invoiceCreateSchema = z.object({
+  clientId: z.string().min(1, 'Client is required'),
+  projectId: z.string().optional(),
+  items: z.array(z.object({
+    description: z.string().min(1, 'Description is required'),
+    hours: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
+    rate: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
+    amount: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0)
+  })).min(1, 'At least one item is required'),
+  taxRate: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
+  dueDate: z.string().optional(),
+  notes: z.string().optional(),
+  isGstInvoice: z.boolean().optional(),
+  clientGstin: z.string().optional(),
+  placeOfSupply: z.string().optional(),
+  upiTransactionId: z.string().optional(),
+  paymentMethod: z.string().optional()
+});
 
 /**
  * Get all invoices with pagination
@@ -158,59 +177,64 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
 /**
  * Create invoice with validation
  */
-const createInvoice = [
-  validate(invoiceSchema),
-  asyncHandler(async (req, res) => {
-    const { clientId, projectId, items, taxRate, dueDate, notes, isGstInvoice, clientGstin, placeOfSupply, upiTransactionId, paymentMethod } = req.body;
-
-    const client = await Client.findOne({ _id: clientId, user: req.user.id });
-    if (!client) {
-      return sendError(res, 'Client not found', 404);
-    }
-
-    const processedItems = items.map(item => ({
-      description: item.description || 'Service',
-      hours: parseFloat(item.hours) || 0,
-      rate: parseFloat(item.rate) || 0,
-      amount: parseFloat((item.hours * item.rate).toFixed(2)) || 0
-    }));
-
-    const invoice = await Invoice.create({
-      user: req.user.id,
-      client: clientId,
-      project: projectId || null,
-      items: processedItems,
-      taxRate: Number(taxRate) || 0,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      notes: notes || '',
-      isGstInvoice: isGstInvoice || false,
-      clientGstin: clientGstin || '',
-      placeOfSupply: placeOfSupply || '',
-      upiTransactionId: upiTransactionId || '',
-      paymentMethod: paymentMethod || 'upi'
+const createInvoice = asyncHandler(async (req, res) => {
+  const parsed = invoiceCreateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
+  }
 
-    const populated = await invoice.populate([
-      { path: 'client', select: 'name email company phone gstin address' },
-      { path: 'project', select: 'title' }
-    ]);
+  const { clientId, projectId, items, taxRate, dueDate, notes, isGstInvoice, clientGstin, placeOfSupply, upiTransactionId, paymentMethod } = parsed.data;
 
-    // Log audit
-    await AuditLog.log({
-      userId: req.user.id,
-      action: 'INVOICE_CREATE',
-      resource: 'Invoice',
-      resourceId: invoice._id,
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-      metadata: { clientId, itemCount: items.length, total: processedItems.reduce((s, i) => s + i.amount, 0) }
-    });
+  const client = await Client.findOne({ _id: clientId, user: req.user.id });
+  if (!client) {
+    return sendError(res, 'Client not found', 404);
+  }
 
-    logger.info({ userId: req.user.id, invoiceId: invoice._id, itemCount: items.length }, 'Invoice created');
+  const processedItems = items.map(item => ({
+    description: item.description || 'Service',
+    hours: item.hours || 0,
+    rate: item.rate || 0,
+    amount: item.amount || 0
+  }));
 
-    return sendSuccess(res, populated, 'Invoice created successfully', 201);
-  })
-];
+  const invoice = await Invoice.create({
+    user: req.user.id,
+    client: clientId,
+    project: projectId || null,
+    items: processedItems,
+    taxRate: taxRate || 0,
+    dueDate: dueDate ? new Date(dueDate) : null,
+    notes: notes || '',
+    isGstInvoice: isGstInvoice || false,
+    clientGstin: clientGstin || '',
+    placeOfSupply: placeOfSupply || '',
+    upiTransactionId: upiTransactionId || '',
+    paymentMethod: paymentMethod || 'upi'
+  });
+
+  const populated = await invoice.populate([
+    { path: 'client', select: 'name email company phone gstin address' },
+    { path: 'project', select: 'title' }
+  ]);
+
+  await AuditLog.log({
+    userId: req.user.id,
+    action: 'INVOICE_CREATE',
+    resource: 'Invoice',
+    resourceId: invoice._id,
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    metadata: { clientId, itemCount: items.length, total: processedItems.reduce((s, i) => s + i.amount, 0) }
+  });
+
+  logger.info({ userId: req.user.id, invoiceId: invoice._id, itemCount: items.length }, 'Invoice created');
+
+  return sendSuccess(res, populated, 'Invoice created successfully', 201);
+});
 
 /**
  * Update invoice

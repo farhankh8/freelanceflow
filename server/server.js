@@ -76,8 +76,8 @@ app.use(cors({
 app.use(requestLogger);
 
 // Body parsing with limits
-app.use(express.json({ limit: '10kb', strict: false }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '1mb', strict: false }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 // Rate limiting (enterprise - per IP)
@@ -197,12 +197,9 @@ app.use((err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  // Don't expose error in production
   const response = {
     success: false,
-    message: process.env.NODE_ENV === 'production' && err.isOperational !== false
-      ? 'Internal Server Error'
-      : err.message,
+    message: err.message || 'Internal Server Error',
     timestamp: new Date().toISOString()
   };
 
