@@ -401,7 +401,7 @@ export default function Invoices() {
   const markPaid = async (id) => {
     try {
       const { data } = await api.put(`/invoices/${id}/pay`)
-      setInvoices(inv => inv.map(i => i._id === id ? data.data : i))
+      setInvoices(inv => (inv || []).map(i => i._id === id ? data.data : i))
       toast.success("Marked as paid! 🎉")
     } catch { toast.error("Failed to update") }
   }

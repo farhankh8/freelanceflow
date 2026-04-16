@@ -3,7 +3,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { z } = require('zod');
 
 const VALID_CATEGORIES = ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'education', 'subscription', 'other'];
-const VALID_METHODS = ['upi', 'bank_transfer', 'cash', 'card', 'check', 'other'];
+const VALID_METHODS = ['upi', 'bank_transfer', 'cash', 'card', 'check', 'other', 'credit_card', 'debit_card', 'net_banking'];
 
 const expenseCreateSchema = z.object({
   title: z.string().min(2, 'Title is required').max(200),
@@ -40,6 +40,12 @@ const create = asyncHandler(async (req, res) => {
   }
   const { title, description, category, amount, date, clientId, projectId, paymentMethod, notes, currency, hasReceipt, receiptUrl, isTaxDeductible, gstAmount } = parsed.data;
 
+  const normalizePaymentMethod = (m) => {
+    if (!m) return 'upi';
+    const map = { 'credit card': 'credit_card', 'debit card': 'debit_card', 'net banking': 'net_banking', 'upi': 'upi', 'cash': 'cash', 'card': 'card', 'bank transfer': 'bank_transfer', 'check': 'check', 'other': 'other' };
+    return map[m.toLowerCase()] || 'upi';
+  };
+
   const item = await Expense.create({
     user: req.user.id,
     title,
@@ -49,7 +55,7 @@ const create = asyncHandler(async (req, res) => {
     date: date ? new Date(date) : undefined,
     client: clientId || undefined,
     project: projectId || undefined,
-    paymentMethod: paymentMethod || 'upi',
+    paymentMethod: normalizePaymentMethod(paymentMethod),
     notes: notes || '',
     currency: currency || 'INR',
     hasReceipt: hasReceipt || false,
