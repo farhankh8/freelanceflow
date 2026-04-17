@@ -221,8 +221,10 @@ npm run dev
 
 ## 👨‍💻 Developer
 
-**Name:** Mohammad Farhan KH  
-**Email:** mohammadfarhankh.08@gmail.com  
+**Name:** K H Mohammad Farhan  
+**Reg No:** 23BCAICD182  
+**Course:** BCA Final Year (6th Sem) - AI CC & DevOps with TCS  
+**Email:** mohammadfarhan008800@gmail.com  
 **Domain:** Web Development
 
 ---
