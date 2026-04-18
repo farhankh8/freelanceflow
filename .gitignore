@@ -35,3 +35,6 @@ coverage/
 
 .vercel
 .env*.local
+
+# PDF files (generated locally)
+*.pdf

@@ -19,8 +19,8 @@ By
 Register No: 23BCAICD182
 
 Under the guidance of
-**[Internal Guide Name]**
-
+**Ms. Aysha Dilshad**
+Internal Guide
 Department of Computer Science
 **Yenepoya Institute of Arts, Science, Commerce and Management**
 (A constituent unit of Yenepoya Deemed to be University)
@@ -28,7 +28,19 @@ Department of Computer Science
 
 ---
 
-## SLIDE 2: INTRODUCTION
+## SLIDE 2: INTERNSHIP DETAILS
+
+# Internship Information
+
+**Organization:** Persevex Education Consultancy LLP  
+**Location:** Bengaluru, Karnataka  
+**Duration:** January 2026 - April 2026  
+**Internal Guide (College):** Ms. Aysha Dilshad  
+**Role:** Full-stack Web Development Intern
+
+---
+
+## SLIDE 3: INTRODUCTION
 
 # What is FreelanceFlow?
 
@@ -49,7 +61,7 @@ FreelanceFlow is a comprehensive web-based application that helps freelancers ma
 
 ---
 
-## SLIDE 3: OBJECTIVES
+## SLIDE 4: OBJECTIVES
 
 # Project Goals
 
@@ -272,10 +284,10 @@ Burn Rate = Total Hours × Hourly Rate
 # Live URLs
 
 **Frontend Application:**
-https://freelanceflow.vercel.app
+https://freelanceflow-blue-delta.vercel.app
 
 **Backend API:**
-https://freelanceflow-api.onrender.com
+https://freelanceflow-api-80zc.onrender.com
 
 **GitHub Repository:**
 https://github.com/farhankh8/FreelanceFlow
@@ -363,15 +375,27 @@ K H Mohammad Farhan
 Register No: 23BCAICD182
 
 **Under the guidance of:**
-[Internal Guide Name]
-
+**Ms. Aysha Dilshad**
+Internal Guide
 Department of Computer Science
 Yenepoya Institute of Arts, Science,
 Commerce and Management
 
 ---
 
-# PRESENTATION NOTES
+# PRESENTATION RULES & GUIDELINES
+
+## Important Instructions for Final Presentation
+
+1. **Presentation Date:** Starting from April 27, 2026 (Offline at Kulur Campus)
+2. **LH Numbers:** Will be notified next week
+3. **Minimum Slides:** 15 slides required
+4. **Slide Preparation:** Refer to Table of Contents in final documentation
+5. **Documentation:** Send soft copy to your guide (Ms. Aysha Dilshad) for verification
+6. **After Verification:** Print and spiral bind the final documentation
+7. **During Presentation:** Carry Laptop and Spiral Binded Documentation
+
+---
 
 ## Demo Sequence:
 

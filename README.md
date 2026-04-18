@@ -21,7 +21,8 @@
 **Register No:** 23BCAICD182  
 **Course:** BCA Final Year (6th Sem) - AI CC & DevOps with TCS  
 **Institute:** Yenepoya Institute of Arts, Science, Commerce and Management  
-**Guide:** [Internal Guide Name]
+**Guide:** Ms. Aysha Dilshad (Internal Guide)  
+**Internship:** Persevex Education Consultancy LLP, Bengaluru
 
 ---
 
@@ -177,8 +178,8 @@ VITE_API_URL=
 ## 🚢 Deployment
 
 ### Live URLs
-- **Frontend:** https://freelanceflow.vercel.app
-- **Backend API:** https://freelanceflow-api.onrender.com
+- **Frontend:** https://freelanceflow-blue-delta.vercel.app
+- **Backend API:** https://freelanceflow-api-80zc.onrender.com
 
 ---
 

@@ -224,6 +224,9 @@ npm run dev
 **Name:** K H Mohammad Farhan  
 **Reg No:** 23BCAICD182  
 **Course:** BCA Final Year (6th Sem) - AI CC & DevOps with TCS  
+**Institute:** Yenepoya Institute of Arts, Science, Commerce and Management  
+**Internship:** Persevex Education Consultancy LLP, Bengaluru  
+**Internal Guide:** Ms. Aysha Dilshad (Internal Guide, Yenepoya Institute)  
 **Email:** mohammadfarhan008800@gmail.com  
 **Domain:** Web Development
 
