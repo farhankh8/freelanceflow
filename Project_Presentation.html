@@ -7,32 +7,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #6c63ff;
-            --primary-dark: #5a52d5;
-            --secondary: #ff6584;
-            --accent: #00d97e;
-            --bg-dark: #0a0a0f;
-            --bg-card: #12121a;
-            --bg-card-hover: #1a1a25;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0b0;
-            --text-muted: #6b6b7b;
-            --gradient-primary: linear-gradient(135deg, #6c63ff 0%, #8b5cf6 50%, #a78bfa 100%);
-            --gradient-secondary: linear-gradient(135deg, #ff6584 0%, #f472b6 100%);
-            --gradient-accent: linear-gradient(135deg, #00d97e 0%, #10b981 100%);
-            --gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%);
-            --shadow-glow: 0 0 60px rgba(108, 99, 255, 0.3);
-            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --secondary: #f43f5e;
+            --accent: #10b981;
+            --accent-light: #34d399;
+            --bg-dark: #030712;
+            --bg-card: #0f172a;
+            --bg-card-hover: #1e293b;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --gold: #fbbf24;
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --gradient-accent: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         }
 
-        body {
+        html, body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
             color: var(--text-primary);
@@ -41,123 +39,80 @@
             width: 100vw;
         }
 
-        .presentation {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-        }
+        .presentation { width: 100%; height: 100vh; position: relative; overflow: hidden; background: var(--bg-gradient); }
 
         .slide {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 60px 100px;
+            padding: 50px 80px;
             opacity: 0;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-            transform: scale(0.95);
-            overflow: hidden;
+            transform: translateX(-100px) scale(0.9);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .slide.active {
             display: flex;
             opacity: 1;
-            transform: scale(1);
+            transform: translateX(0) scale(1);
         }
 
-        .slide::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -30%;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(108, 99, 255, 0.15) 0%, transparent 70%);
-            pointer-events: none;
-            animation: pulse-glow 8s ease-in-out infinite;
-        }
-
-        .slide::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255, 101, 132, 0.1) 0%, transparent 70%);
-            pointer-events: none;
-            animation: pulse-glow 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 1; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-60px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes typewriter {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        @keyframes blink {
-            0%, 50% { border-color: var(--primary); }
-            51%, 100% { border-color: transparent; }
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes border-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(108, 99, 255, 0.6); }
-        }
-
-        @keyframes rotating-border {
-            0% { --angle: 0deg; }
-            100% { --angle: 360deg; }
-        }
-
-        .animate-item {
+        .slide.exit {
+            transform: translateX(100px) scale(0.9);
             opacity: 0;
-            animation: slideUp 0.8s ease forwards;
         }
 
-        .slide.active .animate-item:nth-child(1) { animation-delay: 0.1s; }
-        .slide.active .animate-item:nth-child(2) { animation-delay: 0.2s; }
-        .slide.active .animate-item:nth-child(3) { animation-delay: 0.3s; }
-        .slide.active .animate-item:nth-child(4) { animation-delay: 0.4s; }
-        .slide.active .animate-item:nth-child(5) { animation-delay: 0.5s; }
-        .slide.active .animate-item:nth-child(6) { animation-delay: 0.6s; }
-        .slide.active .animate-item:nth-child(7) { animation-delay: 0.7s; }
-        .slide.active .animate-item:nth-child(8) { animation-delay: 0.8s; }
+        /* Animated Background */
+        .bg-shapes {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-shapes::before, .bg-shapes::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: floatShapes 15s ease-in-out infinite;
+        }
+
+        .bg-shapes::before {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            top: -200px; right: -200px;
+        }
+
+        .bg-shapes::after {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.2) 0%, transparent 70%);
+            bottom: -150px; left: -150px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatShapes {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* Grid Pattern */
+        .grid-pattern {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
 
         .content-wrapper {
             position: relative;
@@ -168,197 +123,198 @@
 
         .gradient-text {
             background: var(--gradient-primary);
-            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: gradient-shift 4s ease infinite;
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            background: rgba(108, 99, 255, 0.15);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--primary);
-            margin-bottom: 24px;
+        .gold-text {
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .badge i {
-            font-size: 12px;
-        }
+        /* Typography */
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; letter-spacing: -2px; }
+        h2 { font-family: 'Space Grotesk', sans-serif; font-size: 48px; font-weight: 700; line-height: 1.2; margin-bottom: 24px; letter-spacing: -1px; }
+        h3 { font-size: 28px; font-weight: 600; margin-bottom: 16px; color: var(--text-secondary); }
+        h4 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
 
-        h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 72px;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            letter-spacing: -2px;
-        }
-
-        h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 52px;
-            font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: 32px;
-            letter-spacing: -1px;
-        }
-
-        h3 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-secondary);
-        }
-
-        .subtitle {
-            font-size: 24px;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-            font-weight: 400;
-        }
-
-        .title-slide {
-            text-align: center;
-        }
-
-        .title-slide h1 {
-            font-size: 96px;
-            margin-bottom: 16px;
-        }
-
-        .logo-icon {
-            width: 120px;
-            height: 120px;
-            background: var(--gradient-primary);
-            border-radius: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 40px;
-            box-shadow: var(--shadow-glow);
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .logo-icon i {
-            font-size: 56px;
-            color: white;
-        }
+        p.subtitle { font-size: 22px; color: var(--text-secondary); margin-bottom: 32px; }
+        p.body { font-size: 16px; color: var(--text-secondary); line-height: 1.7; }
 
         .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--primary-light);
+            margin-bottom: 12px;
+        }
+
+        .chapter-label {
             font-size: 14px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 4px;
-            color: var(--primary);
+            color: var(--gold);
             margin-bottom: 16px;
         }
 
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            width: 100%;
+        /* Title Slide */
+        .title-slide { text-align: center; justify-content: center; }
+        .title-slide h1 { font-size: 80px; margin-bottom: 24px; }
+
+        .logo-icon {
+            width: 100px; height: 100px;
+            background: var(--gradient-primary);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 32px;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
+            animation: iconFloat 4s ease-in-out infinite;
         }
 
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .logo-icon i { font-size: 48px; color: white; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 24px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary-light);
+            margin-bottom: 20px;
+        }
+
+        .student-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .student-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .student-info span i { color: var(--primary-light); }
+
+        /* TOC */
+        .toc-list { list-style: none; width: 100%; max-width: 800px; }
+        
+        .toc-list li {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 18px;
+        }
+
+        .toc-list li:first-child { border-top: 1px solid rgba(255, 255, 255, 0.1); }
+
+        .toc-number {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .toc-topic { flex: 1; }
+        .toc-page { color: var(--text-muted); font-size: 14px; }
+
+        /* Cards */
         .card {
             background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 32px;
+            padding: 28px;
             transition: all 0.3s ease;
         }
 
         .card:hover {
             background: var(--bg-card-hover);
             transform: translateY(-5px);
-            box-shadow: var(--shadow-card);
+            border-color: rgba(99, 102, 241, 0.3);
         }
 
         .card-icon {
-            width: 56px;
-            height: 56px;
+            width: 52px; height: 52px;
             background: var(--gradient-primary);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
-        .card-icon i {
-            font-size: 24px;
-            color: white;
-        }
-
+        .card-icon i { font-size: 22px; color: white; }
         .card-icon.green { background: var(--gradient-accent); }
-        .card-icon.pink { background: var(--gradient-secondary); }
 
-        .card h4 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
+        /* Grid Layouts */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; width: 100%; }
+        .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; }
 
-        .card p {
-            color: var(--text-secondary);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .feature-list {
-            list-style: none;
-            width: 100%;
-        }
-
+        /* Feature List */
+        .feature-list { list-style: none; }
+        
         .feature-list li {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 0;
+            gap: 14px;
+            padding: 14px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 18px;
+            font-size: 16px;
         }
 
-        .feature-list li:last-child {
-            border-bottom: none;
-        }
+        .feature-list li:last-child { border-bottom: none; }
 
-        .feature-list .icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(108, 99, 255, 0.15);
-            border-radius: 12px;
+        .feature-list .icon-box {
+            width: 36px; height: 36px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
 
-        .feature-list .icon i {
-            color: var(--primary);
-            font-size: 16px;
-        }
+        .feature-list .icon-box i { color: var(--primary-light); font-size: 14px; }
 
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            width: 100%;
-        }
-
+        /* Tech Items */
         .tech-item {
             background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 28px;
+            padding: 24px;
             text-align: center;
             transition: all 0.3s ease;
         }
@@ -368,37 +324,16 @@
             transform: translateY(-5px);
         }
 
-        .tech-item i {
-            font-size: 36px;
-            margin-bottom: 16px;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .tech-item i { font-size: 32px; margin-bottom: 14px; color: var(--primary-light); }
+        .tech-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .tech-item span { font-size: 12px; color: var(--text-muted); }
 
-        .tech-item h4 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .tech-item span {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            width: 100%;
-        }
-
+        /* Stat Cards */
         .stat-card {
             background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 32px;
+            padding: 28px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -407,290 +342,127 @@
         .stat-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
+            top: 0; left: 0; right: 0;
+            height: 3px;
             background: var(--gradient-primary);
         }
 
         .stat-card.green::before { background: var(--gradient-accent); }
-        .stat-card.pink::before { background: var(--gradient-secondary); }
 
         .stat-number {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        .stat-label {
-            font-size: 16px;
-            color: var(--text-secondary);
-        }
+        .stat-label { font-size: 14px; color: var(--text-secondary); }
 
-        .diagram-container {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-        }
-
+        /* Flow Diagram */
         .flow-diagram {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 24px;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .flow-box {
-            background: linear-gradient(135deg, rgba(108, 99, 255, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-            border: 1px solid rgba(108, 99, 255, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             border-radius: 16px;
-            padding: 24px 32px;
+            padding: 22px 28px;
             text-align: center;
+            min-width: 140px;
         }
 
-        .flow-box i {
-            font-size: 32px;
-            margin-bottom: 12px;
-            color: var(--primary);
-        }
+        .flow-box i { font-size: 28px; margin-bottom: 10px; color: var(--primary-light); }
+        .flow-box h4 { font-size: 13px; font-weight: 600; }
+        .flow-arrow { font-size: 22px; color: var(--primary-light); }
 
-        .flow-box h4 {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .flow-arrow {
-            font-size: 24px;
-            color: var(--primary);
-        }
-
+        /* Code Block */
         .code-block {
-            background: #0d0d14;
+            background: #060a14;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 24px;
+            border-radius: 14px;
+            padding: 20px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
+            font-size: 13px;
             width: 100%;
             overflow-x: auto;
         }
 
-        .code-block .comment {
-            color: #6b7280;
-        }
+        .code-block .comment { color: #6b7280; }
+        .code-block .keyword { color: #c792ea; }
+        .code-block .string { color: #c3e88d; }
+        .code-block .function { color: #82aaff; }
 
-        .code-block .keyword {
-            color: #c792ea;
-        }
-
-        .code-block .string {
-            color: #c3e88d;
-        }
-
-        .code-block .function {
-            color: #82aaff;
-        }
-
-        .price-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            width: 100%;
-        }
-
-        .price-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
-            padding: 40px;
+        /* Lists */
+        .bullet-list { list-style: none; }
+        
+        .bullet-list li {
+            padding: 12px 0;
+            padding-left: 28px;
             position: relative;
+            font-size: 17px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .bullet-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--primary-light);
+        }
+
+        /* Tables */
+        .table-container {
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 16px;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .price-card.featured {
-            border-color: var(--primary);
-        }
-
-        .price-card.featured::before {
-            content: 'POPULAR';
-            position: absolute;
-            top: 20px;
-            right: -35px;
-            background: var(--gradient-primary);
-            padding: 6px 40px;
-            font-size: 11px;
-            font-weight: 700;
-            transform: rotate(45deg);
-        }
-
-        .price-card h3 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        .price-card .price {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 48px;
-            font-weight: 800;
-            margin: 20px 0;
-        }
-
-        .price-card .price span {
-            font-size: 18px;
-            font-weight: 400;
-            color: var(--text-secondary);
-        }
-
-        .price-features {
-            list-style: none;
-            margin-top: 24px;
-        }
-
-        .price-features li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            color: var(--text-secondary);
-        }
-
-        .price-features li i {
-            color: var(--accent);
-        }
-
-        .timeline {
-            width: 100%;
-            position: relative;
-            padding-left: 40px;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(180deg, var(--primary), var(--secondary));
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-bottom: 32px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -32px;
-            top: 4px;
-            width: 12px;
-            height: 12px;
-            background: var(--primary);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--primary);
-        }
-
-        .timeline-item h4 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .timeline-item p {
-            color: var(--text-secondary);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .contact-grid {
+        .table-row {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            width: 100%;
+            grid-template-columns: 80px 1fr 200px;
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
         }
 
-        .contact-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 32px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .contact-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-        }
-
-        .contact-card i {
-            font-size: 32px;
-            margin-bottom: 16px;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .contact-card h4 {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-
-        .contact-card p {
-            color: var(--text-secondary);
+        .table-row.header {
+            background: rgba(99, 102, 241, 0.1);
+            font-weight: 600;
             font-size: 14px;
         }
 
-        .student-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 40px;
-        }
+        .table-row:last-child { border-bottom: none; }
 
-        .student-info span {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50px;
-            font-size: 15px;
-            color: var(--text-secondary);
-        }
-
-        .student-info span i {
-            color: var(--primary);
-        }
-
+        /* Bottom Nav */
         .page-number {
             position: absolute;
-            bottom: 30px;
-            right: 40px;
-            font-size: 14px;
+            bottom: 24px;
+            right: 36px;
+            font-size: 13px;
             color: var(--text-muted);
             font-weight: 500;
         }
 
         .nav-controls {
             position: fixed;
-            bottom: 30px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 12px;
+            gap: 10px;
             z-index: 100;
         }
 
         .nav-btn {
-            width: 48px;
-            height: 48px;
+            width: 44px; height: 44px;
             background: var(--bg-card);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
@@ -699,14 +471,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             transition: all 0.3s ease;
         }
 
-        .nav-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
+        .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
 
         .progress-bar {
             position: fixed;
@@ -720,202 +489,262 @@
 
         .progress-dots {
             position: fixed;
-            right: 30px;
+            right: 24px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             z-index: 100;
         }
 
         .progress-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px; height: 8px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .progress-dot.active {
-            background: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot:hover { background: var(--primary-light); }
+
+        /* Animations */
+        .animate-in {
+            animation: slideIn 0.6s ease forwards;
         }
 
-        .progress-dot:hover {
-            background: var(--primary);
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .grid-2x2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 24px;
-            width: 100%;
-            height: 400px;
-        }
-
-        .grid-item {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-
-        .grid-item:hover {
-            border-color: var(--primary);
-        }
-
-        .grid-item h4 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .grid-item h4 i {
-            color: var(--primary);
-        }
-
-        .grid-item ul {
-            list-style: none;
-            flex: 1;
-        }
-
-        .grid-item ul li {
-            padding: 8px 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .grid-item ul li::before {
-            content: '→';
-            color: var(--primary);
-        }
-
-        .icon-large {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-
-        .thank-you-text {
-            font-size: 96px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
+        .slide.active .anim-1 { animation-delay: 0.1s; }
+        .slide.active .anim-2 { animation-delay: 0.2s; }
+        .slide.active .anim-3 { animation-delay: 0.3s; }
+        .slide.active .anim-4 { animation-delay: 0.4s; }
+        .slide.active .anim-5 { animation-delay: 0.5s; }
+        .slide.active .anim-6 { animation-delay: 0.6s; }
 
         @media (max-width: 1200px) {
-            .slide {
-                padding: 40px 60px;
-            }
-            h1 { font-size: 56px; }
-            h2 { font-size: 40px; }
-            .title-slide h1 { font-size: 72px; }
+            .slide { padding: 40px 50px; }
+            h1 { font-size: 52px; }
+            h2 { font-size: 38px; }
+            .two-col, .three-col { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .slide {
-                padding: 30px 40px;
-            }
-            h1 { font-size: 40px; }
-            h2 { font-size: 32px; }
-            .title-slide h1 { font-size: 48px; }
-            .two-column { grid-template-columns: 1fr; }
-            .tech-grid { grid-template-columns: repeat(2, 1fr); }
-            .stat-grid { grid-template-columns: 1fr; }
-            .price-grid { grid-template-columns: 1fr; }
+            .slide { padding: 30px; }
+            h1 { font-size: 38px; }
+            h2 { font-size: 28px; }
+            .four-col { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
-    
     <div class="progress-dots" id="progressDots"></div>
 
     <div class="presentation" id="presentation">
         
         <!-- SLIDE 1: TITLE -->
         <div class="slide active" data-slide="1">
+            <div class="bg-shapes"></div>
+            <div class="grid-pattern"></div>
             <div class="content-wrapper title-slide">
-                <div class="logo-icon animate-item">
+                <div class="logo-icon animate-in">
                     <i class="fas fa-bolt"></i>
                 </div>
-                <div class="badge animate-item">
-                    <i class="fas fa-rocket"></i>
+                <div class="badge animate-in">
+                    <i class="fas fa graduation-cap"></i>
                     <span>BCA Final Year Project 2026</span>
                 </div>
-                <h1 class="animate-item"><span class="gradient-text">FREELANCEFLOW</span></h1>
-                <p class="subtitle animate-item">An Intelligent Freelance Management System</p>
-                <div class="student-info animate-item">
+                <h1 class="animate-in"><span class="gradient-text">FREELANCEFLOW</span></h1>
+                <p class="subtitle animate-in">An Intelligent Freelance Management System</p>
+                <div class="student-info animate-in">
                     <span><i class="fas fa-user"></i> K H Mohammad Farhan</span>
                     <span><i class="fas fa-id-card"></i> 23BCAICD182</span>
-                    <span><i class="fas fa-graduation-cap"></i> BCA - AI CC & DevOps with TCS</span>
                     <span><i class="fas fa-university"></i> Yenepoya Institute</span>
                 </div>
             </div>
-            <div class="page-number">1 / 21</div>
+            <div class="page-number">1 / 22</div>
         </div>
 
-        <!-- SLIDE 2: INTRODUCTION -->
+        <!-- SLIDE 2: TABLE OF CONTENTS -->
         <div class="slide" data-slide="2">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 1</p>
-                <h2 class="animate-item"><span class="gradient-text">Introduction</span></h2>
-                <p class="subtitle animate-item">What is FreelanceFlow?</p>
+                <p class="chapter-label animate-in">Contents</p>
+                <h2 class="animate-in"><span class="gradient-text">Table of Contents</span></h2>
                 
-                <div class="two-column animate-item">
+                <div class="toc-list animate-in">
+                    <li>
+                        <div class="toc-number">1</div>
+                        <div class="toc-topic">CHAPTER 1: INTRODUCTION</div>
+                        <div class="toc-page">3</div>
+                    </li>
+                    <li>
+                        <div class="toc-number">2</div>
+                        <div class="toc-topic">CHAPTER 2: TOOLS AND TECHNOLOGY</div>
+                        <div class="toc-page">5</div>
+                    </li>
+                    <li>
+                        <div class="toc-number">3</div>
+                        <div class="toc-topic">CHAPTER 3: DATA COLLECTION & ANALYSIS</div>
+                        <div class="toc-page">7</div>
+                    </li>
+                    <li>
+                        <div class="toc-number">4</div>
+                        <div class="toc-topic">CHAPTER 4: SYSTEM REQUIREMENTS</div>
+                        <div class="toc-page">9</div>
+                    </li>
+                    <li>
+                        <div class="toc-number">5</div>
+                        <div class="toc-topic">CHAPTER 5: IMPLEMENTATION</div>
+                        <div class="toc-page">12</div>
+                    </li>
+                    <li>
+                        <div class="toc-number">6</div>
+                        <div class="toc-topic">CHAPTER 6: CONCLUSION</div>
+                        <div class="toc-page">18</div>
+                    </li>
+                </div>
+            </div>
+            <div class="page-number">2 / 22</div>
+        </div>
+
+        <!-- SLIDE 3: LIST OF FIGURES -->
+        <div class="slide" data-slide="3">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Figures</p>
+                <h2 class="animate-in"><span class="gradient-text">List of Figures</span></h2>
+                
+                <div class="table-container animate-in">
+                    <div class="table-row header">
+                        <div>Fig No.</div>
+                        <div>Description</div>
+                        <div>Page</div>
+                    </div>
+                    <div class="table-row">
+                        <div>1.1</div>
+                        <div>System Architecture Diagram</div>
+                        <div>9</div>
+                    </div>
+                    <div class="table-row">
+                        <div>1.2</div>
+                        <div>Database Schema</div>
+                        <div>10</div>
+                    </div>
+                    <div class="table-row">
+                        <div>2.1</div>
+                        <div>User Flow Diagram</div>
+                        <div>14</div>
+                    </div>
+                    <div class="table-row">
+                        <div>2.2</div>
+                        <div>Dashboard Wireframe</div>
+                        <div>15</div>
+                    </div>
+                    <div class="table-row">
+                        <div>2.3</div>
+                        <div>Invoice Generation Flow</div>
+                        <div>16</div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">3 / 22</div>
+        </div>
+
+        <!-- SLIDE 4: LIST OF TABLES -->
+        <div class="slide" data-slide="4">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Tables</p>
+                <h2 class="animate-in"><span class="gradient-text">List of Tables</span></h2>
+                
+                <div class="table-container animate-in">
+                    <div class="table-row header">
+                        <div>Table No.</div>
+                        <div>Description</div>
+                        <div>Page</div>
+                    </div>
+                    <div class="table-row">
+                        <div>1</div>
+                        <div>Functional Requirements</div>
+                        <div>11</div>
+                    </div>
+                    <div class="table-row">
+                        <div>2</div>
+                        <div>Non-Functional Requirements</div>
+                        <div>12</div>
+                    </div>
+                    <div class="table-row">
+                        <div>3</div>
+                        <div>Hardware & Software Requirements</div>
+                        <div>13</div>
+                    </div>
+                    <div class="table-row">
+                        <div>4</div>
+                        <div>Database Collections</div>
+                        <div>13</div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">4 / 22</div>
+        </div>
+
+        <!-- SLIDE 5: CHAPTER 1 - INTRODUCTION -->
+        <div class="slide" data-slide="5">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 1</p>
+                <h2 class="animate-in"><span class="gradient-text">Introduction</span></h2>
+                <p class="subtitle animate-in">Background of the Project</p>
+                
+                <div class="two-col animate-in">
                     <div class="card">
-                        <div class="card-icon pink">
+                        <div class="card-icon">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        <h4>Problems Freelancers Face</h4>
+                        <h4>Problems Faced</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-times"></i></span> Scattered client information</li>
-                            <li><span class="icon"><i class="fas fa-times"></i></span> Manual & inconsistent invoicing</li>
-                            <li><span class="icon"><i class="fas fa-times"></i></span> Poor time tracking</li>
-                            <li><span class="icon"><i class="fas fa-times"></i></span> Financial blind spots</li>
-                            <li><span class="icon"><i class="fas fa-times"></i></span> Missed deadlines & payments</li>
+                            <li><span class="icon-box"><i class="fas fa-times"></i></span> Scattered client data</li>
+                            <li><span class="icon-box"><i class="fas fa-times"></i></span> Manual invoicing</li>
+                            <li><span class="icon-box"><i class="fas fa-times"></i></span> Poor time tracking</li>
+                            <li><span class="icon-box"><i class="fas fa-times"></i></span> Financial blind spots</li>
                         </ul>
                     </div>
                     <div class="card">
                         <div class="card-icon green">
                             <i class="fas fa-check"></i>
                         </div>
-                        <h4>FreelanceFlow Solution</h4>
+                        <h4>Our Solution</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> All-in-one platform</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Cloud-based access</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Real-time data sync</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Professional tools</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Automated workflows</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> All-in-one platform</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Cloud-based access</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Real-time sync</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Automated tools</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="page-number">2 / 21</div>
+            <div class="page-number">5 / 22</div>
         </div>
 
-        <!-- SLIDE 3: OBJECTIVES -->
-        <div class="slide" data-slide="3">
+        <!-- SLIDE 6: CHAPTER 1 - OBJECTIVES -->
+        <div class="slide" data-slide="6">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 1</p>
-                <h2 class="animate-item"><span class="gradient-text">Project Objectives</span></h2>
+                <p class="chapter-label animate-in">Chapter 1</p>
+                <h2 class="animate-in"><span class="gradient-text">Project Objectives</span></h2>
+                <p class="subtitle animate-in">Core Goals & Deliverables</p>
                 
-                <div class="tech-grid animate-item">
+                <div class="four-col animate-in">
                     <div class="tech-item">
                         <i class="fas fa-users"></i>
                         <h4>Client Management</h4>
-                        <span>Centralized Database</span>
+                        <span>Centralized DB</span>
                     </div>
                     <div class="tech-item">
                         <i class="fas fa-tasks"></i>
@@ -924,183 +753,227 @@
                     </div>
                     <div class="tech-item">
                         <i class="fas fa-file-invoice-dollar"></i>
-                        <h4>Invoice Generation</h4>
-                        <span>Auto PDF Export</span>
+                        <h4>Invoice Gen</h4>
+                        <span>Auto PDF</span>
                     </div>
                     <div class="tech-item">
                         <i class="fas fa-stopwatch"></i>
                         <h4>Time Tracking</h4>
-                        <span>Real-time Timer</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-chart-line"></i>
-                        <h4>Financial Reports</h4>
-                        <span>Visual Analytics</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-user-plus"></i>
-                        <h4>Lead Management</h4>
-                        <span>Pipeline Tracking</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-file-contract"></i>
-                        <h4>Contract Storage</h4>
-                        <span>Digital Archives</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <h4>Security</h4>
-                        <span>JWT + bcrypt</span>
+                        <span>Real-time</span>
                     </div>
                 </div>
             </div>
-            <div class="page-number">3 / 21</div>
+            <div class="page-number">6 / 22</div>
         </div>
 
-        <!-- SLIDE 4: TECHNOLOGY STACK -->
-        <div class="slide" data-slide="4">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 2</p>
-                <h2 class="animate-item"><span class="gradient-text">Technology Stack</span></h2>
-                <p class="subtitle animate-item">MERN Stack Architecture</p>
-                
-                <div class="two-column animate-item">
-                    <div>
-                        <div class="card" style="margin-bottom: 20px;">
-                            <div class="card-icon">
-                                <i class="fas fa-laptop-code"></i>
-                            </div>
-                            <h4>Frontend</h4>
-                            <p>React.js 18 + Vite for lightning-fast development with modern hooks and component architecture.</p>
-                        </div>
-                        <div class="card" style="margin-bottom: 20px;">
-                            <div class="card-icon green">
-                                <i class="fas fa-database"></i>
-                            </div>
-                            <h4>Database</h4>
-                            <p>MongoDB Atlas - Cloud-hosted NoSQL database with flexible schema design.</p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="card" style="margin-bottom: 20px;">
-                            <div class="card-icon pink">
-                                <i class="fas fa-server"></i>
-                            </div>
-                            <h4>Backend</h4>
-                            <p>Node.js + Express.js for robust RESTful API development.</p>
-                        </div>
-                        <div class="card">
-                            <div class="card-icon">
-                                <i class="fas fa-cloud"></i>
-                            </div>
-                            <h4>Deployment</h4>
-                            <p>Vercel (Frontend) + Render (Backend) for production-ready hosting.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">4 / 21</div>
-        </div>
-
-        <!-- SLIDE 5: SYSTEM ARCHITECTURE -->
-        <div class="slide" data-slide="5">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 4</p>
-                <h2 class="animate-item"><span class="gradient-text">System Architecture</span></h2>
-                <p class="subtitle animate-item">Client-Server Model</p>
-                
-                <div class="diagram-container animate-item">
-                    <div class="flow-diagram">
-                        <div class="flow-box">
-                            <i class="fas fa-browser"></i>
-                            <h4>User Browser</h4>
-                            <span style="font-size: 12px; color: var(--text-muted);">React.js</span>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-lock"></i>
-                            <h4>HTTPS</h4>
-                            <span style="font-size: 12px; color: var(--text-muted);">Encrypted</span>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-server"></i>
-                            <h4>API Server</h4>
-                            <span style="font-size: 12px; color: var(--text-muted);">Express.js</span>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-database"></i>
-                            <h4>MongoDB</h4>
-                            <span style="font-size: 12px; color: var(--text-muted);">Atlas</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">5 / 21</div>
-        </div>
-
-        <!-- SLIDE 6: DATABASE DESIGN -->
-        <div class="slide" data-slide="6">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 4</p>
-                <h2 class="animate-item"><span class="gradient-text">Database Schema</span></h2>
-                <p class="subtitle animate-item">MongoDB Collections</p>
-                
-                <div class="tech-grid animate-item">
-                    <div class="tech-item">
-                        <i class="fas fa-user"></i>
-                        <h4>Users</h4>
-                        <span>Authentication & Profile</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-user-tie"></i>
-                        <h4>Clients</h4>
-                        <span>Contact & Company</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-project-diagram"></i>
-                        <h4>Projects</h4>
-                        <span>Status & Budget</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <h4>Invoices</h4>
-                        <span>Line Items & Tax</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-credit-card"></i>
-                        <h4>Payments</h4>
-                        <span>Transaction History</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-receipt"></i>
-                        <h4>Expenses</h4>
-                        <span>Categories & Amounts</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-clock"></i>
-                        <h4>TimeLogs</h4>
-                        <span>Duration & Earnings</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-handshake"></i>
-                        <h4>Proposals</h4>
-                        <span>Services & Amounts</span>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">6 / 21</div>
-        </div>
-
-        <!-- SLIDE 7: DASHBOARD -->
+        <!-- SLIDE 7: CHAPTER 2 - TOOLS -->
         <div class="slide" data-slide="7">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Dashboard Features</span></h2>
-                <p class="subtitle animate-item">Your Business at a Glance</p>
+                <p class="chapter-label animate-in">Chapter 2</p>
+                <h2 class="animate-in"><span class="gradient-text">Tools & Technology</span></h2>
+                <p class="subtitle animate-in">MERN Stack Architecture</p>
                 
-                <div class="stat-grid animate-item">
+                <div class="four-col animate-in">
+                    <div class="tech-item">
+                        <i class="fab fa-react"></i>
+                        <h4>React.js 18</h4>
+                        <span>Frontend</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fab fa-node-js"></i>
+                        <h4>Node.js</h4>
+                        <span>Backend</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fas fa-database"></i>
+                        <h4>MongoDB</h4>
+                        <span>Database</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fab fa-js"></i>
+                        <h4>Express.js</h4>
+                        <span>API Framework</span>
+                    </div>
+                </div>
+                
+                <div class="two-col animate-in" style="margin-top: 32px;">
+                    <div class="card">
+                        <h4><i class="fas fa-cloud"></i> Deployment</h4>
+                        <p class="body">Vercel + Render for production hosting</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-shield-alt"></i> Security</h4>
+                        <p class="body">JWT + bcrypt for authentication</p>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">7 / 22</div>
+        </div>
+
+        <!-- SLIDE 8: CHAPTER 3 - DATA COLLECTION -->
+        <div class="slide" data-slide="8">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 3</p>
+                <h2 class="animate-in"><span class="gradient-text">Data Collection</span></h2>
+                <p class="subtitle animate-in">System Data Structure</p>
+                
+                <div class="four-col animate-in">
+                    <div class="stat-card">
+                        <i class="fas fa-user" style="font-size: 32px; color: var(--primary-light); margin-bottom: 14px;"></i>
+                        <h4 style="margin-bottom: 8px;">Users</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Auth & Profile</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-tie" style="font-size: 32px; color: var(--primary-light); margin-bottom: 14px;"></i>
+                        <h4 style="margin-bottom: 8px;">Clients</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Contact Details</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-project-diagram" style="font-size: 32px; color: var(--primary-light); margin-bottom: 14px;"></i>
+                        <h4 style="margin-bottom: 8px;">Projects</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Status & Budget</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 32px; color: var(--primary-light); margin-bottom: 14px;"></i>
+                        <h4 style="margin-bottom: 8px;">Invoices</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Billing</p>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">8 / 22</div>
+        </div>
+
+        <!-- SLIDE 9: CHAPTER 4 - SYSTEM REQ -->
+        <div class="slide" data-slide="9">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 4</p>
+                <h2 class="animate-in"><span class="gradient-text">System Requirements</span></h2>
+                <p class="subtitle animate-in">Functional Requirements</p>
+                
+                <ul class="bullet-list animate-in" style="columns: 2; column-gap: 40px;">
+                    <li>User Authentication</li>
+                    <li>Client Management</li>
+                    <li>Project Tracking</li>
+                    <li>Invoice Generation</li>
+                    <li>Time Tracking</li>
+                    <li>Financial Reports</li>
+                    <li>Payment Tracking</li>
+                    <li>Lead Management</li>
+                </ul>
+            </div>
+            <div class="page-number">9 / 22</div>
+        </div>
+
+        <!-- SLIDE 10: NON-FUNCTIONAL -->
+        <div class="slide" data-slide="10">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 4</p>
+                <h2 class="animate-in"><span class="gradient-text">Non-Functional Req.</span></h2>
+                
+                <div class="three-col animate-in">
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h4>Performance</h4>
+                        <p class="body">Fast load times under 3 seconds</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon green">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h4>Security</h4>
+                        <p class="body">JWT auth + bcrypt hashing</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4>Responsive</h4>
+                        <p class="body">Works on all devices</p>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">10 / 22</div>
+        </div>
+
+        <!-- SLIDE 11: HW/SW REQ -->
+        <div class="slide" data-slide="11">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 4</p>
+                <h2 class="animate-in"><span class="gradient-text">Hardware & Software</span></h2>
+                
+                <div class="two-col animate-in">
+                    <div class="card">
+                        <h4><i class="fas fa-laptop"></i> Software Requirements</h4>
+                        <ul class="feature-list">
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Modern Browser (Chrome, Firefox)</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Node.js 18+</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> MongoDB Atlas</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Internet Connection</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-server"></i> Hardware Requirements</h4>
+                        <ul class="feature-list">
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> 4GB RAM Minimum</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Dual Core Processor</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Stable Internet</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> 10GB Storage</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">11 / 22</div>
+        </div>
+
+        <!-- SLIDE 12: SYSTEM ARCHITECTURE -->
+        <div class="slide" data-slide="12">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 4</p>
+                <h2 class="animate-in"><span class="gradient-text">System Architecture</span></h2>
+                <p class="subtitle animate-in">Client-Server Model</p>
+                
+                <div class="flow-diagram animate-in">
+                    <div class="flow-box">
+                        <i class="fas fa-laptop"></i>
+                        <h4>User Browser</h4>
+                    </div>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-lock"></i>
+                        <h4>HTTPS</h4>
+                    </div>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-server"></i>
+                        <h4>API Server</h4>
+                    </div>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-database"></i>
+                        <h4>MongoDB</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">12 / 22</div>
+        </div>
+
+        <!-- SLIDE 13: CHAPTER 5 - IMPLEMENTATION -->
+        <div class="slide" data-slide="13">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Implementation</span></h2>
+                <p class="subtitle animate-in">Dashboard Features</p>
+                
+                <div class="three-col animate-in">
                     <div class="stat-card">
                         <div class="stat-number gradient-text">₹0</div>
                         <div class="stat-label">Total Revenue</div>
@@ -1109,64 +982,34 @@
                         <div class="stat-number" style="color: var(--accent);">0</div>
                         <div class="stat-label">Active Projects</div>
                     </div>
-                    <div class="stat-card pink">
+                    <div class="stat-card">
                         <div class="stat-number" style="color: var(--secondary);">0</div>
                         <div class="stat-label">Pending Invoices</div>
                     </div>
                 </div>
-
-                <div class="grid-2x2 animate-item" style="margin-top: 24px; height: auto;">
-                    <div class="grid-item">
-                        <h4><i class="fas fa-chart-pie"></i> Revenue Overview</h4>
-                        <ul>
-                            <li>Monthly revenue chart</li>
-                            <li>Payment status tracking</li>
-                        </ul>
-                    </div>
-                    <div class="grid-item">
-                        <h4><i class="fas fa-users"></i> Recent Clients</h4>
-                        <ul>
-                            <li>Latest client additions</li>
-                            <li>Quick contact access</li>
-                        </ul>
-                    </div>
-                    <div class="grid-item">
-                        <h4><i class="fas fa-tasks"></i> Project Updates</h4>
-                        <ul>
-                            <li>Status at a glance</li>
-                            <li>Deadline reminders</li>
-                        </ul>
-                    </div>
-                    <div class="grid-item">
-                        <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
-                        <ul>
-                            <li>Add client, project, invoice</li>
-                            <li>Start time tracker</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
-            <div class="page-number">7 / 21</div>
+            <div class="page-number">13 / 22</div>
         </div>
 
-        <!-- SLIDE 8: CLIENT MANAGEMENT -->
-        <div class="slide" data-slide="8">
+        <!-- SLIDE 14: CLIENT MGMT -->
+        <div class="slide" data-slide="14">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Client Management</span></h2>
-                <p class="subtitle animate-item">Complete CRM Solution</p>
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Client Management</span></h2>
+                <p class="subtitle animate-in">Complete CRM Solution</p>
                 
-                <div class="two-column animate-item">
+                <div class="two-col animate-in">
                     <div class="card">
                         <div class="card-icon">
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <h4>Add & Manage Clients</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Contact information</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Company details</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Industry categorization</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Hourly rate setting</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Contact info</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Company details</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Hourly rate</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Industry tag</li>
                         </ul>
                     </div>
                     <div class="card">
@@ -1175,680 +1018,282 @@
                         </div>
                         <h4>Search & Filter</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Quick search by name</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Filter by status</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Grid & list view</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Status tracking</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Quick search</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Filter by status</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Grid/List view</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Export data</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="page-number">8 / 21</div>
+            <div class="page-number">14 / 22</div>
         </div>
 
-        <!-- SLIDE 9: PROJECT MANAGEMENT -->
-        <div class="slide" data-slide="9">
+        <!-- SLIDE 15: PROJECT MGMT -->
+        <div class="slide" data-slide="15">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Project Management</span></h2>
-                <p class="subtitle animate-item">Track Projects from Start to Finish</p>
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Project Management</span></h2>
+                <p class="subtitle animate-in">Track Projects End-to-End</p>
                 
-                <div class="card animate-item">
-                    <div class="flow-diagram" style="flex-wrap: wrap; gap: 16px;">
-                        <div class="flow-box" style="flex: 1; min-width: 150px;">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h4>Planning</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box" style="flex: 1; min-width: 150px;">
-                            <i class="fas fa-play"></i>
-                            <h4>Active</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box" style="flex: 1; min-width: 150px;">
-                            <i class="fas fa-pause"></i>
-                            <h4>On Hold</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box" style="flex: 1; min-width: 150px;">
-                            <i class="fas fa-check-circle"></i>
-                            <h4>Completed</h4>
-                        </div>
+                <div class="flow-diagram animate-in">
+                    <div class="flow-box">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h4>Planning</h4>
                     </div>
-                </div>
-
-                <div class="stat-grid animate-item" style="margin-top: 32px;">
-                    <div class="stat-card">
-                        <i class="fas fa-link icon-large" style="color: var(--primary);"></i>
-                        <h4 style="margin-bottom: 8px;">Client Linking</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Link projects to specific clients</p>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-play"></i>
+                        <h4>Active</h4>
                     </div>
-                    <div class="stat-card green">
-                        <i class="fas fa-rupee-sign icon-large" style="color: var(--accent);"></i>
-                        <h4 style="margin-bottom: 8px;">Budget Tracking</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Set and monitor project budgets</p>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-pause"></i>
+                        <h4>On Hold</h4>
                     </div>
-                    <div class="stat-card pink">
-                        <i class="fas fa-calendar-alt icon-large" style="color: var(--secondary);"></i>
-                        <h4 style="margin-bottom: 8px;">Deadline Management</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Track project deadlines</p>
+                    <i class="fas fa-arrow-right flow-arrow"></i>
+                    <div class="flow-box">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Completed</h4>
                     </div>
                 </div>
             </div>
-            <div class="page-number">9 / 21</div>
+            <div class="page-number">15 / 22</div>
         </div>
 
-        <!-- SLIDE 10: INVOICE GENERATION -->
-        <div class="slide" data-slide="10">
+        <!-- SLIDE 16: INVOICE -->
+        <div class="slide" data-slide="16">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Invoice Generation</span></h2>
-                <p class="subtitle animate-item">Professional Invoices in Seconds</p>
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Invoice Generation</span></h2>
+                <p class="subtitle animate-in">Auto Calculations + PDF Export</p>
                 
-                <div class="two-column animate-item">
+                <div class="two-col animate-in">
                     <div class="card">
-                        <div class="card-icon">
-                            <i class="fas fa-calculator"></i>
-                        </div>
-                        <h4>Auto Calculations</h4>
+                        <h4>Features</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Line item management</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> GST/Tax support</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Subtotal & Total</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Due date tracking</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Line items</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> GST support</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Auto total</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> PDF download</li>
                         </ul>
                     </div>
-                    <div class="card">
-                        <div class="card-icon green">
-                            <i class="fas fa-file-pdf"></i>
-                        </div>
-                        <h4>PDF Export</h4>
-                        <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> One-click PDF download</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Professional format</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Company branding</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Shareable links</li>
-                        </ul>
+                    <div class="code-block">
+                        <span class="comment">// Invoice Calculation</span><br>
+                        <span class="keyword">const</span> <span class="function">calculate</span> = (items, tax) => {<br>
+                        &nbsp;&nbsp;<span class="keyword">const</span> subtotal = items.<span class="function">reduce</span>((s, i) => s + (i.q * i.rate), <span class="number">0</span>);<br>
+                        &nbsp;&nbsp;<span class="keyword">const</span> taxAmt = subtotal * (tax / <span class="number">100</span>);<br>
+                        &nbsp;&nbsp;<span class="keyword">return</span> { subtotal, taxAmt, <span class="keyword">total</span>: subtotal + taxAmt };<br>
+                        };
                     </div>
-                </div>
-
-                <div class="code-block animate-item" style="margin-top: 24px;">
-                    <span class="comment">// Invoice Calculation Logic</span><br>
-                    <span class="keyword">const</span> <span class="function">calculateInvoice</span> = (items, taxRate) => {<br>
-                    &nbsp;&nbsp;<span class="keyword">const</span> subtotal = items.<span class="function">reduce</span>((sum, item) => {<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> sum + (item.quantity * item.rate);<br>
-                    &nbsp;&nbsp;}, <span class="number">0</span>);<br>
-                    &nbsp;&nbsp;<span class="keyword">const</span> tax = subtotal * (taxRate / <span class="number">100</span>);<br>
-                    &nbsp;&nbsp;<span class="keyword">return</span> { subtotal, tax, <span class="keyword">total</span>: subtotal + tax };<br>
-                    };
                 </div>
             </div>
-            <div class="page-number">10 / 21</div>
+            <div class="page-number">16 / 22</div>
         </div>
 
-        <!-- SLIDE 11: TIME TRACKING -->
-        <div class="slide" data-slide="11">
+        <!-- SLIDE 17: TIME TRACKING -->
+        <div class="slide" data-slide="17">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Time Tracking</span></h2>
-                <p class="subtitle animate-item">Never Lose a Billable Hour Again</p>
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Time Tracking</span></h2>
+                <p class="subtitle animate-in">Never Miss a Billable Hour</p>
                 
-                <div class="stat-grid animate-item">
+                <div class="three-col animate-in">
                     <div class="stat-card">
-                        <i class="fas fa-stopwatch icon-large" style="color: var(--primary);"></i>
+                        <i class="fas fa-stopwatch" style="font-size: 32px; color: var(--primary-light); margin-bottom: 14px;"></i>
                         <h4 style="margin-bottom: 8px;">Real-time Timer</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Start, pause, and stop timer with one click</p>
+                        <p style="font-size: 13px; color: var(--text-muted);">Start/Pause/Stop</p>
                     </div>
                     <div class="stat-card green">
-                        <i class="fas fa-keyboard icon-large" style="color: var(--accent);"></i>
+                        <i class="fas fa-keyboard" style="font-size: 32px; color: var(--accent); margin-bottom: 14px;"></i>
                         <h4 style="margin-bottom: 8px;">Manual Entry</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Add time entries manually</p>
+                        <p style="font-size: 13px; color: var(--text-muted);">Add time logs</p>
                     </div>
-                    <div class="stat-card pink">
-                        <i class="fas fa-coins icon-large" style="color: var(--secondary);"></i>
-                        <h4 style="margin-bottom: 8px;">Earnings Calculation</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Auto-calculate based on hourly rate</p>
-                    </div>
-                </div>
-
-                <div class="card animate-item" style="margin-top: 24px;">
-                    <div class="flow-diagram">
-                        <div class="flow-box">
-                            <i class="fas fa-play"></i>
-                            <h4>Start Timer</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-tasks"></i>
-                            <h4>Select Project</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-stop"></i>
-                            <h4>Stop & Save</h4>
-                        </div>
-                        <i class="fas fa-arrow-right flow-arrow"></i>
-                        <div class="flow-box">
-                            <i class="fas fa-chart-line"></i>
-                            <h4>View Reports</h4>
-                        </div>
+                    <div class="stat-card">
+                        <i class="fas fa-coins" style="font-size: 32px; color: var(--secondary); margin-bottom: 14px;"></i>
+                        <h4 style="margin-bottom: 8px;">Earnings</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Auto-calculated</p>
                     </div>
                 </div>
             </div>
-            <div class="page-number">11 / 21</div>
+            <div class="page-number">17 / 22</div>
         </div>
 
-        <!-- SLIDE 12: FINANCIAL REPORTS -->
-        <div class="slide" data-slide="12">
+        <!-- SLIDE 18: REPORTS -->
+        <div class="slide" data-slide="18">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Financial Reports</span></h2>
-                <p class="subtitle animate-item">Insights That Drive Decisions</p>
+                <p class="chapter-label animate-in">Chapter 5</p>
+                <h2 class="animate-in"><span class="gradient-text">Financial Reports</span></h2>
+                <p class="subtitle animate-in">Data-Driven Insights</p>
                 
-                <div class="two-column animate-item">
+                <div class="two-col animate-in">
                     <div class="card">
                         <div class="card-icon green">
                             <i class="fas fa-arrow-up"></i>
                         </div>
                         <h4>Revenue Tracking</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Monthly revenue charts</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Payment status overview</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Client-wise breakdown</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Growth trends</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Monthly charts</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Payment status</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Client breakdown</li>
                         </ul>
                     </div>
                     <div class="card">
-                        <div class="card-icon pink">
+                        <div class="card-icon">
                             <i class="fas fa-arrow-down"></i>
                         </div>
                         <h4>Expense Management</h4>
                         <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Category-based tracking</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Monthly summaries</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Receipt documentation</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Profit/Loss analysis</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="diagram-container animate-item" style="margin-top: 24px; padding: 24px;">
-                    <div style="display: flex; justify-content: space-around; text-align: center;">
-                        <div>
-                            <div style="font-size: 32px; font-weight: 800; color: var(--accent);">₹0</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Total Revenue</div>
-                        </div>
-                        <div style="font-size: 48px; color: var(--text-muted);">-</div>
-                        <div>
-                            <div style="font-size: 32px; font-weight: 800; color: var(--secondary);">₹0</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Total Expenses</div>
-                        </div>
-                        <div style="font-size: 48px; color: var(--text-muted);">=</div>
-                        <div>
-                            <div style="font-size: 32px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">₹0</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Net Profit</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">12 / 21</div>
-        </div>
-
-        <!-- SLIDE 13: SECURITY -->
-        <div class="slide" data-slide="13">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Security Features</span></h2>
-                <p class="subtitle animate-item">Enterprise-Grade Protection</p>
-                
-                <div class="tech-grid animate-item">
-                    <div class="tech-item">
-                        <i class="fas fa-key"></i>
-                        <h4>JWT Authentication</h4>
-                        <span>Secure token-based sessions</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-lock"></i>
-                        <h4>bcrypt Hashing</h4>
-                        <span>Password encryption</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-user-shield"></i>
-                        <h4>Data Isolation</h4>
-                        <span>User-specific access</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-route"></i>
-                        <h4>Protected Routes</h4>
-                        <span>Middleware validation</span>
-                    </div>
-                </div>
-
-                <div class="code-block animate-item" style="margin-top: 24px;">
-                    <span class="comment">// Authentication Middleware</span><br>
-                    <span class="keyword">const</span> authMiddleware = <span class="keyword">async</span> (req, res, next) => {<br>
-                    &nbsp;&nbsp;<span class="keyword">try</span> {<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> token = req.header(<span class="string">'Authorization'</span>);<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> decoded = jwt.<span class="function">verify</span>(token, SECRET);<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;req.user = <span class="keyword">await</span> User.<span class="function">findById</span>(decoded.userId);<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;next();<br>
-                    &nbsp;&nbsp;} <span class="keyword">catch</span> (error) {<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;res.status(<span class="number">401</span>).<span class="function">json</span>({ error: <span class="string">'Unauthorized'</span> });<br>
-                    &nbsp;&nbsp;}<br>
-                    };
-                </div>
-            </div>
-            <div class="page-number">13 / 21</div>
-        </div>
-
-        <!-- SLIDE 14: API ENDPOINTS -->
-        <div class="slide" data-slide="14">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 4</p>
-                <h2 class="animate-item"><span class="gradient-text">RESTful API</span></h2>
-                <p class="subtitle animate-item">Complete CRUD Operations</p>
-                
-                <div class="card animate-item">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <th style="text-align: left; padding: 12px; color: var(--text-secondary);">Resource</th>
-                                <th style="text-align: left; padding: 12px; color: var(--text-secondary);">Endpoints</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;"><i class="fas fa-user" style="color: var(--primary); margin-right: 8px;"></i> /auth</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">register, login, profile</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;"><i class="fas fa-users" style="color: var(--primary); margin-right: 8px;"></i> /clients</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">GET, POST, PUT, DELETE</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;"><i class="fas fa-project-diagram" style="color: var(--primary); margin-right: 8px;"></i> /projects</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">GET, POST, PUT, DELETE</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;"><i class="fas fa-file-invoice-dollar" style="color: var(--primary); margin-right: 8px;"></i> /invoices</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">GET, POST, PUT, DELETE</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;"><i class="fas fa-clock" style="color: var(--primary); margin-right: 8px;"></i> /timelogs</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">GET, POST, PUT, DELETE</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 12px;"><i class="fas fa-receipt" style="color: var(--primary); margin-right: 8px;"></i> /expenses</td>
-                                <td style="padding: 12px; color: var(--text-secondary);">GET, POST, PUT, DELETE</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="page-number">14 / 21</div>
-        </div>
-
-        <!-- SLIDE 15: DEPLOYMENT -->
-        <div class="slide" data-slide="15">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Live Deployment</span></h2>
-                <p class="subtitle animate-item">Production-Ready Application</p>
-                
-                <div class="stat-grid animate-item">
-                    <div class="stat-card">
-                        <i class="fas fa-globe icon-large" style="color: var(--primary);"></i>
-                        <h4 style="margin-bottom: 8px;">Frontend</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Vercel CDN</p>
-                        <a href="https://freelanceflow-blue-delta.vercel.app" style="color: var(--accent); font-size: 12px;">freelanceflow-blue-delta.vercel.app</a>
-                    </div>
-                    <div class="stat-card green">
-                        <i class="fas fa-server icon-large" style="color: var(--accent);"></i>
-                        <h4 style="margin-bottom: 8px;">Backend API</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">Render Cloud</p>
-                        <a href="https://freelanceflow-api-80zc.onrender.com" style="color: var(--accent); font-size: 12px;">freelanceflow-api-80zc.onrender.com</a>
-                    </div>
-                    <div class="stat-card pink">
-                        <i class="fab fa-github icon-large" style="color: var(--secondary);"></i>
-                        <h4 style="margin-bottom: 8px;">Source Code</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px;">GitHub Repository</p>
-                        <a href="https://github.com/farhankh8/FreelanceFlow" style="color: var(--accent); font-size: 12px;">github.com/farhankh8</a>
-                    </div>
-                </div>
-
-                <div class="card animate-item" style="margin-top: 24px; text-align: center;">
-                    <i class="fas fa-check-circle" style="font-size: 48px; color: var(--accent); margin-bottom: 16px;"></i>
-                    <h4 style="margin-bottom: 8px;">Fully Functional & Deployed</h4>
-                    <p style="color: var(--text-secondary);">The application is live and accessible worldwide</p>
-                </div>
-            </div>
-            <div class="page-number">15 / 21</div>
-        </div>
-
-        <!-- SLIDE 16: CHALLENGES -->
-        <div class="slide" data-slide="16">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 5</p>
-                <h2 class="animate-item"><span class="gradient-text">Challenges Faced</span></h2>
-                <p class="subtitle animate-item">Problems & Solutions</p>
-                
-                <div class="timeline animate-item">
-                    <div class="timeline-item">
-                        <h4><i class="fas fa-stopwatch" style="color: var(--primary); margin-right: 8px;"></i> Timer Persistence</h4>
-                        <p>Timer state was lost on page navigation. Solved using localStorage to persist timer data across components.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h4><i class="fas fa-file-pdf" style="color: var(--accent); margin-right: 8px;"></i> PDF Generation</h4>
-                        <p>Server-side PDF generation was complex. Implemented client-side PDF using jsPDF library for instant downloads.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h4><i class="fas fa-user-shield" style="color: var(--secondary); margin-right: 8px;"></i> Data Isolation</h4>
-                        <p>Ensuring users only see their own data. Every database query includes user_id filter for strict isolation.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h4><i class="fas fa-cors" style="color: var(--primary); margin-right: 8px;"></i> CORS Issues</h4>
-                        <p>Cross-origin requests blocked in production. Configured proper CORS headers on the backend server.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">16 / 21</div>
-        </div>
-
-        <!-- SLIDE 17: FUTURE SCOPE -->
-        <div class="slide" data-slide="17">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 7</p>
-                <h2 class="animate-item"><span class="gradient-text">Future Scope</span></h2>
-                <p class="subtitle animate-item">Planned Enhancements</p>
-                
-                <div class="tech-grid animate-item">
-                    <div class="tech-item">
-                        <i class="fas fa-mobile-alt"></i>
-                        <h4>Mobile App</h4>
-                        <span>React Native</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-credit-card"></i>
-                        <h4>Payment Gateway</h4>
-                        <span>Razorpay/Stripe</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-envelope"></i>
-                        <h4>Email/SMS</h4>
-                        <span>Auto Notifications</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-users-cog"></i>
-                        <h4>Team Support</h4>
-                        <span>Multi-user Access</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-robot"></i>
-                        <h4>AI Insights</h4>
-                        <span>Smart Analytics</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-user-circle"></i>
-                        <h4>Client Portal</h4>
-                        <span>Separate Login</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-calendar-check"></i>
-                        <h4>Calendar</h4>
-                        <span>Deadline Tracking</span>
-                    </div>
-                    <div class="tech-item">
-                        <i class="fas fa-plug"></i>
-                        <h4>Integrations</h4>
-                        <span>Third-party APIs</span>
-                    </div>
-                </div>
-            </div>
-            <div class="page-number">17 / 21</div>
-        </div>
-
-        <!-- SLIDE 18: LEARNING OUTCOMES -->
-        <div class="slide" data-slide="18">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 7</p>
-                <h2 class="animate-item"><span class="gradient-text">Learning Outcomes</span></h2>
-                <p class="subtitle animate-item">Skills Developed</p>
-                
-                <div class="two-column animate-item">
-                    <div class="card">
-                        <div class="card-icon">
-                            <i class="fas fa-code"></i>
-                        </div>
-                        <h4>Technical Skills</h4>
-                        <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Full-stack MERN development</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> REST API design</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Database schema design</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Authentication & security</li>
-                        </ul>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon green">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <h4>Professional Skills</h4>
-                        <ul class="feature-list">
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Cloud deployment</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Git version control</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Problem solving</li>
-                            <li><span class="icon"><i class="fas fa-check"></i></span> Project documentation</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Categories</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> Monthly summaries</li>
+                            <li><span class="icon-box"><i class="fas fa-check"></i></span> P&L analysis</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="page-number">18 / 21</div>
+            <div class="page-number">18 / 22</div>
         </div>
 
-        <!-- SLIDE 19: CONCLUSION -->
+        <!-- SLIDE 19: CHAPTER 6 - CONCLUSION -->
         <div class="slide" data-slide="19">
+            <div class="bg-shapes"></div>
             <div class="content-wrapper">
-                <p class="section-label animate-item">Chapter 7</p>
-                <h2 class="animate-item"><span class="gradient-text">Conclusion</span></h2>
-                <p class="subtitle animate-item">Project Summary</p>
+                <p class="chapter-label animate-in">Chapter 6</p>
+                <h2 class="animate-in"><span class="gradient-text">Conclusion</span></h2>
+                <p class="subtitle animate-in">Project Summary</p>
                 
-                <div class="stat-grid animate-item">
+                <div class="three-col animate-in">
                     <div class="stat-card">
-                        <div class="stat-number gradient-text">✓</div>
-                        <div class="stat-label">Complete Solution</div>
+                        <div class="stat-number gradient-text">8+</div>
+                        <div class="stat-label">Modules Built</div>
                     </div>
                     <div class="stat-card green">
-                        <div class="stat-number" style="color: var(--accent);">✓</div>
-                        <div class="stat-label">Modern Stack</div>
+                        <div class="stat-number" style="color: var(--accent);">100%</div>
+                        <div class="stat-label">Requirements Met</div>
                     </div>
-                    <div class="stat-card pink">
-                        <div class="stat-number" style="color: var(--secondary);">✓</div>
-                        <div class="stat-label">Production Ready</div>
-                    </div>
-                </div>
-
-                <div class="card animate-item" style="margin-top: 24px; text-align: center;">
-                    <h4 style="margin-bottom: 16px;">Key Achievements</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left;">
-                        <div><i class="fas fa-check" style="color: var(--accent); margin-right: 8px;"></i> Professional UI/UX Design</div>
-                        <div><i class="fas fa-check" style="color: var(--accent); margin-right: 8px;"></i> Secure Authentication</div>
-                        <div><i class="fas fa-check" style="color: var(--accent); margin-right: 8px;"></i> Responsive Web App</div>
-                        <div><i class="fas fa-check" style="color: var(--accent); margin-right: 8px;"></i> Cloud Deployment</div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: var(--gold);">0</div>
+                        <div class="stat-label">Errors</div>
                     </div>
                 </div>
             </div>
-            <div class="page-number">19 / 21</div>
+            <div class="page-number">19 / 22</div>
         </div>
 
-        <!-- SLIDE 20: THANK YOU -->
+        <!-- SLIDE 20: BIBLIOGRAPHY -->
         <div class="slide" data-slide="20">
-            <div class="content-wrapper title-slide">
-                <div class="logo-icon animate-item">
-                    <i class="fas fa-bolt"></i>
-                </div>
-                <h1 class="thank-you-text animate-item"><span class="gradient-text">Thank You!</span></h1>
-                <p class="subtitle animate-item">Questions & Discussion</p>
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Bibliography</p>
+                <h2 class="animate-in"><span class="gradient-text">References</span></h2>
                 
-                <div class="contact-grid animate-item">
-                    <div class="contact-card">
-                        <i class="fas fa-user"></i>
-                        <h4>K H Mohammad Farhan</h4>
-                        <p>Register No: 23BCAICD182</p>
-                    </div>
-                    <div class="contact-card">
-                        <i class="fas fa-envelope"></i>
-                        <h4>Email</h4>
-                        <p>mohammadfarhan008800@gmail.com</p>
-                    </div>
-                    <div class="contact-card">
-                        <i class="fas fa-phone"></i>
-                        <h4>Phone</h4>
-                        <p>9108386969</p>
-                    </div>
-                </div>
-
-                <div class="student-info animate-item" style="margin-top: 32px;">
-                    <span><i class="fas fa-university"></i> Yenepoya Institute of Arts, Science, Commerce and Management</span>
-                </div>
+                <ul class="bullet-list animate-in">
+                    <li>React Documentation - react.dev</li>
+                    <li>MongoDB Atlas Documentation</li>
+                    <li>Node.js Best Practices</li>
+                    <li>JWT Authentication Guide</li>
+                    <li>Express.js API Reference</li>
+                    <li>MERN Stack Tutorials</li>
+                </ul>
             </div>
-            <div class="page-number">20 / 21</div>
+            <div class="page-number">20 / 22</div>
         </div>
 
-        <!-- SLIDE 21: REFERENCES -->
+        <!-- SLIDE 21: THANK YOU -->
         <div class="slide" data-slide="21">
-            <div class="content-wrapper">
-                <p class="section-label animate-item">Bibliography</p>
-                <h2 class="animate-item"><span class="gradient-text">References</span></h2>
-                
-                <div class="card animate-item">
-                    <ul class="feature-list" style="text-align: left;">
-                        <li><span class="icon"><i class="fas fa-book"></i></span> React Documentation - react.dev</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> Node.js Documentation - nodejs.org</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> MongoDB Manual - docs.mongodb.com</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> Express.js Guide - expressjs.com</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> MDN Web Docs - developer.mozilla.org</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> Zustand - github.com/pmndrs/zustand</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> JWT.io - jwt.io</li>
-                        <li><span class="icon"><i class="fas fa-book"></i></span> Vercel Docs - vercel.com/docs</li>
-                    </ul>
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper title-slide">
+                <div class="logo-icon animate-in">
+                    <i class="fas fa-heart"></i>
                 </div>
-
-                <div class="card animate-item" style="margin-top: 24px; text-align: center; background: var(--gradient-primary); border: none;">
-                    <h4 style="margin-bottom: 8px; font-size: 24px;">Submitted by: K H Mohammad Farhan</h4>
-                    <p style="color: rgba(255,255,255,0.9);">BCA Final Year (6th Sem) - AI CC & DevOps with TCS</p>
-                    <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">April 2026</p>
+                <h1 class="animate-in"><span class="gradient-text">THANK YOU</span></h1>
+                <p class="subtitle animate-in">Questions & Answers</p>
+                <div class="student-info animate-in">
+                    <span><i class="fas fa-envelope"></i> farhan@example.com</span>
                 </div>
             </div>
-            <div class="page-number">21 / 21</div>
+            <div class="page-number">21 / 22</div>
+        </div>
+
+        <!-- SLIDE 22: EXTRA SPARE -->
+        <div class="slide" data-slide="22">
+            <div class="bg-shapes"></div>
+            <div class="content-wrapper">
+                <p class="chapter-label animate-in">Extra</p>
+                <h2 class="animate-in"><span class="gradient-text">Future Scope</span></h2>
+                <p class="subtitle animate-in">What's Next?</p>
+                
+                <div class="two-col animate-in">
+                    <div class="card">
+                        <h4><i class="fas fa-calculator"></i> Accounting Module</h4>
+                        <p class="body">GST, banking sync, P&L reports</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-video"></i> Live Meetings</h4>
+                        <p class="body">Video calls, screen share, recording</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-robot"></i> AI Automation</h4>
+                        <p class="body">Smart invoicing, insights</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-globe"></i> Mobile App</h4>
+                        <p class="body">iOS + Android native apps</p>
+                    </div>
+                </div>
+            </div>
+            <div class="page-number">22 / 22</div>
         </div>
 
     </div>
 
-    <!-- Navigation Controls -->
     <div class="nav-controls">
-        <button class="nav-btn" onclick="prevSlide()">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="nav-btn" onclick="nextSlide()">
-            <i class="fas fa-chevron-right"></i>
-        </button>
+        <button class="nav-btn" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+        <button class="nav-btn" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
     </div>
 
     <script>
-        let currentSlide = 1;
-        const totalSlides = 21;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
 
-        // Initialize progress dots
-        function initDots() {
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            slides[currentSlide].classList.add('exit');
+            setTimeout(() => slides[currentSlide].classList.remove('exit'), 100);
+            
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            updateProgress();
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
             const dotsContainer = document.getElementById('progressDots');
-            for (let i = 1; i <= totalSlides; i++) {
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('div');
-                dot.className = 'progress-dot' + (i === 1 ? ' active' : '');
-                dot.onclick = () => goToSlide(i);
+                dot.className = 'progress-dot' + (i === currentSlide ? ' active' : '');
+                dot.onclick = () => showSlide(i);
                 dotsContainer.appendChild(dot);
             }
         }
 
-        function updateSlide() {
-            // Update slides
-            document.querySelectorAll('.slide').forEach((slide, index) => {
-                slide.classList.remove('active');
-                if (index + 1 === currentSlide) {
-                    slide.classList.add('active');
-                }
-            });
-
-            // Update progress bar
-            const progress = (currentSlide / totalSlides) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-
-            // Update dots
-            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
-                dot.classList.remove('active');
-                if (index + 1 === currentSlide) {
-                    dot.classList.add('active');
-                }
-            });
-        }
-
-        function nextSlide() {
-            if (currentSlide < totalSlides) {
-                currentSlide++;
-                updateSlide();
-            }
-        }
-
-        function prevSlide() {
-            if (currentSlide > 1) {
-                currentSlide--;
-                updateSlide();
-            }
-        }
-
-        function goToSlide(n) {
-            currentSlide = n;
-            updateSlide();
-        }
-
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                nextSlide();
-            } else if (e.key === 'ArrowLeft') {
-                prevSlide();
-            } else if (e.key === 'Home') {
-                goToSlide(1);
-            } else if (e.key === 'End') {
-                goToSlide(totalSlides);
-            }
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
         });
 
-        // Touch/swipe support
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        document.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
-            
-            if (diff > swipeThreshold) {
-                nextSlide();
-            } else if (diff < -swipeThreshold) {
-                prevSlide();
-            }
-        }
-
-        // Initialize
-        initDots();
-        updateSlide();
+        updateProgress();
     </script>
 </body>
 </html>
