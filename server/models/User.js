@@ -1,57 +1,14 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 
 const userSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: [true, 'Name is required'], 
-    trim: true,
-    maxlength: [100, 'Name cannot exceed 100 characters'],
-    match: [/^[a-zA-Z\s]+$/, 'Name must only contain letters and spaces']
-  },
-  email: { 
-    type: String, 
-    required: [true, 'Email is required'], 
-    unique: true, 
-    lowercase: true, 
-    trim: true,
-    maxlength: [255, 'Email cannot exceed 255 characters']
-  },
-  password: { 
-    type: String, 
-    required: [true, 'Password is required'],
-    minlength: [12, 'Password must be at least 12 characters']
-  },
-  plan: { type: String, enum: ['free', 'pro'], default: 'free' },
-  planExpiry: { type: Date, default: null },
-  paymentId: { type: String, default: null },
+  name: { type: String, required: true, maxlength: 100, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, maxlength: 100 },
+  password: { type: String, required: true, minlength: 6 },
   phone: { type: String, default: '', maxlength: 20 },
-  role: { type: String, enum: ['user', 'admin', 'viewer'], default: 'user' },
-  refreshToken: { type: String, select: false },
   
-  // Security enhancements
-  failedLoginAttempts: { type: Number, default: 0 },
-  lockedUntil: { type: Date, default: null },
-  lastLoginAt: { type: Date },
-  lastLoginIP: { type: String },
-  loginHistory: [{
-    timestamp: { type: Date, default: Date.now },
-    ip: String,
-    userAgent: String,
-    success: Boolean,
-    failureReason: String
-  }],
-  passwordHistory: [{
-    password: { type: String, select: false },
-    changedAt: { type: Date, default: Date.now }
-  }],
-  passwordChangedAt: { type: Date, default: Date.now },
-  
-  // Two-factor authentication (prepared for future)
-  twoFactorEnabled: { type: Boolean, default: false },
-  twoFactorSecret: { type: String, select: false },
-  
-  // Profile
   avatar: { type: String, default: '' },
   bio: { type: String, maxlength: 500, default: '' },
   
@@ -66,6 +23,8 @@ const userSchema = new mongoose.Schema({
     bankName: { type: String, default: '', maxlength: 100 },
     accountNumber: { type: String, default: '', maxlength: 20 },
     ifsc: { type: String, default: '', maxlength: 20 },
+    razorpayKeyId: { type: String, default: '', maxlength: 100 },
+    razorpayKeySecret: { type: String, default: '', maxlength: 100 },
     theme: { type: String, enum: ['dark', 'light', 'system'], default: 'dark' },
     defaultRate: { type: Number, default: 500, min: 0 },
     notifications: {
@@ -85,102 +44,128 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   isVerified: { type: Boolean, default: false },
   verifiedAt: { type: Date },
+  plan: { type: String, enum: ['free', 'pro'], default: 'free' },
+  planStartedAt: { type: Date },
+  planEndsAt: { type: Date },
   
-  // Timestamps
+  // Security
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date },
+  passwordChangedAt: { type: Date },
+  passwordResetToken: { type: String },
+  passwordResetExpires: { type: Date },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String },
+  
+  // Consent
+  acceptedTerms: { type: Boolean, default: true },
+  acceptedAt: { type: Date },
+  marketingEmails: { type: Boolean, default: false },
+  
+  // OAuth
+  provider: { type: String, enum: ['local', 'google', 'facebook'], default: 'local' },
+  providerId: { type: String },
+  googleId: { type: String },
+  facebookId: { type: String },
+  
+  // Refresh tokens for persistent sessions
+  refreshTokens: [{
+    token: { type: String },
+    userAgent: { type: String },
+    ip: { type: String },
+    createdAt: { type: Date, default: Date.now },
+    expiresAt: { type: Date }
+  }],
+  
+  // Meta
+  lastLoginAt: { type: Date },
+  lastLoginIp: { type: String },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-}, { timestamps: true })
-
-// Indexes for performance and security
-userSchema.index({ plan: 1 })
-userSchema.index({ referralCode: 1 })
-userSchema.index({ createdAt: -1 })
-userSchema.index({ isActive: 1 })
-
-// Pre-save hook for password hashing
-userSchema.pre('save', async function() {
-  if (!this.isModified('password')) return
-  
-  // Store password history (keep last 5)
-  if (this.isModified('password')) {
-    const historyEntry = { password: this.password, changedAt: new Date() }
-    this.passwordHistory = [historyEntry, ...(this.passwordHistory || []).slice(0, 4)]
-    this.passwordChangedAt = new Date()
-  }
-  
-  const salt = await bcrypt.genSalt(12)
-  this.password = await bcrypt.hash(this.password, salt)
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 })
 
-// Compare password method
-userSchema.methods.comparePassword = async function(p) {
-  return bcrypt.compare(p, this.password)
+userSchema.index({ email: 1 })
+userSchema.index({ referralCode: 1 })
+userSchema.index({ 'refreshTokens.token': 1 })
+
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next()
+  this.password = await bcrypt.hash(this.password, 12)
+  next()
+})
+
+userSchema.pre('save', function(next) {
+  this.updatedAt = new Date()
+  next()
+})
+
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password)
 }
 
-// Check if account is locked
+userSchema.methods.generateToken = function() {
+  return jwt.sign({ id: this._id }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRE || '15m' })
+}
+
+userSchema.methods.generateRefreshToken = function() {
+  return jwt.sign({ id: this._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' })
+}
+
+userSchema.methods.getSignedJwt = function() {
+  const accessToken = this.generateToken()
+  const refreshToken = this.generateRefreshToken()
+  return { accessToken, refreshToken }
+}
+
 userSchema.methods.isLocked = function() {
-  if (this.lockedUntil && this.lockedUntil > new Date()) {
-    return true
+  return this.lockUntil && this.lockUntil > Date.now()
+}
+
+userSchema.methods.incLoginAttempts = async function() {
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return await User.findByIdAndUpdate(this._id, {
+      $set: { failedLoginAttempts: 1 },
+      $unset: { lockUntil: 1 }
+    })
   }
-  return false
+  
+  const updates = { $inc: { failedLoginAttempts: 1 } }
+  if (this.failedLoginAttempts + 1 >= 5) {
+    updates.$set = { lockUntil: Date.now() + 15 * 60 * 1000 }
+  }
+  
+  return await User.findByIdAndUpdate(this._id, updates)
 }
 
-// Lock account method
-userSchema.methods.lockAccount = function(reason = 'Too many failed login attempts') {
-  this.lockedUntil = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-  return this.save()
-}
-
-// Unlock account method
-userSchema.methods.unlockAccount = function() {
-  this.lockedUntil = null
-  this.failedLoginAttempts = 0
-  return this.save()
-}
-
-// Record login attempt
-userSchema.methods.recordLoginAttempt = function(ip, userAgent, success, failureReason = null) {
-  this.loginHistory.unshift({
-    timestamp: new Date(),
-    ip,
-    userAgent,
-    success,
-    failureReason
+userSchema.methods.clearFailedAttempts = async function() {
+  return await User.findByIdAndUpdate(this._id, {
+    $set: { failedLoginAttempts: 0 },
+    $unset: { lockUntil: 1 }
   })
-  
-  // Keep only last 20 login attempts
-  this.loginHistory = this.loginHistory.slice(0, 20)
-  
-  if (success) {
-    this.failedLoginAttempts = 0
-    this.lockedUntil = null
-    this.lastLoginAt = new Date()
-    this.lastLoginIP = ip
-  } else {
-    this.failedLoginAttempts += 1
-    
-    // Lock after 5 failed attempts
-    if (this.failedLoginAttempts >= 5) {
-      this.lockedUntil = new Date(Date.now() + 30 * 60 * 1000)
-    }
-  }
-  
-  return this.save()
 }
 
-// JSON transform (remove sensitive fields)
 userSchema.methods.toJSON = function() {
   const obj = this.toObject()
   delete obj.password
-  delete obj.refreshToken
+  delete obj.passwordResetToken
+  delete obj.passwordResetExpires
   delete obj.twoFactorSecret
-  delete obj.passwordHistory
+  delete obj.refreshTokens
+  delete obj.googleId
+  delete obj.facebookId
   return obj
 }
 
-// Static method to find by email (case-insensitive)
-userSchema.statics.findByEmail = function(email) {
-  return this.findOne({ email: email.toLowerCase() })
+userSchema.statics.getReferralCode = function() {
+  let code
+  do {
+    code = crypto.randomBytes(3).toString('hex').toUpperCase()
+  } while (await this.findOne({ referralCode: code }))
+  return code
 }
 
-module.exports = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema)
+
+module.exports = User

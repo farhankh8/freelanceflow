@@ -32,6 +32,9 @@ export default function Settings() {
   const [tab, setTab] = useState("profile")
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showSessionsModal, setShowSessionsModal] = useState(false)
+  const [sessions, setSessions] = useState([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
   const [pwSaving, setPwSaving] = useState(false)
   const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false, accountNumber: false, ifsc: false, razorpay: false })
@@ -59,7 +62,7 @@ export default function Settings() {
     const loadUserData = async () => {
       try {
         const res = await api.get('/auth/me')
-        const userData = res.data?.data
+        const userData = res.data?.user || res.data?.data
         if (userData) {
           updateUser(userData)
           setForm({
@@ -88,15 +91,20 @@ export default function Settings() {
     loadUserData()
   }, [])
 
-  const handleSave = async () => {
+  const handleSave = async (tabName) => {
     setLoading(true)
     try {
-      await api.put('/auth/profile', {
+      const res = await api.put('/auth/profile', {
         name: form.name,
         phone: form.phone,
         settings: form.settings
       })
-      updateUser({ name: form.name, phone: form.phone, settings: form.settings })
+      const userData = res.data?.user || res.data?.data
+      if (userData) {
+        updateUser(userData)
+      } else {
+        updateUser({ name: form.name, phone: form.phone, settings: form.settings })
+      }
       toast.success("Settings saved!")
     } catch { toast.error("Failed to save") }
     finally { setLoading(false) }
@@ -128,6 +136,33 @@ export default function Settings() {
   }
 
   const toggleShow = (key) => setShowPass(prev => ({ ...prev, [key]: !prev[key] }))
+
+  const loadSessions = async () => {
+    setSessionsLoading(true)
+    try {
+      const res = await api.get('/auth/sessions')
+      setSessions(res.data?.sessions || [])
+    } catch {
+      toast.error("Failed to load sessions")
+    } finally {
+      setSessionsLoading(false)
+    }
+  }
+
+  const handleRevokeSession = async (index) => {
+    try {
+      await api.delete('/auth/sessions', { data: { sessionIndex: index } })
+      toast.success("Session revoked")
+      loadSessions()
+    } catch {
+      toast.error("Failed to revoke session")
+    }
+  }
+
+  const handleViewSessions = () => {
+    setShowSessionsModal(true)
+    loadSessions()
+  }
 
   return (
     <div style={{ maxWidth: "900px" }}>
@@ -163,7 +198,7 @@ export default function Settings() {
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Phone</label>
                   <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 98765 43210" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
                 </div>
-                <button onClick={handleSave} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
+                <button onClick={() => handleSave('profile')} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
@@ -252,7 +287,7 @@ export default function Settings() {
                 </div>
               </div>
               
-              <button onClick={handleSave} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
+              <button onClick={() => handleSave('business')} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
                 {loading ? "Saving..." : "Save Business Settings"}
               </button>
             </div>
@@ -315,14 +350,14 @@ export default function Settings() {
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Two-Factor Authentication</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Add extra security to your account</div>
                   </div>
-                  <button onClick={() => toast.success("Two-Factor Authentication is coming soon!")} aria-label="Enable two-factor authentication (coming soon)" style={{ padding: "8px 16px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "8px", color: "#00d97e", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Enable</button>
+                  <button onClick={() => toast.success("Two-Factor Authentication is coming soon!")} aria-label="Enable two-factor authentication" style={{ padding: "8px 16px", background: "rgba(0,217,126,0.1)", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "8px", color: "#00d97e", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>Enable</button>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--surface2)", borderRadius: "12px" }}>
                   <div>
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Active Sessions</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Manage your active sessions</div>
                   </div>
-                  <button style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="View API key">View</button>
+                  <button onClick={handleViewSessions} style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="View active sessions">View</button>
                 </div>
               </div>
             </div>
@@ -370,6 +405,37 @@ export default function Settings() {
       )}
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      
+      {showSessionsModal && (
+        <div role="dialog" aria-modal="true" aria-labelledby="sessions-title" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "500px", maxHeight: "80vh", overflow: "auto" }}>
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 id="sessions-title" style={{ fontSize: "20px", fontWeight: 800 }}>Active Sessions</h2>
+              <button onClick={() => setShowSessionsModal(false)} aria-label="Close dialog" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+            </div>
+            <div style={{ padding: "24px 28px" }}>
+              {sessionsLoading ? (
+                <p style={{ color: "var(--text2)", textAlign: "center" }}>Loading sessions...</p>
+              ) : sessions.length === 0 ? (
+                <p style={{ color: "var(--text2)", textAlign: "center" }}>No active sessions found</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {sessions.map((session, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--surface2)", borderRadius: "12px" }}>
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>{session.userAgent || 'Unknown Device'}</div>
+                        <div style={{ fontSize: "12px", color: "var(--text2)" }}>IP: {session.ip || 'Unknown'}</div>
+                        <div style={{ fontSize: "11px", color: "var(--text2)" }}>{session.createdAt ? new Date(session.createdAt).toLocaleString() : 'Unknown time'}</div>
+                      </div>
+                      <button onClick={() => handleRevokeSession(session.id)} style={{ padding: "8px 12px", background: "rgba(255,82,82,0.1)", border: "1px solid rgba(255,82,82,0.3)", borderRadius: "8px", color: "#ff5252", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Revoke</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

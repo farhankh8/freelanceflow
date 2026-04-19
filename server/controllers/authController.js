@@ -142,6 +142,20 @@ const login = [
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
     user.refreshToken = refreshToken
+    
+    if (!user.refreshTokens) user.refreshTokens = []
+    user.refreshTokens.push({
+      token: refreshToken,
+      userAgent: req.get('user-agent'),
+      ip: req.ip,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    })
+    
+    if (user.refreshTokens.length > 5) {
+      user.refreshTokens = user.refreshTokens.slice(-5)
+    }
+    
     await user.save()
     
     // Record successful login
@@ -343,6 +357,55 @@ const updateProfile = asyncHandler(async (req, res) => {
 })
 
 /**
+ * Get user sessions
+ */
+const getSessions = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select('refreshTokens')
+  
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  const sessions = (user.refreshTokens || []).map((t, i) => ({
+    id: i,
+    userAgent: t.userAgent || 'Unknown',
+    ip: t.ip || 'Unknown',
+    createdAt: t.createdAt,
+    expiresAt: t.expiresAt,
+    isCurrent: t.createdAt && t.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  
+  return res.status(200).json({
+    success: true,
+    sessions,
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
+ * Revoke a session
+ */
+const revokeSession = asyncHandler(async (req, res) => {
+  const { sessionIndex } = req.body
+  const user = await User.findById(req.user.id)
+  
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  if (sessionIndex !== undefined && user.refreshTokens && user.refreshTokens[sessionIndex]) {
+    user.refreshTokens.splice(sessionIndex, 1)
+    await user.save()
+  }
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Session revoked',
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
  * Change password
  */
 const changePassword = asyncHandler(async (req, res) => {
@@ -465,5 +528,7 @@ module.exports = {
   updateProfile,
   changePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getSessions,
+  revokeSession
 }
