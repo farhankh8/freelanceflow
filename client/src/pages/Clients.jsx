@@ -12,7 +12,7 @@ const STATUSES = {
 const COLORS = ["#6c63ff","#ff6584","#00d97e","#ffb800","#2CA5E0","#ff4d6d","#a78bfa","#00c9a7"]
 const FREE_CLIENT_LIMIT = 5
 const EMPTY_FORM = { name: "", email: "", phone: "", company: "", industry: "Technology", status: "active", hourlyRate: "", address: "", website: "", notes: "" }
-const INPUT_STYLE = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }
+const INPUT_STYLE = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box" }
 
 export default function Clients() {
   const { user } = useAuthStore()
