@@ -104,14 +104,9 @@ export default function TimeLogs() {
 
   // ── Persist timer state (survives page nav) ───────────────────────────────
   useEffect(() => {
-    if (running) {
-      localStorage.setItem(LS_TIMER, JSON.stringify({ running, seconds, timerProject, timerTask, timerRate, startTime: Date.now() - seconds * 1000, lastUpdate: Date.now() }))
-    } else if (seconds > 0) {
-      localStorage.setItem(LS_TIMER, JSON.stringify({ running: false, seconds, timerProject, timerTask, timerRate, startTime: null, lastUpdate: Date.now() }))
-    } else {
-      localStorage.removeItem(LS_TIMER)
-    }
-  }, [running, seconds])
+    const data = { running, seconds, timerProject, timerTask, timerRate, startTime: running ? (Date.now() - seconds * 1000) : null }
+    localStorage.setItem(LS_TIMER, JSON.stringify(data))
+  }, [running, seconds, timerProject, timerTask, timerRate])
 
   // ── Restore timer on mount ────────────────────────────────────────────────
   useEffect(() => {
@@ -122,8 +117,6 @@ export default function TimeLogs() {
         let elapsed = data.seconds || 0
         if (data.running && data.startTime) {
           elapsed = Math.floor((Date.now() - data.startTime) / 1000)
-        } else if (data.lastUpdate && data.seconds && !data.running) {
-          elapsed = data.seconds
         }
         if (elapsed > 0) {
           setSeconds(elapsed)

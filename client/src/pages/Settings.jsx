@@ -94,12 +94,21 @@ export default function Settings() {
   const handleSave = async () => {
     setLoading(true)
     try {
-      await api.put('/auth/profile', {
+      const res = await api.put('/auth/profile', {
         name: form.name,
         phone: form.phone,
         settings: form.settings
       })
-      updateUser({ name: form.name, phone: form.phone, settings: form.settings })
+      const userData = res.data?.user || res.data?.data
+      if (userData) {
+        updateUser(userData)
+        setForm({
+          name: userData.name || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          settings: userData.settings || form.settings
+        })
+      }
       toast.success("Settings saved!")
     } catch { toast.error("Failed to save") }
     finally { setLoading(false) }
