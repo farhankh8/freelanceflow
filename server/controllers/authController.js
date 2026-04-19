@@ -46,10 +46,11 @@ const register = [
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
     user.refreshToken = refreshToken
+    user.lastLoginAt = new Date()
+    user.lastLoginIp = req.ip
+    user.failedLoginAttempts = 0
+    user.lockUntil = undefined
     await user.save()
-    
-    // Record login attempt
-    await user.recordLoginAttempt(req.ip, req.get('user-agent'), true)
     
     // Log audit event
     await AuditLog.log({
@@ -116,7 +117,11 @@ const login = [
     const isMatch = await user.comparePassword(password)
     if (!isMatch) {
       // Record failed attempt
-      await user.recordLoginAttempt(req.ip, req.get('user-agent'), false, 'Invalid password')
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1
+      if (user.failedLoginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000)
+      }
+      await user.save()
       
       // Log audit event
       await AuditLog.log({

@@ -139,30 +139,6 @@ userSchema.methods.incLoginAttempts = async function() {
   return await User.findByIdAndUpdate(this._id, updates)
 }
 
-userSchema.methods.clearFailedAttempts = async function() {
-  return await User.findByIdAndUpdate(this._id, {
-    $set: { failedLoginAttempts: 0 },
-    $unset: { lockUntil: 1 }
-  })
-}
-
-userSchema.methods.recordLoginAttempt = async function(ip, userAgent, success, reason) {
-  this.lastLoginAt = new Date()
-  this.lastLoginIp = ip
-  if (success) {
-    this.failedLoginAttempts = 0
-    if (this.lockUntil) {
-      this.lockUntil = undefined
-    }
-  } else {
-    this.failedLoginAttempts = (this.failedLoginAttempts || 0) + 1
-    if (this.failedLoginAttempts >= 5) {
-      this.lockUntil = new Date(Date.now() + 15 * 60 * 1000)
-    }
-  }
-  await this.save()
-}
-
 userSchema.methods.toJSON = function() {
   const obj = this.toObject()
   delete obj.password
