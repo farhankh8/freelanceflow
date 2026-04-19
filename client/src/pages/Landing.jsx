@@ -2,10 +2,10 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 
 const stats = [
-  { value: "20hrs", label: "Saved every week" },
-  { value: "$12B+", label: "In payments processed" },
-  { value: "90%", label: "Invoices paid on time" },
-  { value: "100K+", label: "Small businesses trust us" },
+  { value: "10K+", label: "Active Users" },
+  { value: "₹50Cr+", label: "Invoices Generated" },
+  { value: "500+", label: "Daily Active Users" },
+  { value: "50+", label: "Countries Served" },
 ]
 
 const features = [
@@ -41,31 +41,22 @@ const features = [
 
 const plans = [
   {
-    name: "Starter",
-    price: "$9",
+    name: "Free",
+    price: "₹0",
     period: "/month",
     desc: "Perfect for freelancers just getting started.",
     color: "#6c63ff",
     popular: false,
-    features: ["Up to 5 clients", "Invoices & payments", "Basic contracts", "Client portal", "Email support"]
+    features: ["Up to 5 clients", "Up to 10 invoices", "Up to 5 projects", "Basic invoicing", "Time tracking", "Expense tracking", "Email support"]
   },
   {
     name: "Pro",
-    price: "$19",
+    price: "₹999",
     period: "/month",
     desc: "Everything you need to run a serious business.",
     color: "#ff6584",
     popular: true,
-    features: ["Unlimited clients", "Invoices & PDF export", "Proposals & contracts", "Time tracking", "Automations", "Priority support", "Advanced reports"]
-  },
-  {
-    name: "Agency",
-    price: "$39",
-    period: "/month",
-    desc: "Scale up with your whole team.",
-    color: "#ffb800",
-    popular: false,
-    features: ["Everything in Pro", "Unlimited team members", "Multiple companies", "White labeling", "API access", "Dedicated support"]
+    features: ["Unlimited clients", "Unlimited invoices", "Unlimited projects", "GST-compliant invoices", "Custom branding", "AI-powered insights", "Priority support", "Advanced reports"]
   },
 ]
 
