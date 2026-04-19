@@ -31,9 +31,20 @@ export default function Expenses() {
   const fetchExpenses = async () => {
     try {
       const res = await api.get("/expenses")
-      const expenseList = res.data?.data || res.data || []
-      setExpenses(Array.isArray(expenseList) ? expenseList : [])
-    } catch { toast.error("Failed to load") }
+      console.log("Expenses response:", res.data)
+      let expenseList = []
+      if (Array.isArray(res.data)) {
+        expenseList = res.data
+      } else if (res.data && Array.isArray(res.data.data)) {
+        expenseList = res.data.data
+      } else if (res.data && Array.isArray(res.data.expenses)) {
+        expenseList = res.data.expenses
+      }
+      setExpenses(expenseList)
+    } catch (err) { 
+      console.error("Fetch expenses error:", err)
+      toast.error("Failed to load") 
+    }
     finally { setLoading(false) }
   }
 
@@ -45,28 +56,28 @@ export default function Expenses() {
         'UPI': 'upi', 'Credit Card': 'credit_card', 'Debit Card': 'debit_card',
         'Net Banking': 'net_banking', 'Cash': 'cash', 'Cheque': 'check'
       }
-      const categoryMap = {
-        'software': 'software', 'hardware': 'hardware', 'travel': 'travel',
-        'food': 'food', 'marketing': 'marketing', 'education': 'education',
-        'office': 'office', 'subscription': 'subscription', 'other': 'other'
-      }
-      const category = categoryMap[form.category] || 'other'
-      const res = await api.post("/expenses", { 
+      const payload = { 
         title: form.title, 
         amount: Number(form.amount),
-        category: category,
+        category: form.category || 'other',
         date: form.date || new Date().toISOString().split("T")[0],
         paymentMethod: paymentMethodMap[form.paymentMethod] || 'upi',
         notes: form.notes || ""
-      })
+      }
+      console.log("Creating expense with payload:", payload)
+      const res = await api.post("/expenses", payload)
+      console.log("Expense create response:", res.data)
       const newExpense = res.data?.data || res.data
-      if (newExpense) {
-        setExpenses(prev => [newExpense, ...(Array.isArray(prev) ? prev : [])])
+      if (newExpense && newExpense._id) {
+        setExpenses(prev => [newExpense, ...(prev || [])])
         toast.success("Expense added! 💸")
         setShowModal(false)
         setForm({ title: "", category: "software", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "UPI", notes: "" })
+      } else {
+        toast.error("Failed to create expense - please try again")
       }
     } catch (err) { 
+      console.error("Create expense error:", err.response?.data || err)
       toast.error(err?.response?.data?.message || err?.message || "Failed to add expense") 
     }
   }
