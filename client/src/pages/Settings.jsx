@@ -30,7 +30,7 @@ export default function Settings() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
   const [pwSaving, setPwSaving] = useState(false)
-  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false, accountNumber: false, ifsc: false })
+  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false, accountNumber: false, ifsc: false, razorpay: false })
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -44,7 +44,9 @@ export default function Settings() {
       upiId: '',
       bankName: '',
       accountNumber: '',
-      ifsc: ''
+      ifsc: '',
+      razorpayKeyId: '',
+      razorpayKeySecret: ''
     }
   })
 
@@ -176,6 +178,22 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
+
+              <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", marginTop: "24px" }}>🟣 Razorpay Payment</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Razorpay Key ID</label>
+                  <input value={form.settings.razorpayKeyId || ""} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, razorpayKeyId: e.target.value } }))} placeholder="rzp_live_xxxxxxxx" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Razorpay Key Secret</label>
+                  <div style={{ position: "relative" }}>
+                    <input type={showPass.razorpay ? "text" : "password"} value={form.settings.razorpayKeySecret || ""} onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, razorpayKeySecret: e.target.value } }))} placeholder="xxxxxxxxxxxxxxxx" style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                    <button type="button" onClick={() => toggleShow("razorpay")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.razorpay ? "🙈" : "👁️"}</button>
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontSize: "12px", color: "var(--text2)", marginBottom: "16px" }}>Get your Razorpay keys from <a href="https://dashboard.razorpay.com" target="_blank" style={{ color: "var(--accent)" }}>razorpay.com/dashboard</a></p>
               
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
                 <div>
