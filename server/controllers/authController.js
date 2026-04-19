@@ -142,20 +142,6 @@ const login = [
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
     user.refreshToken = refreshToken
-    
-    if (!user.refreshTokens) user.refreshTokens = []
-    user.refreshTokens.push({
-      token: refreshToken,
-      userAgent: req.get('user-agent'),
-      ip: req.ip,
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    })
-    
-    if (user.refreshTokens.length > 5) {
-      user.refreshTokens = user.refreshTokens.slice(-5)
-    }
-    
     await user.save()
     
     // Record successful login
