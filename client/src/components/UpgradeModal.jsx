@@ -180,7 +180,7 @@ export default function UpgradeModal({ isOpen, onClose, currentResource }) {
               marginBottom: "24px"
             }}>
               <div style={{ fontSize: "24px", fontWeight: 800, marginBottom: "4px" }}>
-                ₹{proPrice}<span style={{ fontSize: "14px", fontWeight: 400 }}/month
+                {"₹" + proPrice}<span style={{ fontSize: "14px", fontWeight: 400 }}>/month</span>
               </div>
               <div style={{ fontSize: "13px", color: "var(--text2)" }}>
                 Unlimited clients, invoices, projects & more
