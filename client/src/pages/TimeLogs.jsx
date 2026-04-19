@@ -352,10 +352,10 @@ export default function TimeLogs() {
             {/* Controls */}
             <div style={{ display: "flex", gap: "8px" }}>
               {!running ? (
-                <button onClick={startTimer} style={{ flex: 1, padding: "13px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "15px" }}>▶ Start</button>
+                <button onClick={handleStartTimer} style={{ flex: 1, padding: "13px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "15px" }}>▶ Start</button>
               ) : (
                 <>
-                  <button onClick={stopTimer} style={{ flex: 2, padding: "13px", background: "linear-gradient(135deg,#00d97e,#00c9a7)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>⏹ Stop & Save</button>
+                  <button onClick={handleStopTimer} style={{ flex: 2, padding: "13px", background: "linear-gradient(135deg,#00d97e,#00c9a7)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>⏹ Stop & Save</button>
                   <button onClick={resetTimer} aria-label="Reset timer" style={{ flex: 1, padding: "13px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>✕</button>
                 </>
               )}
