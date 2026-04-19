@@ -11,9 +11,10 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [invalid, setInvalid] = useState(false)
 
   useEffect(() => {
-    if (!token) setError("Invalid or expired reset link")
+    if (!token) setInvalid(true)
   }, [token])
 
   const handleSubmit = async (e) => {
@@ -39,39 +40,37 @@ export default function ResetPassword() {
   }
 
   const inputStyle = {
-    width: "100%", padding: "14px 16px", background: "#fff", border: "1px solid #e0e0e0",
-    borderRadius: "4px", color: "#333", fontSize: "16px", outline: "none", boxSizing: "border-box"
+    width: "100%", padding: "14px 16px", background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px",
+    color: "#fff", fontSize: "15px", outline: "none", boxSizing: "border-box"
   }
 
-  if (error && !token) {
+  if (invalid) {
     return (
-      <div style={{ minHeight: "100vh", background: "#f6f6f6", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-        <div style={{ background: "#fff", borderRadius: "8px", padding: "40px", boxShadow: "0 1px 3px rgba(0,0,0,0.12)", textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0a12 0%,#0f0f1a 50%,#0a0a12 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+        <div style={{ width: "100%", maxWidth: "400px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px", textAlign: "center" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>❌</div>
-          <h2 style={{ fontSize: "20px", fontWeight: 500, color: "#d93025", marginBottom: "8px" }}>Invalid Link</h2>
-          <p style={{ color: "#5f6368", fontSize: "14px", marginBottom: "24px" }}>{error}</p>
-          <Link to="/login" style={{ color: "#1a73e8", textDecoration: "none", fontSize: "14px" }}>Back to sign in</Link>
+          <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#ff4d6d", marginBottom: "8px" }}>Invalid Link</h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "24px" }}>This reset link is invalid or has expired.</p>
+          <Link to="/login" style={{ color: "#6c63ff", textDecoration: "none", fontSize: "14px" }}>← Back to sign in</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f6f6", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "64px", background: "#fff", borderBottom: "1px solid #e0e0e0", display: "flex", alignItems: "center", padding: "0 24px", zIndex: 10 }}>
-        <span style={{ fontSize: "22px", fontWeight: 500, color: "#5f6368" }}>FreelanceFlow</span>
-      </div>
-
-      <div style={{ width: "100%", maxWidth: "400px", marginTop: "40px" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0a12 0%,#0f0f1a 50%,#0a0a12 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div style={{ width: "100%", maxWidth: "400px" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ fontSize: "24px", fontWeight: 500, color: "#202124", marginTop: "16px" }}>Set new password</div>
-          <p style={{ color: "#5f6368", fontSize: "14px", marginTop: "8px" }}>Enter your new password below</p>
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🔐</div>
+          <div style={{ fontSize: "22px", fontWeight: 800, color: "#fff" }}>Set new password</div>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginTop: "8px" }}>Enter your new password below</p>
         </div>
 
-        <div style={{ background: "#fff", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.12)", padding: "40px", border: "1px solid #e0e0e0" }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px" }}>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#5f6368", marginBottom: "8px" }}>New Password</label>
+              <label style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.6)", marginBottom: "8px" }}>New Password</label>
               <input
                 type="password"
                 value={password}
@@ -82,7 +81,7 @@ export default function ResetPassword() {
             </div>
 
             <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#5f6368", marginBottom: "8px" }}>Confirm Password</label>
+              <label style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.6)", marginBottom: "8px" }}>Confirm Password</label>
               <input
                 type="password"
                 value={confirm}
@@ -92,9 +91,9 @@ export default function ResetPassword() {
               />
             </div>
 
-            {error && <p style={{ color: "#d93025", fontSize: "12px", marginBottom: "16px" }}>{error}</p>}
+            {error && <p style={{ color: "#ff4d6d", fontSize: "12px", marginBottom: "16px" }}>{error}</p>}
 
-            <button type="submit" disabled={loading || !token} style={{ width: "100%", padding: "10px 24px", background: "#1a73e8", border: "none", borderRadius: "4px", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
+            <button type="submit" disabled={loading || !token} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>
               {loading ? "Resetting..." : "Reset password"}
             </button>
           </form>
