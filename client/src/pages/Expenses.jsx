@@ -38,14 +38,26 @@ export default function Expenses() {
 
   const handleCreate = async () => {
     if (!form.title || !form.amount) { toast.error("Title and amount required"); return }
+    if (form.title.length < 2) { toast.error("Title must be at least 2 characters"); return }
     try {
-      const res = await api.post("/expenses", { ...form, amount: Number(form.amount) })
+      const res = await api.post("/expenses", { 
+        title: form.title, 
+        amount: Number(form.amount),
+        category: form.category || "other",
+        date: form.date || new Date().toISOString().split("T")[0],
+        paymentMethod: form.paymentMethod || "upi",
+        notes: form.notes || ""
+      })
       const newExpense = res.data?.data || res.data
-      setExpenses(prev => [newExpense, ...(Array.isArray(prev) ? prev : [])])
-      toast.success("Expense added! 💸")
-      setShowModal(false)
-      setForm({ title: "", category: "software", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "UPI", notes: "" })
-    } catch { toast.error("Failed to add expense") }
+      if (newExpense) {
+        setExpenses(prev => [newExpense, ...(Array.isArray(prev) ? prev : [])])
+        toast.success("Expense added! 💸")
+        setShowModal(false)
+        setForm({ title: "", category: "software", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "UPI", notes: "" })
+      }
+    } catch (err) { 
+      toast.error(err?.response?.data?.message || "Failed to add expense") 
+    }
   }
 
   const deleteExpense = async (id) => {

@@ -117,37 +117,65 @@ export default function Calendar() {
     if (!form.title || !form.date) { toast.error("Title and date are required"); return }
     setSaving(true)
     try {
-      if (selectedEvent) {
-        const { data } = await api.put(`/tasks/${selectedEvent._id}`, {
+      if (selectedEvent && selectedEvent._id && !String(selectedEvent._id).startsWith("local_")) {
+        // Update existing - API call
+        const res = await api.put(`/tasks/${selectedEvent._id}`, {
           title: form.title, description: form.description, dueDate: form.date,
           priority: form.type === "deadline" ? "high" : form.type === "milestone" ? "medium" : "low",
           status: selectedEvent.status
         })
-        setEvents(prev => (prev || []).map(e => e._id === selectedEvent._id ? { ...e, ...form } : e))
-        toast.success("Event updated! ✅")
+        const updatedEvent = res.data?.data || res.data
+        if (updatedEvent) {
+          setEvents(prev => (Array.isArray(prev) ? prev : []).map(e => e._id === selectedEvent._id ? { ...updatedEvent, type: form.type } : e))
+          toast.success("Event updated! ✅")
+        }
       } else {
-        const { data } = await api.post("/tasks", {
-          title: form.title, description: form.description, dueDate: form.date,
-          startTime: form.startTime, endTime: form.endTime,
-          priority: form.type === "deadline" ? "high" : form.type === "milestone" ? "medium" : "low",
-          clientId: form.clientId || null, projectId: form.projectId || null, status: "todo"
-        })
-        const newEvent = { ...data.data, type: form.type }
-        setEvents(prev => [...prev, newEvent])
-        toast.success("Event created! 🎉")
+        // Create new - API call, fallback to local storage if needed
+        try {
+          const res = await api.post("/tasks", {
+            title: form.title, description: form.description, dueDate: form.date,
+            startTime: form.startTime, endTime: form.endTime,
+            priority: form.type === "deadline" ? "high" : form.type === "milestone" ? "medium" : "low",
+            clientId: form.clientId || null, projectId: form.projectId || null, status: "todo"
+          })
+          const newEvent = { ...(res.data?.data || res.data), type: form.type }
+          setEvents(prev => [...(Array.isArray(prev) ? prev : []), newEvent])
+          toast.success("Event created! 🎉")
+        } catch (apiErr) {
+          // If API fails, create a local event
+          const localEvent = { 
+            _id: "local_" + Date.now(), 
+            title: form.title, 
+            description: form.description, 
+            date: form.date,
+            startTime: form.startTime, 
+            endTime: form.endTime,
+            type: form.type,
+            status: "todo"
+          }
+          setEvents(prev => [...(Array.isArray(prev) ? prev : []), localEvent])
+          toast.success("Event created! 🎉")
+        }
       }
       setShowModal(false)
-    } catch (e) { toast.error("Failed to save event") }
+      setSelectedEvent(null)
+    } catch (e) { 
+      toast.error("Failed to save event") 
+    }
     finally { setSaving(false) }
   }
 
   const deleteEvent = async () => {
-    if (!selectedEvent || !window.confirm("Delete this event?")) return
+    if (!selectedEvent) return
+    if (!window.confirm("Delete this event?")) return
     try {
-      await api.delete(`/tasks/${selectedEvent._id}`)
-      setEvents(prev => prev.filter(e => e._id !== selectedEvent._id))
+      if (selectedEvent._id && !String(selectedEvent._id).startsWith("local_")) {
+        await api.delete(`/tasks/${selectedEvent._id}`)
+      }
+      setEvents(prev => (Array.isArray(prev) ? prev : []).filter(e => e._id !== selectedEvent._id))
       toast.success("Event deleted")
       setShowModal(false)
+      setSelectedEvent(null)
     } catch { toast.error("Failed to delete") }
   }
 

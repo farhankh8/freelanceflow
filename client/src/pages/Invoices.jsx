@@ -386,19 +386,28 @@ export default function Invoices() {
     if (validItems.length === 0) { toast.error("Add at least one valid item"); return }
     setSaving(true)
     try {
-      const res = await api.post("/invoices", {
-        clientId: form.clientId, projectId: form.projectId || null,
-        items: validItems, taxRate: Number(form.taxRate || 0),
-        dueDate: form.dueDate || null, notes: form.notes || ""
-      })
+      const payload = {
+        clientId: form.clientId, 
+        projectId: form.projectId || null,
+        items: validItems, 
+        taxRate: Number(form.taxRate || 0),
+        dueDate: form.dueDate || null, 
+        notes: form.notes || ""
+      }
+      console.log("Creating invoice with payload:", JSON.stringify(payload))
+      const res = await api.post("/invoices", payload)
+      console.log("Invoice response:", res.data)
       const newInvoice = res.data?.data || res.data
       if (newInvoice) {
         setInvoices(prev => [newInvoice, ...(Array.isArray(prev) ? prev : [])])
         toast.success("Invoice created! 🎉")
         setShowModal(false)
         setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
+      } else {
+        toast.error("Invoice creation failed - please try again")
       }
     } catch (err) {
+      console.error("Invoice error:", err.response?.data || err.message)
       toast.error(err?.response?.data?.message || err?.response?.data?.error || "Failed to create invoice")
     } finally { setSaving(false) }
   }
