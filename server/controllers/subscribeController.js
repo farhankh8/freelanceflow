@@ -5,8 +5,8 @@ const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_SfH61mklxoBJWx',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || '8UBO39DQlrn23glGR7cuqlV8'
 });
 
 const PLANS = {
@@ -32,7 +32,9 @@ const FREE_LIMITS = {
 const createOrder = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
   
-  if (user.plan === 'pro' && user.planExpiry && user.planExpiry > new Date()) {
+  const isProActive = user.plan === 'pro' && user.planExpiry && new Date(user.planExpiry) > new Date();
+  
+  if (isProActive) {
     return res.status(400).json({
       success: false,
       message: 'You are already on Pro plan'
