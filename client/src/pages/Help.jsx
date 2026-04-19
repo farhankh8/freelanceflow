@@ -2,6 +2,7 @@ import { useState } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
+import emailjs from "@emailjs/browser"
 
 const FAQ_CATEGORIES = [
   {
@@ -120,7 +121,22 @@ export default function Help() {
     }
     setSending(true)
     try {
+      // Send email via EmailJS
+      await emailjs.send(
+        'service_ks4ao1o',  // Your EmailJS Service ID
+        'template_support',  // You need to create this template in EmailJS
+        {
+          from_name: contactForm.name,
+          from_email: contactForm.email,
+          subject: contactForm.subject || 'Support Request',
+          message: contactForm.message
+        },
+        '7BuqXseESSYiJ0N80'  // Your EmailJS Public Key
+      )
+      
+      // Also save to database
       await api.post('/support', contactForm)
+      
       toast.success("Message sent! We'll get back to you within 24 hours 📧")
       setContactForm({ 
         name: user?.name || "", 
@@ -130,7 +146,15 @@ export default function Help() {
       })
       setShowContact(false)
     } catch (err) {
-      toast.error("Failed to send message. Please try again.")
+      console.error("EmailJS error:", err)
+      // Try without EmailJS if it fails
+      try {
+        await api.post('/support', contactForm)
+        toast.success("Message saved! We'll get back to you within 24 hours 📧")
+        setShowContact(false)
+      } catch (err2) {
+        toast.error("Failed to send message. Please try again.")
+      }
     }
     setSending(false)
   }
