@@ -13,15 +13,15 @@ const { z } = require('zod');
 
 const invoiceCreateSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  projectId: z.string().optional(),
+  projectId: z.string().optional().nullable(),
   items: z.array(z.object({
     description: z.string().min(1, 'Description is required'),
-    hours: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
-    rate: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
-    amount: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0)
+    hours: z.any().optional(),
+    rate: z.any().optional(),
+    amount: z.any().optional()
   })).min(1, 'At least one item is required'),
-  taxRate: z.union([z.number(), z.string()]).optional().transform(v => parseFloat(v) || 0),
-  dueDate: z.string().optional(),
+  taxRate: z.any().optional(),
+  dueDate: z.string().optional().nullable(),
   notes: z.string().optional(),
   isGstInvoice: z.boolean().optional(),
   clientGstin: z.string().optional(),
@@ -179,23 +179,28 @@ const generateFromTimeLogs = asyncHandler(async (req, res) => {
  * Create invoice with validation
  */
 const createInvoice = asyncHandler(async (req, res) => {
+  console.log("CreateInvoice - req.body:", req.body)
   const parsed = invoiceCreateSchema.safeParse(req.body);
   if (!parsed.success) {
+    const errors = parsed.error?.errors || []
+    console.log("Validation failed - errors:", errors)
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+      errors: Array.isArray(errors) ? errors.map(e => ({ field: e.path?.join('.') || '', message: e.message })) : []
     });
   }
 
   const { clientId, projectId, items, taxRate, dueDate, notes, isGstInvoice, clientGstin, placeOfSupply, upiTransactionId, paymentMethod } = parsed.data;
+  console.log("Parsed data:", { clientId, items: items?.length })
 
   const client = await Client.findOne({ _id: clientId, user: req.user.id });
   if (!client) {
     return sendError(res, 'Client not found', 404);
   }
 
-  const processedItems = items.map(item => ({
+  const safeItems = Array.isArray(items) ? items : []
+  const processedItems = safeItems.map(item => ({
     description: item.description || 'Service',
     hours: parseFloat(item.hours) || 0,
     rate: parseFloat(item.rate) || 0,
