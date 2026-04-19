@@ -40,12 +40,16 @@ export default function Expenses() {
     if (!form.title || !form.amount) { toast.error("Title and amount required"); return }
     if (form.title.length < 2) { toast.error("Title must be at least 2 characters"); return }
     try {
+      const paymentMethodMap = {
+        'UPI': 'upi', 'Credit Card': 'credit_card', 'Debit Card': 'debit_card',
+        'Net Banking': 'net_banking', 'Cash': 'cash', 'Cheque': 'check'
+      }
       const res = await api.post("/expenses", { 
         title: form.title, 
         amount: Number(form.amount),
         category: form.category || "other",
         date: form.date || new Date().toISOString().split("T")[0],
-        paymentMethod: form.paymentMethod || "upi",
+        paymentMethod: paymentMethodMap[form.paymentMethod] || 'upi',
         notes: form.notes || ""
       })
       const newExpense = res.data?.data || res.data
@@ -56,7 +60,7 @@ export default function Expenses() {
         setForm({ title: "", category: "software", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "UPI", notes: "" })
       }
     } catch (err) { 
-      toast.error(err?.response?.data?.message || "Failed to add expense") 
+      toast.error(err?.response?.data?.message || err?.message || "Failed to add expense") 
     }
   }
 
