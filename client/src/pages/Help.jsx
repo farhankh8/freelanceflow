@@ -81,9 +81,26 @@ export default function Help() {
   const [expanded, setExpanded] = useState({})
   const [activeCategory, setActiveCategory] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
-  const [contactForm, setContactForm] = useState({ name: "", email: "", subject: "", message: "" })
+  const [contactForm, setContactForm] = useState({ 
+    name: user?.name || "", 
+    email: user?.email || "", 
+    subject: "", 
+    message: "" 
+  })
   const [sending, setSending] = useState(false)
   const [showContact, setShowContact] = useState(false)
+
+  // Update form when user data loads
+  useEffect(() => {
+    if (user && !contactForm.name && !contactForm.email) {
+      setContactForm({
+        name: user.name || "",
+        email: user.email || "",
+        subject: "",
+        message: ""
+      })
+    }
+  }, [user])
 
   const toggleQuestion = (idx) => setExpanded(prev => ({ ...prev, [idx]: !prev[idx] }))
 
@@ -105,7 +122,12 @@ export default function Help() {
     try {
       await api.post('/support', contactForm)
       toast.success("Message sent! We'll get back to you within 24 hours 📧")
-      setContactForm({ name: "", email: "", subject: "", message: "" })
+      setContactForm({ 
+        name: user?.name || "", 
+        email: user?.email || "", 
+        subject: "", 
+        message: "" 
+      })
       setShowContact(false)
     } catch (err) {
       toast.error("Failed to send message. Please try again.")
