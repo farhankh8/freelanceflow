@@ -332,7 +332,6 @@ export default function Settings() {
           </div>
         </div>
       )}
-      </div>
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
