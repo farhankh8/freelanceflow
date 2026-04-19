@@ -105,7 +105,9 @@ export default function TimeLogs() {
   // ── Persist timer state (survives page nav) ───────────────────────────────
   useEffect(() => {
     if (running) {
-      localStorage.setItem(LS_TIMER, JSON.stringify({ running, seconds, timerProject, timerTask, timerRate, startTime: Date.now() - seconds * 1000 }))
+      localStorage.setItem(LS_TIMER, JSON.stringify({ running, seconds, timerProject, timerTask, timerRate, startTime: Date.now() - seconds * 1000, lastUpdate: Date.now() }))
+    } else if (seconds > 0) {
+      localStorage.setItem(LS_TIMER, JSON.stringify({ running: false, seconds, timerProject, timerTask, timerRate, startTime: null, lastUpdate: Date.now() }))
     } else {
       localStorage.removeItem(LS_TIMER)
     }
@@ -117,10 +119,15 @@ export default function TimeLogs() {
       const saved = localStorage.getItem(LS_TIMER)
       if (saved) {
         const data = JSON.parse(saved)
+        let elapsed = data.seconds || 0
         if (data.running && data.startTime) {
-          const elapsed = Math.floor((Date.now() - data.startTime) / 1000)
+          elapsed = Math.floor((Date.now() - data.startTime) / 1000)
+        } else if (data.lastUpdate && data.seconds && !data.running) {
+          elapsed = data.seconds
+        }
+        if (elapsed > 0) {
           setSeconds(elapsed)
-          setRunning(true)
+          if (data.running) setRunning(true)
           setTimerProject(data.timerProject || "")
           setTimerTask(data.timerTask || "")
           setTimerRate(data.timerRate || 1500)

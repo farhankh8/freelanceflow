@@ -4,6 +4,8 @@
  */
 
 const jwt = require('jsonwebtoken')
+const speakeasy = require('speakeasy')
+const QRCode = require('qrcode')
 const User = require('../models/User')
 const AuditLog = require('../models/AuditLog')
 const { sendWelcomeEmail, sendOwnerNotification } = require('../config/email')
@@ -456,6 +458,178 @@ const resetPassword = asyncHandler(async (req, res) => {
   })
 })
 
+/**
+ * Setup 2FA - generate secret and QR code
+ */
+const setup2FA = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id)
+  
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  if (user.twoFactorEnabled) {
+    return sendError(res, '2FA is already enabled', 400)
+  }
+  
+  const secret = speakeasy.generateSecret({
+    name: `FreelanceFlow (${user.email})`,
+    issuer: 'FreelanceFlow'
+  })
+  
+  user.twoFactorSecret = secret.base32
+  await user.save()
+  
+  const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url)
+  
+  await AuditLog.log({
+    userId: user._id,
+    action: '2FA_SETUP',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'POST'
+  })
+  
+  return res.status(200).json({
+    success: true,
+    message: '2FA secret generated',
+    qrCode: qrCodeUrl,
+    secret: secret.base32,
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
+ * Enable 2FA - verify token and enable
+ */
+const enable2FA = asyncHandler(async (req, res) => {
+  const { token } = req.body
+  
+  if (!token) {
+    return sendError(res, 'Token is required', 400)
+  }
+  
+  const user = await User.findById(req.user.id).select('+twoFactorSecret')
+  
+  if (!user || !user.twoFactorSecret) {
+    return sendError(res, '2FA not set up', 400)
+  }
+  
+  const verified = speakeasy.totp.verify({
+    secret: user.twoFactorSecret,
+    encoding: 'base32',
+    token: token,
+    window: 1
+  })
+  
+  if (!verified) {
+    return sendError(res, 'Invalid token', 400)
+  }
+  
+  user.twoFactorEnabled = true
+  user.twoFactorSecret = user.twoFactorSecret
+  await user.save()
+  
+  await AuditLog.log({
+    userId: user._id,
+    action: '2FA_ENABLED',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'POST'
+  })
+  
+  logger.info({ userId: user._id }, '2FA enabled')
+  
+  return res.status(200).json({
+    success: true,
+    message: '2FA enabled successfully',
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
+ * Disable 2FA
+ */
+const disable2FA = asyncHandler(async (req, res) => {
+  const { token } = req.body
+  
+  const user = await User.findById(req.user.id).select('+password +twoFactorSecret')
+  
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  if (!user.twoFactorEnabled) {
+    return sendError(res, '2FA is not enabled', 400)
+  }
+  
+  if (token) {
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: token,
+      window: 1
+    })
+    
+    if (!verified) {
+      return sendError(res, 'Invalid token', 400)
+    }
+  }
+  
+  user.twoFactorEnabled = false
+  user.twoFactorSecret = undefined
+  await user.save()
+  
+  await AuditLog.log({
+    userId: user._id,
+    action: '2FA_DISABLED',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'POST'
+  })
+  
+  logger.info({ userId: user._id }, '2FA disabled')
+  
+  return res.status(200).json({
+    success: true,
+    message: '2FA disabled successfully',
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
+ * Verify 2FA token during login
+ */
+const verify2FA = asyncHandler(async (req, res) => {
+  const { userId, token } = req.body
+  
+  if (!userId || !token) {
+    return sendError(res, 'User ID and token required', 400)
+  }
+  
+  const user = await User.findById(userId).select('+twoFactorSecret')
+  
+  if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+    return sendError(res, 'Invalid request', 400)
+  }
+  
+  const verified = speakeasy.totp.verify({
+    secret: user.twoFactorSecret,
+    encoding: 'base32',
+    token: token,
+    window: 1
+  })
+  
+  return res.status(200).json({
+    success: verified,
+    message: verified ? 'Token verified' : 'Invalid token',
+    timestamp: new Date().toISOString()
+  })
+})
+
 module.exports = { 
   register, 
   login, 
@@ -465,5 +639,9 @@ module.exports = {
   updateProfile,
   changePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  setup2FA,
+  enable2FA,
+  disable2FA,
+  verify2FA
 }
