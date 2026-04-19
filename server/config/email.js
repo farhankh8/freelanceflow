@@ -62,4 +62,32 @@ const sendOwnerNotification = async (userName, userEmail) => {
   }
 }
 
-module.exports = { sendWelcomeEmail, sendOwnerNotification }
+const sendPasswordResetEmail = async (userName, userEmail, resetToken) => {
+  const resetLink = `https://freelanceflow-blue-delta.vercel.app/reset-password?token=${resetToken}`
+  try {
+    const safeName = sanitizeInput(userName)
+    await transporter.sendMail({
+      from: `"FreelanceFlow" <${process.env.GMAIL_USER}>`,
+      to: userEmail,
+      subject: "Reset your FreelanceFlow password",
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0f0f1a;color:#fff;border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#ff6584,#ff4d6d);padding:40px;text-align:center;">
+          <h1 style="margin:0;font-size:28px;">Reset Password</h1>
+        </div>
+        <div style="padding:40px;">
+          <p>Hi ${safeName},</p>
+          <p style="color:#c4b5fd;">We received a request to reset your password. Click the button below:</p>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${resetLink}" style="background:linear-gradient(135deg,#ff6584,#ff4d6d);color:#fff;padding:14px 36px;border-radius:10px;text-decoration:none;font-weight:700;">Reset Password</a>
+          </div>
+          <p style="color:#a8aec0;font-size:13px;">Or copy this link: ${resetLink}</p>
+          <p style="color:#a8aec0;font-size:13px;margin-top:30px;">If you didn't request this, ignore this email.</p>
+        </div>
+      </div>`
+    })
+  } catch (e) {
+    console.error("Password reset email error:", e.message)
+  }
+}
+
+module.exports = { sendWelcomeEmail, sendOwnerNotification, sendPasswordResetEmail }

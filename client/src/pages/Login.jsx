@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import api from "../lib/api"
 import useAuthStore from "../store/authStore"
 import useNotificationStore from "../store/notificationStore"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -115,9 +116,13 @@ export default function Login() {
             </button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px" }}>
+          <div style={{ textAlign: "center", marginTop: "16px", fontSize: "14px" }}>
             <span style={{ color: "#5f6368" }}>Don't have an account? </span>
             <Link to="/register" style={{ color: "#1a73e8", textDecoration: "none", fontWeight: 500 }}>Sign up</Link>
+          </div>
+          
+          <div style={{ textAlign: "center", marginTop: "12px", fontSize: "14px" }}>
+            <Link to="/forgot-password" style={{ color: "#1a73e8", textDecoration: "none" }}>Forgot password?</Link>
           </div>
         </div>
 

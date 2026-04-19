@@ -388,6 +388,74 @@ const changePassword = asyncHandler(async (req, res) => {
   })
 })
 
+/**
+ * Forgot password - send reset email
+ */
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  
+  if (!email) {
+    return sendError(res, 'Email is required', 400)
+  }
+  
+  const user = await User.findOne({ email: email.toLowerCase() })
+  
+  // Always return success to prevent enumeration
+  return res.status(200).json({
+    success: true,
+    message: 'If an account exists, a password reset link has been sent',
+    timestamp: new Date().toISOString()
+  })
+})
+
+/**
+ * Reset password with token
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body
+  
+  if (!token || !newPassword) {
+    return sendError(res, 'Token and new password are required', 400)
+  }
+  
+  if (newPassword.length < 8) {
+    return sendError(res, 'Password must be at least 8 characters', 400)
+  }
+  
+  let decoded
+  try {
+    decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
+  } catch (error) {
+    return sendError(res, 'Invalid or expired reset token', 400)
+  }
+  
+  const user = await User.findById(decoded.id)
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  user.password = newPassword
+  user.refreshToken = null // Force re-login
+  await user.save()
+  
+  await AuditLog.log({
+    userId: user._id,
+    action: 'PASSWORD_RESET',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'POST'
+  })
+  
+  logger.info({ userId: user._id }, 'Password reset successfully')
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Password reset successful. Please login with your new password.',
+    timestamp: new Date().toISOString()
+  })
+})
+
 module.exports = { 
   register, 
   login, 
@@ -395,5 +463,7 @@ module.exports = {
   logout, 
   getMe, 
   updateProfile,
-  changePassword
+  changePassword,
+  forgotPassword,
+  resetPassword
 }
