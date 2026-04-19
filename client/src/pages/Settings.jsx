@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
+import UpgradeModal from "../components/UpgradeModal"
 
 const PLAN_FEATURES = {
   free: [
@@ -28,6 +29,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState("profile")
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
   const [pwSaving, setPwSaving] = useState(false)
   const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false, accountNumber: false, ifsc: false, razorpay: false })
@@ -65,7 +67,7 @@ export default function Settings() {
   }
 
   const handleUpgrade = () => {
-    toast.success("Redirecting to payment page... (Coming soon!)")
+    setShowUpgradeModal(true)
   }
 
   const handleChangePassword = async () => {
@@ -330,6 +332,9 @@ export default function Settings() {
           </div>
         </div>
       )}
+      </div>
+
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   )
 }

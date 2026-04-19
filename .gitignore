@@ -2,10 +2,12 @@
 node_modules/
 */node_modules/
 
-# Environment files
+# Environment files - NEVER commit secrets
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
 
 # Build outputs
 dist/
@@ -34,7 +36,16 @@ coverage/
 .cache/
 
 .vercel
-.env*.local
 
 # PDF files (generated locally)
 *.pdf
+
+# Package locks (optional - uncomment if needed)
+# package-lock.json
+# */package-lock.json
+
+# Sensitive credentials
+*.pem
+*.key
+credentials.json
+service-account.json
