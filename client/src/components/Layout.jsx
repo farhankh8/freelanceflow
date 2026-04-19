@@ -1,7 +1,8 @@
-import { useState, useCallback, memo } from "react"
+import { useState, useCallback, memo, useEffect, useRef } from "react"
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
+import useNotificationStore from "../store/notificationStore"
 
 const navGroups = [
   { label: "Main", items: [
@@ -42,6 +43,16 @@ export default memo(function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [showNotif, setShowNotif] = useState(false)
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore()
+  const notifRef = useRef(null)
+  
+  useEffect(() => {
+    if (!showNotif) return
+    const handleClick = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotif(false) }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [showNotif])
 
   const handleLogout = useCallback(() => { logout(); toast.success("Logged out!"); navigate("/") }, [logout, navigate])
 
@@ -111,7 +122,36 @@ export default memo(function Layout() {
             <span style={{ color: "var(--border)" }}>›</span>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)", textTransform: "capitalize" }}>{getPageName()}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {/* Notification Bell */}
+            <div style={{ position: "relative" }} ref={notifRef}>
+              <button onClick={() => setShowNotif(!showNotif)} style={{ width: "36px", height: "36px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", position: "relative" }}>
+                🔔
+                {unreadCount > 0 && <span style={{ position: "absolute", top: "2px", right: "2px", width: "16px", height: "16px", borderRadius: "50%", background: "#ff4d6d", color: "#fff", fontSize: "10px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{unreadCount > 9 ? "9+" : unreadCount}</span>}
+              </button>
+              {showNotif && (
+                <div style={{ position: "absolute", top: "100%", right: 0, width: "320px", maxHeight: "400px", overflow: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", zIndex: 100, marginTop: "8px" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 600 }}>Notifications</span>
+                    {unreadCount > 0 && <button onClick={markAllAsRead} style={{ fontSize: "12px", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>Mark all read</button>}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: "24px", textAlign: "center", color: "var(--text2)", fontSize: "13px" }}>No notifications yet</div>
+                  ) : (
+                    notifications.slice(0, 10).map(n => (
+                      <div key={n.id} onClick={() => markAsRead(n.id)} style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", background: n.read ? "transparent" : "rgba(108,99,255,0.05)", cursor: "pointer" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: n.color || "#2979ff" }} />
+                          <span style={{ fontSize: "13px", fontWeight: 600 }}>{n.title}</span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "var(--text2)", margin: 0 }}>{n.message}</p>
+                        <span style={{ fontSize: "11px", color: "var(--text2)" }}>{new Date(n.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
             <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#fff" }}>{user?.name?.charAt(0).toUpperCase()}</div>
             <button onClick={handleLogout} aria-label="Log out of your account" style={{ padding: "6px 12px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>Logout</button>
           </div>

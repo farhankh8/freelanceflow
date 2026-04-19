@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import api from "../lib/api"
 import useAuthStore from "../store/authStore"
+import useNotificationStore from "../store/notificationStore"
 
 export default function Login() {
   const navigate = useNavigate()
   const { setAuth } = useAuthStore()
+  const { addNotification } = useNotificationStore()
   const [form, setForm] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
   const [show, setShow] = useState(false)
@@ -25,63 +27,72 @@ export default function Login() {
       if (data.accessToken) localStorage.setItem("ff_token", data.accessToken)
       setAuth(data.user)
       localStorage.setItem("ff_user", JSON.stringify(data.user))
+      addNotification({
+        type: "success",
+        title: "Welcome back!",
+        message: `Good to see you again, ${data.user.name}`
+      })
       toast.success("Welcome back!")
       navigate("/app")
     } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid email or password")
+      const msg = error.response?.data?.message || "Invalid email or password"
+      toast.error(msg)
+      addNotification({
+        type: "error",
+        title: "Login failed",
+        message: msg
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const inp = {
-    width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px",
-    color: "#fff", fontSize: "14px", outline: "none", boxSizing: "border-box",
-    transition: "border-color 0.2s"
+  const inputStyle = {
+    width: "100%", padding: "14px 16px", background: "#fff", border: "1px solid #e0e0e0",
+    borderRadius: "4px", color: "#333", fontSize: "16px", outline: "none", boxSizing: "border-box",
+    transition: "box-shadow 0.2s, border-color 0.2s"
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0a12 0%,#0f0f1a 50%,#0a0a12 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      {/* Background blobs */}
-      <div aria-hidden="true" style={{ position: "fixed", top: "10%", left: "5%", width: "400px", height: "400px", background: "radial-gradient(circle,rgba(108,99,255,0.12),transparent 70%)", pointerEvents: "none" }} />
-      <div aria-hidden="true" style={{ position: "fixed", bottom: "10%", right: "5%", width: "350px", height: "350px", background: "radial-gradient(circle,rgba(255,101,132,0.1),transparent 70%)", pointerEvents: "none" }} />
+    <div style={{ minHeight: "100vh", background: "#f6f6f6", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      {/* Firebase-style header bar */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "64px", background: "#fff", borderBottom: "1px solid #e0e0e0", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "24px" }}>🔥</span>
+          <span style={{ fontSize: "22px", fontWeight: 500, color: "#5f6368" }}>FreelanceFlow</span>
+        </div>
+        <div style={{ fontSize: "14px", color: "#5f6368" }}>
+          <Link to="/register" style={{ color: "#1a73e8", textDecoration: "none", fontWeight: 500 }}>Get Started</Link>
+        </div>
+      </div>
 
-      <div style={{ width: "100%", maxWidth: "420px", position: "relative" }}>
+      <div style={{ width: "100%", maxWidth: "400px", marginTop: "40px" }}>
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }} aria-hidden="true">💼</div>
-            <span style={{ fontSize: "22px", fontWeight: 800, color: "#fff" }}>FreelanceFlow</span>
-          </div>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>Sign in to your account</p>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 87.8 127.4'%3E%3Cpath fill='%23FFCA28' d='M87.8 63.7L43.9 127.4z'/%3E%3Cpath fill='%23FBBC04' d='M43.9 63.7L87.8 0z'/%3E%3Cpath fill='%23EA4335' d='M0 63.7L43.9 127.4z'/%3E%3Cpath fill='%23FBBC04' d='M0 63.7L43.9 0z'/%3E%3Cpath fill='%2334A853' d='M43.9 25.5L0 63.7h25.9z'/%3E%3Cpath fill='%234285F4' d='M87.8 63.7L43.9 25.5H87.8z'/%3E%3Cpath fill='%23EA4335' d='M17.9 38.2l-12.8 14.9c-3.2 3.7-1 8.9 3.2 9.9l30.7 7.1c1.7 0.4 3.5 0.5 5.3 0.5 7.1 0 13-4.9 14.3-11.6L87.8 63.7 43.9 25.5 17.9 38.2z'/%3E%3Cpath fill='%234285F4' d='M69.9 101.9L43.9 63.7 69.9 101.9z'/%3E%3C/svg%3E" alt="Firebase" style={{ width: "52px", height: "52px" }} />
+          <div style={{ fontSize: "24px", fontWeight: 500, color: "#202124", marginTop: "16px" }}>Welcome back to FreelanceFlow</div>
+          <p style={{ color: "#5f6368", fontSize: "14px", marginTop: "8px" }}>Sign in to continue to your dashboard</p>
         </div>
 
         {/* Card */}
-        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "36px", backdropFilter: "blur(20px)" }}>
-          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Welcome back</h1>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "28px" }}>Enter your credentials to continue</p>
-
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }} noValidate>
-            <div>
-              <label htmlFor="login-email" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email Address</label>
+        <div style={{ background: "#fff", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 -1px 0 rgba(0,0,0,0.05) inset", padding: "40px", border: "1px solid #e0e0e0" }}>
+          <form onSubmit={handleLogin} noValidate>
+            <div style={{ marginBottom: "20px" }}>
+              <label htmlFor="login-email" style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#5f6368", marginBottom: "8px" }}>Email</label>
               <input
                 id="login-email"
                 type="email"
                 value={form.email}
                 onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setEmailError("") }}
                 placeholder="you@example.com"
-                style={{ ...inp, borderColor: emailError ? "#ff4d6d" : undefined }}
+                style={{ ...inputStyle, borderColor: emailError ? "#d93025" : undefined }}
                 autoComplete="email"
-                aria-invalid={!!emailError}
-                aria-describedby={emailError ? "login-email-error" : undefined}
-                onFocus={e => e.target.style.borderColor = "rgba(108,99,255,0.6)"}
-                onBlur={e => e.target.style.borderColor = emailError ? "#ff4d6d" : "rgba(255,255,255,0.1)"}
               />
-              {emailError && <p id="login-email-error" role="alert" style={{ color: "#ff4d6d", fontSize: "12px", marginTop: "4px" }}>{emailError}</p>}
+              {emailError && <p style={{ color: "#d93025", fontSize: "12px", marginTop: "4px" }}>{emailError}</p>}
             </div>
-            <div>
-              <label htmlFor="login-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Password</label>
+
+            <div style={{ marginBottom: "20px" }}>
+              <label htmlFor="login-password" style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#5f6368", marginBottom: "8px" }}>Password</label>
               <div style={{ position: "relative" }}>
                 <input
                   id="login-password"
@@ -89,31 +100,38 @@ export default function Login() {
                   value={form.password}
                   onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setPasswordError("") }}
                   placeholder="Enter your password"
-                  style={{ ...inp, paddingRight: "48px" }}
+                  style={{ ...inputStyle, paddingRight: "48px", borderColor: passwordError ? "#d93025" : undefined }}
                   autoComplete="current-password"
-                  aria-invalid={!!passwordError}
-                  aria-describedby={passwordError ? "login-password-error" : undefined}
-                  onFocus={e => e.target.style.borderColor = "rgba(108,99,255,0.6)"}
-                  onBlur={e => e.target.style.borderColor = passwordError ? "#ff4d6d" : "rgba(255,255,255,0.1)"}
                 />
-                <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"}
-                  style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "16px" }}>
-                  {show ? "🙈" : "👁️"}
+                <button type="button" onClick={() => setShow(s => !s)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", fontSize: "16px", color: "#5f6368" }}>
+                  {show ? "🙈" : "👁"}
                 </button>
               </div>
-              {passwordError && <p id="login-password-error" role="alert" style={{ color: "#ff4d6d", fontSize: "12px", marginTop: "4px" }}>{passwordError}</p>}
+              {passwordError && <p style={{ color: "#d93025", fontSize: "12px", marginTop: "4px" }}>{passwordError}</p>}
             </div>
 
-            <button type="submit" disabled={loading} aria-busy={loading}
-              style={{ width: "100%", padding: "14px", background: loading ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, fontSize: "15px", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", marginTop: "4px" }}>
-              {loading ? "Signing in..." : "Sign In"}
+            <button type="submit" disabled={loading} style={{ width: "100%", padding: "10px 24px", background: "#1a73e8", border: "none", borderRadius: "4px", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer", transition: "background 0.2s" }}>
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Don't have an account? </span>
-            <Link to="/register" style={{ color: "#6c63ff", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Sign up free</Link>
+          <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px" }}>
+            <span style={{ color: "#5f6368" }}>Don't have an account? </span>
+            <Link to="/register" style={{ color: "#1a73e8", textDecoration: "none", fontWeight: 500 }}>Sign up</Link>
           </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "24px" }}>
+          <Link to="/register" style={{ color: "#1a73e8", textDecoration: "none", fontSize: "14px" }}>Need help?</Link>
+        </div>
+      </div>
+
+      {/* Firebase footer */}
+      <div style={{ position: "fixed", bottom: "16px", left: "24px", fontSize: "12px", color: "#5f6368" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <a href="#" style={{ color: "#1a73e8", textDecoration: "none" }}>Terms</a>
+          <a href="#" style={{ color: "#1a73e8", textDecoration: "none" }}>Privacy Policy</a>
+          <a href="#" style={{ color: "#1a73e8", textDecoration: "none" }}>Help</a>
         </div>
       </div>
     </div>
