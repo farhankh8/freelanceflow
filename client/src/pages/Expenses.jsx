@@ -13,6 +13,7 @@ const CATEGORIES = {
   subscription: { label: "Subscriptions", icon: "🔄", color: "#ffb800" },
   other: { label: "Other", icon: "📦", color: "#a8aec0" },
 }
+const BACKEND_CATEGORIES = ['software', 'hardware', 'travel', 'food', 'marketing', 'office', 'professional', 'communication', 'utilities', 'taxes', 'insurance', 'training', 'education', 'subscription', 'other']
 
 const PAYMENT_METHODS = ["UPI", "Credit Card", "Debit Card", "Net Banking", "Cash", "Cheque"]
 
@@ -44,10 +45,16 @@ export default function Expenses() {
         'UPI': 'upi', 'Credit Card': 'credit_card', 'Debit Card': 'debit_card',
         'Net Banking': 'net_banking', 'Cash': 'cash', 'Cheque': 'check'
       }
+      const categoryMap = {
+        'software': 'software', 'hardware': 'hardware', 'travel': 'travel',
+        'food': 'food', 'marketing': 'marketing', 'education': 'education',
+        'office': 'office', 'subscription': 'subscription', 'other': 'other'
+      }
+      const category = categoryMap[form.category] || 'other'
       const res = await api.post("/expenses", { 
         title: form.title, 
         amount: Number(form.amount),
-        category: form.category || "other",
+        category: category,
         date: form.date || new Date().toISOString().split("T")[0],
         paymentMethod: paymentMethodMap[form.paymentMethod] || 'upi',
         notes: form.notes || ""
