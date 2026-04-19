@@ -177,13 +177,17 @@ export default function Contacts() {
   const [editContact, setEditContact] = useState(null)
 
   useEffect(() => {
-    api.get("/contacts").then(({ data }) => setContacts(data.data || [])).catch(() => {})
+    api.get("/contacts").then(res => {
+      const contactList = res.data?.data || res.data || []
+      setContacts(Array.isArray(contactList) ? contactList : [])
+    }).catch(() => {})
   }, [])
 
   const handleCreate = async (formData) => {
     try {
-      const { data } = await api.post("/contacts", formData)
-      setContacts(prev => [data.data, ...prev])
+      const res = await api.post("/contacts", formData)
+      const newContact = res.data?.data || res.data
+      setContacts(prev => [newContact, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Contact added! 📇")
       setShowForm(false)
     } catch (e) {
@@ -194,9 +198,10 @@ export default function Contacts() {
   const handleEdit = async (formData) => {
     if (!selected) return
     try {
-      const { data } = await api.put(`/contacts/${selected._id}`, formData)
-      setContacts(prev => (prev || []).map(c => c._id === selected._id ? data.data : c))
-      setSelected(data.data)
+      const res = await api.put(`/contacts/${selected._id}`, formData)
+      const updatedContact = res.data?.data || res.data
+      setContacts(prev => (Array.isArray(prev) ? prev : []).map(c => c._id === selected._id ? updatedContact : c))
+      setSelected(updatedContact)
       toast.success("Contact updated! ✏️")
       setShowForm(false)
       setEditContact(null)
@@ -209,9 +214,10 @@ export default function Contacts() {
     const contact = contacts.find(c => c._id === id)
     if (!contact) return
     try {
-      const { data } = await api.put(`/contacts/${id}`, { starred: !contact.starred })
-      setContacts(prev => (prev || []).map(c => c._id === id ? data.data : c))
-      setSelected(s => s?._id === id ? data.data : s)
+      const res = await api.put(`/contacts/${id}`, { starred: !contact.starred })
+      const updatedContact = res.data?.data || res.data
+      setContacts(prev => (Array.isArray(prev) ? prev : []).map(c => c._id === id ? updatedContact : c))
+      setSelected(s => s?._id === id ? updatedContact : s)
     } catch (e) {
       toast.error("Failed to update")
     }
@@ -221,7 +227,7 @@ export default function Contacts() {
     if (!window.confirm("Delete this contact?")) return
     try {
       await api.delete(`/contacts/${id}`)
-      setContacts(prev => prev.filter(c => c._id !== id))
+      setContacts(prev => (Array.isArray(prev) ? prev : []).filter(c => c._id !== id))
       setSelected(null)
       toast.success("Contact deleted")
     } catch (e) {

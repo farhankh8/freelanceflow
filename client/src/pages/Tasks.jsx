@@ -100,7 +100,7 @@ export default function Tasks() {
         dueDate: form.dueDate || undefined,
         estimatedHours: Number(form.estimatedHours) || 0
       })
-      setTasks(prev => [data.data, ...prev])
+      setTasks(prev => [data.data, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Task created! ✅")
       setShowModal(false)
       setForm({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "" })
@@ -110,16 +110,18 @@ export default function Tasks() {
 
   const moveTask = async (id, status) => {
     try {
-      const { data } = await api.put(`/tasks/${id}`, { status })
-      setTasks(prev => (prev || []).map(t => t._id === id ? data.data : t))
+      const res = await api.put(`/tasks/${id}`, { status })
+      const updatedTask = res.data?.data || res.data
+      setTasks(prev => (Array.isArray(prev) ? prev : []).map(t => t._id === id ? updatedTask : t))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch { toast.error("Failed to update") }
   }
 
   const updateTask = async (id, updates) => {
     try {
-      const { data } = await api.put(`/tasks/${id}`, updates)
-      setTasks(prev => (prev || []).map(t => t._id === id ? data.data : t))
+      const res = await api.put(`/tasks/${id}`, updates)
+      const updatedTask = res.data?.data || res.data
+      setTasks(prev => (Array.isArray(prev) ? prev : []).map(t => t._id === id ? updatedTask : t))
       setSelected(null)
       toast.success("Task updated!")
     } catch { toast.error("Failed to update") }
@@ -129,7 +131,7 @@ export default function Tasks() {
     if (!window.confirm("Delete this task?")) return
     try {
       await api.delete(`/tasks/${id}`)
-      setTasks(prev => prev.filter(t => t._id !== id))
+      setTasks(prev => (Array.isArray(prev) ? prev : []).filter(t => t._id !== id))
       setSelected(null)
       toast.success("Deleted")
     } catch { toast.error("Failed to delete") }

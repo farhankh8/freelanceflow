@@ -51,8 +51,9 @@ export default function AIChatbot() {
       
       if (parsedIntent.action === 'create_invoice') {
         const params = parsedIntent.parameters
-        const { data: clients } = await api.get('/clients')
-        if (clients.clients?.length > 0) {
+        const res = await api.get('/clients')
+        const clientList = res.data?.data || res.data || []
+        if (clientList.length > 0) {
           const items = params.items || [{
             description: q.replace(/create|invoice|bill/i, '').trim() || 'Services rendered',
             hours: 1,
@@ -60,7 +61,7 @@ export default function AIChatbot() {
             amount: params.amount || 0
           }]
           
-          const responseText = `📋 Invoice Creation Ready!\n\nI'll create an invoice with:\n• Client: ${clients.clients[0].name}\n• Amount: ₹${(params.amount || 0).toLocaleString()}\n• Items: ${items.map(i => i.description).join(', ')}\n\nGo to Invoices page to create it, or ask me for more specific details!`
+          const responseText = `📋 Invoice Creation Ready!\n\nI'll create an invoice with:\n• Client: ${clientList[0].name}\n• Amount: ₹${(params.amount || 0).toLocaleString()}\n• Items: ${items.map(i => i.description).join(', ')}\n\nGo to Invoices page to create it, or ask me for more specific details!`
           
           setTyping(false)
           setMessages(m => trimMessages([...m, { role: "bot", text: responseText }]))
@@ -70,17 +71,19 @@ export default function AIChatbot() {
         }
       } else if (parsedIntent.action === 'revenue_query') {
         try {
-          const [invoices, payments] = await Promise.all([
+          const [invRes, payRes] = await Promise.all([
             api.get('/invoices'),
             api.get('/payments')
           ])
           
           const thisMonth = new Date().toISOString().substring(0, 7)
-          const monthPayments = (payments.data.payments || payments.data.data || [])
+          const paymentList = payRes.data?.data || payRes.data || []
+          const invoiceList = invRes.data?.data || invRes.data || []
+          const monthPayments = paymentList
             .filter(p => p.date?.substring(0, 7) === thisMonth && p.status === 'completed')
           const revenue = monthPayments.reduce((s, p) => s + (p.amount || 0), 0)
           
-          const responseText = `💰 Revenue Report\n\nThis month (${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}):\n\n• Total collected: ₹${revenue.toLocaleString()}\n• Payments received: ${monthPayments.length}\n• Invoices sent: ${(invoices.data.invoices || []).filter(i => i.status === 'sent').length}\n• Overdue: ${(invoices.data.invoices || []).filter(i => i.status === 'overdue').length}`
+          const responseText = `💰 Revenue Report\n\nThis month (${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}):\n\n• Total collected: ₹${revenue.toLocaleString()}\n• Payments received: ${monthPayments.length}\n• Invoices sent: ${invoiceList.filter(i => i.status === 'sent').length}\n• Overdue: ${invoiceList.filter(i => i.status === 'overdue').length}`
           
           setTyping(false)
           setMessages(m => trimMessages([...m, { role: "bot", text: responseText }]))

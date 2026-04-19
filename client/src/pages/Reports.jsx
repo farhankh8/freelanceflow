@@ -41,11 +41,11 @@ export default function Reports() {
         api.get("/timelogs")
       ])
 
-      const invoiceData = invoices.data.data || []
-      const paymentData = payments.data.data || []
-      const expenseData = expenses.data.data || []
-      const projectData = projects.data.data || []
-      const timeData = timelogs.data.data || []
+      const invoiceData = invoices.data?.data || invoices.data || []
+      const paymentData = payments.data?.data || payments.data || []
+      const expenseData = expenses.data?.data || expenses.data || []
+      const projectData = projects.data?.data || projects.data || []
+      const timeData = timelogs.data?.data || timelogs.data || []
 
       const totalRevenue = paymentData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
       const totalExpenses = expenseData.reduce((s, e) => s + (e.amount || 0), 0)

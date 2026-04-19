@@ -38,13 +38,13 @@ export default function Calendar() {
         api.get("/projects"),
         api.get("/clients"),
       ])
-      setProjects(projRes.status === 'fulfilled' ? (projRes.value?.data?.data || []) : [])
-      setClients(cliRes.status === 'fulfilled' ? (cliRes.value?.data?.data || []) : [])
+      setProjects(Array.isArray(projRes.value?.data?.data) ? projRes.value.data.data : [])
+      setClients(Array.isArray(cliRes.value?.data?.data) ? cliRes.value.data.data : [])
       const today = new Date()
       const year = today.getFullYear()
       const month = today.getMonth()
       const tasksRes = await api.get(`/tasks`)
-      const tasks = tasksRes.data?.data || []
+      const tasks = tasksRes.data?.data || tasksRes.data || []
       const mappedEvents = tasks.map(t => ({
         _id: t._id,
         title: t.title,

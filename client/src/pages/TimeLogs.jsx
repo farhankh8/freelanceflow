@@ -55,9 +55,9 @@ export default function TimeLogs() {
   // ── Fetch projects from API for dropdown ─────────────────────────────────
   useEffect(() => {
     api.get("/projects")
-      .then(({ data }) => {
-        const list = (data?.data || []).map(p => ({ id: p._id, name: p.title }))
-        setProjects(list)
+      .then(res => {
+        const list = (res.data?.data || res.data || []).map(p => ({ id: p._id, name: p.title }))
+        setProjects(Array.isArray(list) ? list : [])
         if (list.length > 0 && !timerProject) setTimerProject(list[0].name)
       })
       .catch(() => {})
@@ -66,8 +66,8 @@ export default function TimeLogs() {
   // ── Fetch logs from API, merge with local ─────────────────────────────────
   useEffect(() => {
     api.get("/timelogs")
-      .then(({ data }) => {
-        const apiList = data?.data || (Array.isArray(data) ? data : [])
+      .then(res => {
+        const apiList = res.data?.data || res.data || []
         if (apiList.length > 0) {
           setLogs(prev => {
             const localOnly = prev.filter(l => String(l._id).startsWith("local_"))

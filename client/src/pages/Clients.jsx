@@ -41,8 +41,8 @@ export default function Clients() {
       if (filterStatus !== "all") params.append("status", filterStatus)
       if (sortBy) { params.append("sortBy", sortBy === "newest" ? "createdAt" : sortBy === "oldest" ? "createdAt" : sortBy === "name" ? "name" : sortBy === "rate" ? "defaultHourlyRate" : "createdAt"); params.append("sortOrder", sortBy === "oldest" ? "asc" : "desc") }
       const res = await api.get(`/clients?${params}`)
-      const clientList = res.data?.data || []
-      setClients(clientList)
+      const clientList = res.data?.data || res.data || []
+      setClients(Array.isArray(clientList) ? clientList : [])
       if (res.data?.pagination) {
         setTotalPages(res.data.pagination.totalPages || 1)
       }
@@ -64,16 +64,16 @@ export default function Clients() {
     setSaving(true)
     try {
       if (editMode && showDetail) {
-        const { data } = await api.put(`/clients/${showDetail._id}`, form)
-        const updatedClient = data.data
-        setClients(prev => (prev || []).map(c => c._id === showDetail._id ? updatedClient : c))
+        const res = await api.put(`/clients/${showDetail._id}`, form)
+        const updatedClient = res.data?.data || res.data
+        setClients(prev => (Array.isArray(prev) ? prev : []).map(c => c._id === showDetail._id ? updatedClient : c))
         setShowDetail(updatedClient)
         toast.success("Client updated! ✅")
         setShowModal(false)
       } else {
-        const { data } = await api.post("/clients", form)
-        const newClient = data.data
-        setClients(prev => [newClient, ...prev])
+        const res = await api.post("/clients", form)
+        const newClient = res.data?.data || res.data
+        setClients(prev => [newClient, ...(Array.isArray(prev) ? prev : [])])
         toast.success("Client added! 🎉")
         setShowModal(false)
       }
@@ -88,7 +88,7 @@ export default function Clients() {
     if (!window.confirm("Delete this client? This cannot be undone.")) return
     try {
       await api.delete(`/clients/${id}`)
-      setClients(prev => prev.filter(c => c._id !== id))
+      setClients(prev => (Array.isArray(prev) ? prev : []).filter(c => c._id !== id))
       setShowDetail(null)
       toast.success("Client deleted")
     } catch { toast.error("Failed to delete") }

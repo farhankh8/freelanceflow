@@ -65,14 +65,19 @@ export default function Projects() {
 
   useEffect(() => {
     fetchProjects()
-    api.get("/clients").then(({ data }) => setClients(data.data || [])).catch(() => {})
+    api.get("/clients").then(res => {
+      const clientList = res.data?.data || res.data || []
+      setClients(Array.isArray(clientList) ? clientList : [])
+    }).catch(() => {})
   }, [])
 
   const fetchProjects = async () => {
     try {
-      const { data } = await api.get("/projects")
-      setProjects(data.data || [])
-      setClients(data.data || [])
+      const [projRes, cliRes] = await Promise.all([api.get("/projects"), api.get("/clients")])
+      const projectList = projRes.data?.data || projRes.data || []
+      const clientList = cliRes.data?.data || cliRes.data || []
+      setProjects(Array.isArray(projectList) ? projectList : [])
+      setClients(Array.isArray(clientList) ? clientList : [])
     } catch {
       toast.error("Failed to load projects")
     } finally {
@@ -94,7 +99,7 @@ export default function Projects() {
         budget: Number(form.budget) || 0,
         deadline: form.deadline || undefined,
       })
-      setProjects(prev => [data.data, ...prev])
+      setProjects(prev => [data.data, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Project created! 🚀")
       setShowModal(false)
       setForm({ title: "", description: "", clientId: "", status: "active", budget: "", deadline: "" })
@@ -107,8 +112,9 @@ export default function Projects() {
 
   const moveProject = async (id, status) => {
     try {
-      const { data } = await api.put(`/projects/${id}`, { status })
-      setProjects(prev => (prev || []).map(p => p._id === id ? data.data : p))
+      const res = await api.put(`/projects/${id}`, { status })
+      const updatedProject = res.data?.data || res.data
+      setProjects(prev => (Array.isArray(prev) ? prev : []).map(p => p._id === id ? updatedProject : p))
       toast.success(`Moved to ${STATUS[status]?.label}`)
     } catch {
       toast.error("Failed to update")
@@ -119,7 +125,7 @@ export default function Projects() {
     if (!window.confirm("Delete this project?")) return
     try {
       await api.delete(`/projects/${id}`)
-      setProjects(prev => prev.filter(p => p._id !== id))
+      setProjects(prev => (Array.isArray(prev) ? prev : []).filter(p => p._id !== id))
       setSelected(null)
       toast.success("Deleted")
     } catch {

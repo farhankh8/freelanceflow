@@ -225,8 +225,9 @@ export default function Contracts() {
 
   const handleCreate = async (formData) => {
     try {
-      const { data } = await api.post("/contracts", formData)
-      setContracts(prev => [data.data, ...prev])
+      const res = await api.post("/contracts", formData)
+      const newContract = res.data?.data || res.data
+      setContracts(prev => [newContract, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Contract created!")
       setShowModal(false)
     } catch (e) {
@@ -237,9 +238,10 @@ export default function Contracts() {
   const handleEdit = async (formData) => {
     if (!editContract) return
     try {
-      const { data } = await api.put(`/contracts/${editContract._id}`, formData)
-      setContracts(prev => (prev || []).map(c => c._id === editContract._id ? data.data : c))
-      setViewContract(data.data)
+      const res = await api.put(`/contracts/${editContract._id}`, formData)
+      const updatedContract = res.data?.data || res.data
+      setContracts(prev => (Array.isArray(prev) ? prev : []).map(c => c._id === editContract._id ? updatedContract : c))
+      setViewContract(updatedContract)
       toast.success("Contract updated!")
       setShowModal(false)
       setEditContract(null)
@@ -251,9 +253,10 @@ export default function Contracts() {
   const updateStatus = async (id, status) => {
     const extra = status === "signed" ? { signedAt: new Date().toISOString().split("T")[0] } : {}
     try {
-      const { data } = await api.put(`/contracts/${id}`, { status, ...extra })
-      setContracts(prev => (prev || []).map(c => c._id === id ? data.data : c))
-      setViewContract(prev => prev?._id === id ? data.data : prev)
+      const res = await api.put(`/contracts/${id}`, { status, ...extra })
+      const updatedContract = res.data?.data || res.data
+      setContracts(prev => (Array.isArray(prev) ? prev : []).map(c => c._id === id ? updatedContract : c))
+      setViewContract(prev => prev?._id === id ? updatedContract : prev)
       toast.success(status === "signed" ? "Contract signed!" : "Status updated!")
     } catch (e) {
       toast.error("Failed to update status")
@@ -264,7 +267,7 @@ export default function Contracts() {
     if (!window.confirm("Delete this contract? This cannot be undone.")) return
     try {
       await api.delete(`/contracts/${id}`)
-      setContracts(prev => prev.filter(c => c._id !== id))
+      setContracts(prev => (Array.isArray(prev) ? prev : []).filter(c => c._id !== id))
       setViewContract(null)
       toast.success("Contract deleted")
     } catch (e) {

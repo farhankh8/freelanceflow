@@ -41,7 +41,8 @@ export default function Meetings() {
   const fetchData = async () => {
     try {
       const [cliRes] = await Promise.allSettled([api.get("/clients")])
-      setClients(cliRes.status === 'fulfilled' ? (cliRes.value?.data?.data || []) : [])
+      const clientList = cliRes.status === 'fulfilled' ? (cliRes.value?.data?.data || cliRes.value?.data || []) : []
+      setClients(Array.isArray(clientList) ? clientList : [])
       const sampleMeetings = [
         {
           _id: "1", title: "Project Kickoff Call", description: "Discuss project scope and timeline",
@@ -93,11 +94,11 @@ export default function Meetings() {
     setSaving(true)
     await new Promise(r => setTimeout(r, 800))
     if (selectedMeeting) {
-      setMeetings(prev => (prev || []).map(m => m._id === selectedMeeting._id ? { ...m, ...form } : m))
+      setMeetings(prev => (Array.isArray(prev) ? prev : []).map(m => m._id === selectedMeeting._id ? { ...m, ...form } : m))
       toast.success("Meeting updated! ✅")
     } else {
       const newMeeting = { _id: Date.now().toString(), ...form, status: "scheduled" }
-      setMeetings(prev => [...prev, newMeeting])
+      setMeetings(prev => [...(Array.isArray(prev) ? prev : []), newMeeting])
       toast.success("Meeting scheduled! 🎉")
     }
     setShowModal(false)
@@ -106,7 +107,7 @@ export default function Meetings() {
 
   const deleteMeeting = async (id) => {
     if (!window.confirm("Cancel this meeting?")) return
-    setMeetings(prev => prev.filter(m => m._id !== id))
+    setMeetings(prev => (Array.isArray(prev) ? prev : []).filter(m => m._id !== id))
     toast.success("Meeting cancelled")
     setShowModal(false)
   }

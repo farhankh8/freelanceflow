@@ -87,7 +87,7 @@ export default function Payments() {
         clientName: clients.find(c => c._id === form.clientId)?.name || 'Unknown'
       }
       
-      setPayments(prev => [savedWithClient, ...prev])
+      setPayments(prev => [savedWithClient, ...(Array.isArray(prev) ? prev : [])])
       setShowModal(false)
       setForm(EMPTY_FORM)
       toast.success("Payment recorded! 💳")
@@ -99,7 +99,7 @@ export default function Payments() {
   const updateStatus = async (id, status) => {
     try {
       await api.put(`/payments/${id}`, { status })
-      setPayments(prev => (prev || []).map(p => p._id === id ? { ...p, status } : p))
+      setPayments(prev => (Array.isArray(prev) ? prev : []).map(p => p._id === id ? { ...p, status } : p))
       if (selected?._id === id) {
         setSelected(prev => prev ? { ...prev, status } : null)
       }
@@ -113,7 +113,7 @@ export default function Payments() {
     if (!window.confirm("Delete this payment?")) return
     try {
       await api.delete(`/payments/${id}`)
-      setPayments(prev => prev.filter(p => p._id !== id))
+      setPayments(prev => (Array.isArray(prev) ? prev : []).filter(p => p._id !== id))
       setSelected(null)
       toast.success("Payment deleted")
     } catch (e) {

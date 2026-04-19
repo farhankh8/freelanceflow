@@ -29,8 +29,9 @@ export default function Expenses() {
 
   const fetchExpenses = async () => {
     try {
-      const { data } = await api.get("/expenses")
-      setExpenses(data.data || [])
+      const res = await api.get("/expenses")
+      const expenseList = res.data?.data || res.data || []
+      setExpenses(Array.isArray(expenseList) ? expenseList : [])
     } catch { toast.error("Failed to load") }
     finally { setLoading(false) }
   }
@@ -38,8 +39,9 @@ export default function Expenses() {
   const handleCreate = async () => {
     if (!form.title || !form.amount) { toast.error("Title and amount required"); return }
     try {
-      const { data } = await api.post("/expenses", { ...form, amount: Number(form.amount) })
-      setExpenses(prev => [data.data, ...prev])
+      const res = await api.post("/expenses", { ...form, amount: Number(form.amount) })
+      const newExpense = res.data?.data || res.data
+      setExpenses(prev => [newExpense, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Expense added! 💸")
       setShowModal(false)
       setForm({ title: "", category: "software", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "UPI", notes: "" })
@@ -50,7 +52,7 @@ export default function Expenses() {
     if (!window.confirm("Delete this expense?")) return
     try {
       await api.delete(`/expenses/${id}`)
-      setExpenses(prev => prev.filter(e => e._id !== id))
+      setExpenses(prev => (Array.isArray(prev) ? prev : []).filter(e => e._id !== id))
       setSelected(null)
       toast.success("Deleted")
     } catch { toast.error("Failed to delete") }

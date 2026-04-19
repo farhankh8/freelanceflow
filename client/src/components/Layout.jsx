@@ -135,7 +135,7 @@ export default memo(function Layout() {
                     <span style={{ fontSize: "14px", fontWeight: 600 }}>Notifications</span>
                     {unreadCount > 0 && <button onClick={markAllAsRead} style={{ fontSize: "12px", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>Mark all read</button>}
                   </div>
-                  {notifications.length === 0 ? (
+                  {(!notifications || notifications.length === 0) ? (
                     <div style={{ padding: "24px", textAlign: "center", color: "var(--text2)", fontSize: "13px" }}>No notifications yet</div>
                   ) : (
                     notifications.slice(0, 10).map(n => (

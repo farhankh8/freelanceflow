@@ -352,8 +352,10 @@ export default function Invoices() {
   const fetchAll = async () => {
     try {
       const [inv, cli] = await Promise.all([api.get("/invoices"), api.get("/clients")])
-      setInvoices(inv.data.data || [])
-      setClients(cli.data.data || [])
+      const invData = inv.data?.data || inv.data || []
+      const cliData = cli.data?.data || cli.data || []
+      setInvoices(Array.isArray(invData) ? invData : [])
+      setClients(Array.isArray(cliData) ? cliData : [])
     } catch { toast.error("Failed to load") }
     finally { setLoading(false) }
   }
@@ -384,24 +386,28 @@ export default function Invoices() {
     if (validItems.length === 0) { toast.error("Add at least one valid item"); return }
     setSaving(true)
     try {
-      const { data } = await api.post("/invoices", {
+      const res = await api.post("/invoices", {
         clientId: form.clientId, projectId: form.projectId || null,
         items: validItems, taxRate: Number(form.taxRate || 0),
         dueDate: form.dueDate || null, notes: form.notes || ""
       })
-      setInvoices(prev => [data.data, ...prev])
-      toast.success("Invoice created! 🎉")
-      setShowModal(false)
-      setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
+      const newInvoice = res.data?.data || res.data
+      if (newInvoice) {
+        setInvoices(prev => [newInvoice, ...(Array.isArray(prev) ? prev : [])])
+        toast.success("Invoice created! 🎉")
+        setShowModal(false)
+        setForm({ clientId: "", projectId: "", items: [{ ...EMPTY_ITEM }], taxRate: 18, dueDate: "", notes: "" })
+      }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create invoice")
+      toast.error(err?.response?.data?.message || err?.response?.data?.error || "Failed to create invoice")
     } finally { setSaving(false) }
   }
 
   const markPaid = async (id) => {
     try {
-      const { data } = await api.put(`/invoices/${id}/pay`)
-      setInvoices(inv => (inv || []).map(i => i._id === id ? data.data : i))
+      const res = await api.put(`/invoices/${id}/pay`)
+      const updatedInvoice = res.data?.data || res.data
+      setInvoices(inv => (Array.isArray(inv) ? inv : []).map(i => i._id === id ? updatedInvoice : i))
       toast.success("Marked as paid! 🎉")
     } catch { toast.error("Failed to update") }
   }
@@ -410,7 +416,7 @@ export default function Invoices() {
     if (!window.confirm("Delete this invoice?")) return
     try {
       await api.delete(`/invoices/${id}`)
-      setInvoices(inv => inv.filter(i => i._id !== id))
+      setInvoices(inv => (Array.isArray(inv) ? inv : []).filter(i => i._id !== id))
       toast.success("Deleted")
     } catch { toast.error("Failed to delete") }
   }

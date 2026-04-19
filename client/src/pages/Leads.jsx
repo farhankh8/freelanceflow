@@ -26,8 +26,9 @@ export default function Leads() {
 
   const fetchLeads = async () => {
     try {
-      const { data } = await api.get("/leads")
-      setLeads(data.data || [])
+      const res = await api.get("/leads")
+      const leadList = res.data?.data || res.data || []
+      setLeads(Array.isArray(leadList) ? leadList : [])
     } catch { toast.error("Failed to load leads") }
     finally { setLoading(false) }
   }
@@ -35,8 +36,9 @@ export default function Leads() {
   const handleCreate = async () => {
     if (!form.name) { toast.error("Name is required"); return }
     try {
-      const { data } = await api.post("/leads", { ...form, value: Number(form.value) || 0 })
-      setLeads(prev => [data.data, ...prev])
+      const res = await api.post("/leads", { ...form, value: Number(form.value) || 0 })
+      const newLead = res.data?.data || res.data
+      setLeads(prev => [newLead, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Lead added! 🎯")
       setShowModal(false)
       setForm({ name: "", company: "", email: "", phone: "", value: "", stage: "new", source: "Website", notes: "" })
@@ -45,8 +47,9 @@ export default function Leads() {
 
   const moveLead = async (id, stage) => {
     try {
-      const { data } = await api.put(`/leads/${id}`, { stage })
-      setLeads(prev => (prev || []).map(l => l._id === id ? data.data : l))
+      const res = await api.put(`/leads/${id}`, { stage })
+      const updatedLead = res.data?.data || res.data
+      setLeads(prev => (Array.isArray(prev) ? prev : []).map(l => l._id === id ? updatedLead : l))
       if (stage === "won") toast.success("Lead won! 🎉")
       else toast.success("Moved to " + STAGES[stage]?.label)
     } catch { toast.error("Failed to update") }
@@ -56,7 +59,7 @@ export default function Leads() {
     if (!window.confirm("Delete this lead?")) return
     try {
       await api.delete(`/leads/${id}`)
-      setLeads(prev => prev.filter(l => l._id !== id))
+      setLeads(prev => (Array.isArray(prev) ? prev : []).filter(l => l._id !== id))
       setSelected(null)
       toast.success("Deleted")
     } catch { toast.error("Failed to delete") }
