@@ -6,19 +6,21 @@ import UpgradeModal from "../components/UpgradeModal"
 
 const PLAN_FEATURES = {
   free: [
-    "Up to 2 clients",
+    "Up to 5 clients",
+    "Up to 10 invoices",
+    "Up to 5 projects",
     "Basic invoicing",
     "Time tracking",
-    "Project management",
+    "Expense tracking",
     "Email support"
   ],
   pro: [
     "Unlimited clients",
+    "Unlimited invoices",
+    "Unlimited projects",
     "GST-compliant invoices",
     "AI-powered insights",
     "Advanced reports",
-    "Recurring invoices",
-    "Payment reminders",
     "Custom branding",
     "Priority support"
   ]
@@ -51,6 +53,40 @@ export default function Settings() {
       razorpayKeySecret: ''
     }
   })
+
+  // Load latest user data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const res = await api.get('/auth/me')
+        const userData = res.data?.data
+        if (userData) {
+          updateUser(userData)
+          setForm({
+            name: userData.name || "",
+            email: userData.email || "",
+            phone: userData.phone || "",
+            settings: userData.settings || {
+              currency: 'INR',
+              timezone: 'Asia/Kolkata',
+              gstin: '',
+              businessName: '',
+              businessAddress: '',
+              upiId: '',
+              bankName: '',
+              accountNumber: '',
+              ifsc: '',
+              razorpayKeyId: '',
+              razorpayKeySecret: ''
+            }
+          })
+        }
+      } catch (err) {
+        console.error("Failed to load user data:", err)
+      }
+    }
+    loadUserData()
+  }, [])
 
   const handleSave = async () => {
     setLoading(true)
