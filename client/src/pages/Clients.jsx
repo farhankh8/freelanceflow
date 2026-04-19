@@ -99,7 +99,7 @@ export default function Clients() {
     setEditMode(true)
   }
 
-  const filtered = useMemo(() => clients, [clients])
+  const filtered = useMemo(() => clients || [], [clients])
 
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
@@ -284,7 +284,7 @@ const ModalContent = memo(({ isEdit }) => {
         </div>
       ) : view === "grid" ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
-          {filtered.map((c, idx) => {
+          {(filtered || []).map((c, idx) => {
             const color = COLORS[idx % COLORS.length]
             const st = STATUSES[c.status] || STATUSES.active
             return (

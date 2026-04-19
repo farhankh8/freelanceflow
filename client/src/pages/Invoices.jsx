@@ -174,7 +174,7 @@ function InvoiceCard({ invoice }) {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", marginBottom: "10px", fontSize: "10px", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em" }}>
           <span>Service</span><span style={{ textAlign: "center" }}>Hrs</span><span style={{ textAlign: "center" }}>Rate</span><span style={{ textAlign: "right" }}>Amount</span>
         </div>
-        {invoice.items?.map((item, i) => (
+        {(invoice.items || []).map((item, i) => (
           <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "8px", padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: "13px" }}>
             <span style={{ color: "#e0e0ff" }}>{item.description}</span>
             <span style={{ textAlign: "center", color: "#c4b5fd" }}>{item.hours}</span>
