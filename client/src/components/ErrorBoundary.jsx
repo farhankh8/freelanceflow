@@ -11,9 +11,10 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error("ErrorBoundary caught:", error, errorInfo)
-    }
+    console.error("=== ErrorBoundary caught ===")
+    console.error("Error:", error.message)
+    console.error("Stack:", error.stack)
+    console.error("Component Stack:", errorInfo?.componentStack)
   }
 
   handleRetry = () => {
