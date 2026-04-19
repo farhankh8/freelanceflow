@@ -30,7 +30,9 @@ const FREE_LIMITS = {
 };
 
 const createOrder = asyncHandler(async (req, res) => {
+  console.log("Creating order for user:", req.user.id);
   const user = await User.findById(req.user.id);
+  console.log("User plan:", user.plan, "expiry:", user.planExpiry);
   
   const isProActive = user.plan === 'pro' && user.planExpiry && new Date(user.planExpiry) > new Date();
   

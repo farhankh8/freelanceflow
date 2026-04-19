@@ -46,11 +46,14 @@ export default function UpgradeModal({ isOpen, onClose, currentResource }) {
     setLoading(true);
     try {
       // Step 1: Create Razorpay order
+      console.log("Creating order...");
       const orderRes = await api.post("/subscribe/create-order");
+      console.log("Order response:", orderRes.data);
       const { orderId, keyId } = orderRes.data?.data || {};
 
       if (!orderId || !keyId) {
-        throw new Error("Failed to create order");
+        console.error("Missing orderId or keyId:", orderRes.data);
+        throw new Error(orderRes.data?.message || "Failed to create order");
       }
 
       // Step 2: Open Razorpay checkout
@@ -93,8 +96,8 @@ export default function UpgradeModal({ isOpen, onClose, currentResource }) {
       rzp.open();
 
     } catch (err) {
-      console.error("Upgrade error:", err);
-      toast.error(err?.response?.data?.message || "Failed to initiate payment");
+      console.error("Upgrade error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || err.message || "Failed to initiate payment");
     }
     setLoading(false);
   };
