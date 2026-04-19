@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({
     minlength: [12, 'Password must be at least 12 characters']
   },
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
+  planExpiry: { type: Date, default: null },
+  paymentId: { type: String, default: null },
   phone: { type: String, default: '', maxlength: 20 },
   role: { type: String, enum: ['user', 'admin', 'viewer'], default: 'user' },
   refreshToken: { type: String, select: false },

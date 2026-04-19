@@ -135,6 +135,7 @@ app.use('/api/v1/seed', seedRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/contracts', require('./routes/contractRoutes'));
+app.use('/api/v1/subscribe', require('./routes/subscribeRoutes'));
 
 // API version info
 const API_VERSION = '3.0.0';

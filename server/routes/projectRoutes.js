@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { checkPlanLimit } = require('../middleware/checkPlanLimit');
 const {
   getProjects,
   getProject,
@@ -12,7 +13,7 @@ const {
 router.use(protect);
 
 router.get('/', getProjects);
-router.post('/', createProjectEnhanced);
+router.post('/', checkPlanLimit, createProjectEnhanced);
 router.get('/:id', getProject);
 router.put('/:id', updateProjectEnhanced);
 router.delete('/:id', deleteProjectEnhanced);
