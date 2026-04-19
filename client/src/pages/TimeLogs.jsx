@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
+import useTimerStore from "../store/timerStore"
 
 const LS_KEY = "freelanceflow_timelogs"
 const LS_TIMER = "freelanceflow_timer"
@@ -40,17 +41,18 @@ export default function TimeLogs() {
   const [logs, setLogs] = useState(() => loadLogs())
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [running, setRunning] = useState(false)
-  const [seconds, setSeconds] = useState(0)
-  const [timerProject, setTimerProject] = useState("")
-  const [timerTask, setTimerTask] = useState("")
-  const [timerRate, setTimerRate] = useState(1500)
+  const { running, seconds, timerProject, timerTask, timerRate, startTimer: startTimerFn, stopTimer: stopTimerFn, reset } = useTimerStore()
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState("")
   const [filterProject, setFilterProject] = useState("all")
   const [filterBilled, setFilterBilled] = useState("all")
   const intervalRef = useRef(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const setSeconds = (s) => useTimerStore.setState({ seconds: s })
+  const setTimerProject = (v) => useTimerStore.getState().setProject(v)
+  const setTimerTask = (v) => useTimerStore.getState().setTask(v)
+  const setTimerRate = (v) => useTimerStore.getState().setRate(v)
+  const setRunning = (v) => v ? startTimerFn(timerProject, timerTask, timerRate) : stopTimerFn()
 
   // ── Fetch projects from API for dropdown ─────────────────────────────────
   useEffect(() => {
@@ -92,58 +94,13 @@ export default function TimeLogs() {
     })
   }
 
-  // ── Timer interval ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
-    } else {
-      clearInterval(intervalRef.current)
-    }
-    return () => clearInterval(intervalRef.current)
-  }, [running])
-
-  // ── Persist timer state (survives page nav) ───────────────────────────────
-  useEffect(() => {
-    const data = { running, seconds, timerProject, timerTask, timerRate, startTime: running ? (Date.now() - seconds * 1000) : null }
-    localStorage.setItem(LS_TIMER, JSON.stringify(data))
-  }, [running, seconds, timerProject, timerTask, timerRate])
-
-  // ── Restore timer on mount ────────────────────────────────────────────────
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_TIMER)
-      if (saved) {
-        const data = JSON.parse(saved)
-        let elapsed = data.seconds || 0
-        if (data.running && data.startTime) {
-          elapsed = Math.floor((Date.now() - data.startTime) / 1000)
-        }
-        if (elapsed > 0) {
-          setSeconds(elapsed)
-          setTimerProject(data.timerProject || "")
-          setTimerTask(data.timerTask || "")
-          setTimerRate(data.timerRate || 1500)
-          if (data.running) setRunning(true)
-        }
-      }
-    } catch (_) {}
-  }, [])
-
-  // ── Auto-start interval on mount if running ───────────────────────────────────
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
-    }
-    return () => clearInterval(intervalRef.current)
-  }, [running])
-
-  const startTimer = () => {
+  const handleStartTimer = () => {
     if (!timerTask.trim()) { toast.error("Enter a task name first"); return }
-    setRunning(true)
+    startTimerFn(timerProject, timerTask, timerRate)
     toast.success("Timer started! ⏱️")
   }
 
-  const stopTimer = async () => {
+  const handleStopTimer = async () => {
     setRunning(false)
     const mins = Math.max(1, Math.round(seconds / 60))
     const amount = parseFloat(((mins / 60) * timerRate).toFixed(2))
@@ -180,9 +137,7 @@ export default function TimeLogs() {
   }
 
   const resetTimer = () => {
-    setRunning(false)
-    setSeconds(0)
-    localStorage.removeItem(LS_TIMER)
+    reset()
     toast("Timer reset")
   }
 

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
-import { Suspense, lazy, useEffect } from "react"
+import { Suspense, lazy, useEffect, useRef } from "react"
 import useAuthStore from "./store/authStore"
 import ErrorBoundary from "./components/ErrorBoundary"
 import Layout from "./components/Layout"
@@ -51,7 +51,22 @@ const ComingSoon = ({ title }) => (
   </div>
 )
 
+import useTimerStore from "./store/timerStore"
+
 export default function App() {
+  const timerRef = useRef(null)
+  const { running, tick } = useTimerStore()
+  
+  useEffect(() => {
+    if (running && !timerRef.current) {
+      timerRef.current = setInterval(() => useTimerStore.getState().tick(), 1000)
+    } else if (!running && timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [running])
+
   useEffect(() => {
     const setupNotifications = async () => {
       const token = await requestNotificationPermission()
