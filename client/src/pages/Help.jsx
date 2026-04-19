@@ -124,11 +124,11 @@ export default function Help() {
       // Send email via EmailJS
       await emailjs.send(
         'service_ks4ao1o',  // Your EmailJS Service ID
-        'template_support',  // You need to create this template in EmailJS
+        'template_contact',  // Your template ID from EmailJS
         {
-          from_name: contactForm.name,
-          from_email: contactForm.email,
-          subject: contactForm.subject || 'Support Request',
+          name: contactForm.name,
+          email: contactForm.email,
+          title: contactForm.subject || 'Support Request',
           message: contactForm.message
         },
         '7BuqXseESSYiJ0N80'  // Your EmailJS Public Key
