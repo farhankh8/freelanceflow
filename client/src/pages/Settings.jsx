@@ -32,9 +32,6 @@ export default function Settings() {
   const [tab, setTab] = useState("profile")
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [showSessionsModal, setShowSessionsModal] = useState(false)
-  const [sessions, setSessions] = useState([])
-  const [sessionsLoading, setSessionsLoading] = useState(false)
   const [show2FAModal, setShow2FAModal] = useState(false)
   const [twoFAState, setTwoFAState] = useState({ step: 'idle', qrCode: '', secret: '', loading: false })
   const [twoFAToken, setTwoFAToken] = useState('')
@@ -65,7 +62,7 @@ export default function Settings() {
     const loadUserData = async () => {
       try {
         const res = await api.get('/auth/me')
-        const userData = res.data?.user || res.data?.data
+        const userData = res.data?.data
         if (userData) {
           updateUser(userData)
           setForm({
@@ -94,20 +91,15 @@ export default function Settings() {
     loadUserData()
   }, [])
 
-  const handleSave = async (tabName) => {
+  const handleSave = async () => {
     setLoading(true)
     try {
-      const res = await api.put('/auth/profile', {
+      await api.put('/auth/profile', {
         name: form.name,
         phone: form.phone,
         settings: form.settings
       })
-      const userData = res.data?.user || res.data?.data
-      if (userData) {
-        updateUser(userData)
-      } else {
-        updateUser({ name: form.name, phone: form.phone, settings: form.settings })
-      }
+      updateUser({ name: form.name, phone: form.phone, settings: form.settings })
       toast.success("Settings saved!")
     } catch { toast.error("Failed to save") }
     finally { setLoading(false) }
@@ -140,43 +132,11 @@ export default function Settings() {
 
   const toggleShow = (key) => setShowPass(prev => ({ ...prev, [key]: !prev[key] }))
 
-  const loadSessions = async () => {
-    setSessionsLoading(true)
-    try {
-      const res = await api.get('/auth/sessions')
-      setSessions(res.data?.sessions || [])
-    } catch {
-      toast.error("Failed to load sessions")
-    } finally {
-      setSessionsLoading(false)
-    }
-  }
-
-  const handleRevokeSession = async (index) => {
-    try {
-      await api.delete('/auth/sessions', { data: { sessionIndex: index } })
-      toast.success("Session revoked")
-      loadSessions()
-    } catch {
-      toast.error("Failed to revoke session")
-    }
-  }
-
-  const handleViewSessions = () => {
-    setShowSessionsModal(true)
-    loadSessions()
-  }
-
   const handleSetup2FA = async () => {
     setTwoFAState(s => ({ ...s, loading: true }))
     try {
       const res = await api.post('/auth/2fa/setup')
-      setTwoFAState({
-        step: 'verify',
-        qrCode: res.data?.qrCode || '',
-        secret: res.data?.secret || '',
-        loading: false
-      })
+      setTwoFAState({ step: 'verify', qrCode: res.data?.qrCode || '', secret: res.data?.secret || '', loading: false })
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to setup 2FA')
       setTwoFAState(s => ({ ...s, loading: false }))
@@ -184,10 +144,7 @@ export default function Settings() {
   }
 
   const handleEnable2FA = async () => {
-    if (!twoFAToken || twoFAToken.length !== 6) {
-      toast.error('Enter a 6-digit code')
-      return
-    }
+    if (!twoFAToken || twoFAToken.length !== 6) { toast.error('Enter 6-digit code'); return }
     setTwoFAState(s => ({ ...s, loading: true }))
     try {
       await api.post('/auth/2fa/enable', { token: twoFAToken })
@@ -197,18 +154,12 @@ export default function Settings() {
       const res = await api.get('/auth/me')
       const userData = res.data?.user || res.data?.data
       if (userData) updateUser(userData)
-    } catch (err) {
-      toast.error(err?.response?.data?.message || 'Invalid token')
-    } finally {
-      setTwoFAState(s => ({ ...s, loading: false }))
-    }
+    } catch (err) { toast.error(err?.response?.data?.message || 'Invalid token') }
+    finally { setTwoFAState(s => ({ ...s, loading: false })) }
   }
 
   const handleDisable2FA = async () => {
-    if (!twoFAToken || twoFAToken.length !== 6) {
-      toast.error('Enter a 6-digit code')
-      return
-    }
+    if (!twoFAToken || twoFAToken.length !== 6) { toast.error('Enter 6-digit code'); return }
     setTwoFAState(s => ({ ...s, loading: true }))
     try {
       await api.post('/auth/2fa/disable', { token: twoFAToken })
@@ -218,23 +169,14 @@ export default function Settings() {
       const res = await api.get('/auth/me')
       const userData = res.data?.user || res.data?.data
       if (userData) updateUser(userData)
-    } catch (err) {
-      toast.error(err?.response?.data?.message || 'Invalid token')
-    } finally {
-      setTwoFAState(s => ({ ...s, loading: false }))
-    }
+    } catch (err) { toast.error(err?.response?.data?.message || 'Invalid token') }
+    finally { setTwoFAState(s => ({ ...s, loading: false })) }
   }
 
   const handle2FAClick = () => {
     if (user?.twoFactorEnabled) {
-      if (confirm('Disable 2FA? You will need to enter a token to disable.')) {
-        setShow2FAModal(true)
-        setTwoFAState({ step: 'disable', qrCode: '', secret: '', loading: false })
-      }
-    } else {
-      setShow2FAModal(true)
-      handleSetup2FA()
-    }
+      if (confirm('Disable 2FA?')) { setShow2FAModal(true); setTwoFAState({ step: 'disable', qrCode: '', secret: '', loading: false }) }
+    } else { setShow2FAModal(true); handleSetup2FA() }
   }
 
   return (
@@ -271,7 +213,7 @@ export default function Settings() {
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Phone</label>
                   <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 98765 43210" style={{ width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
                 </div>
-                <button onClick={() => handleSave('profile')} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
+                <button onClick={handleSave} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
@@ -360,7 +302,7 @@ export default function Settings() {
                 </div>
               </div>
               
-              <button onClick={() => handleSave('business')} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
+              <button onClick={handleSave} disabled={loading} style={{ padding: "12px 24px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", alignSelf: "flex-start" }}>
                 {loading ? "Saving..." : "Save Business Settings"}
               </button>
             </div>
@@ -430,46 +372,77 @@ export default function Settings() {
                     <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Active Sessions</div>
                     <div style={{ fontSize: "12px", color: "var(--text2)" }}>Manage your active sessions</div>
                   </div>
-                  <button onClick={handleViewSessions} style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="View active sessions">View</button>
+                  <button style={{ padding: "8px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }} aria-label="View API key">View</button>
                 </div>
               </div>
             </div>
-)}
-
-      {show2FAModal && twoFAState.step === 'verify' && (
-        <div role="dialog" aria-modal="true" aria-labelledby="2fa-title" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "400px" }}>
+          )}
+        </div>
+      </div>
+      {showPasswordModal && (
+        <div role="dialog" aria-modal="true" aria-labelledby="change-password-title" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "440px" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 id="2fa-title" style={{ fontSize: "20px", fontWeight: 800 }}>Setup 2FA</h2>
-              <button onClick={() => { setShow2FAModal(false); setTwoFAToken('') }} aria-label="Close" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
+              <h2 id="change-password-title" style={{ fontSize: "20px", fontWeight: 800 }}>Change Password</h2>
+              <button onClick={() => setShowPasswordModal(false)} aria-label="Close dialog" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
             </div>
             <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "13px", color: "var(--text2)", textAlign: "center" }}>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
-              {twoFAState.qrCode && <img src={twoFAState.qrCode} alt="2FA QR Code" style={{ width: "200px", height: "200px", margin: "0 auto", display: "block" }} />}
-              <p style={{ fontSize: "12px", color: "var(--text2)", textAlign: "center" }}>Or enter this secret manually: <strong>{twoFAState.secret}</strong></p>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px" }}>Enter 6-digit code:</label>
-                <input id="2fa-token" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6} value={twoFAToken} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 6); setTwoFAToken(v) }} onKeyDown={(e) => { if (e.key === 'Enter') handleEnable2FA() }} placeholder="000000" style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "18px", textAlign: "center", letterSpacing: "8px" }} />
+                <label htmlFor="current-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Current Password</label>
+                <div style={{ position: "relative" }}>
+                  <input id="current-password" type={showPass.current ? "text" : "password"} value={pwForm.currentPassword} onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("current")} aria-label={showPass.current ? "Hide current password" : "Show current password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.current ? "🙈" : "👁️"}</button>
+                </div>
               </div>
-              <p style={{ fontSize: "12px", color: "var(--text2)", textAlign: "center" }}>Enter the 6-digit code from your app to enable 2FA</p>
+              <div>
+                <label htmlFor="new-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>New Password <span style={{ fontSize: "10px", fontWeight: 400, textTransform: "none" }}>(min 8 chars)</span></label>
+                <div style={{ position: "relative" }}>
+                  <input id="new-password" type={showPass.new ? "text" : "password"} value={pwForm.newPassword} onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("new")} aria-label={showPass.new ? "Hide new password" : "Show new password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.new ? "🙈" : "👁️"}</button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="confirm-password" style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Confirm New Password</label>
+                <div style={{ position: "relative" }}>
+                  <input id="confirm-password" type={showPass.confirm ? "text" : "password"} value={pwForm.confirmPassword} onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))} style={{ width: "100%", padding: "10px 40px 10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "14px", outline: "none" }} />
+                  <button type="button" onClick={() => toggleShow("confirm")} aria-label={showPass.confirm ? "Hide confirm password" : "Show confirm password"} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "14px" }}>{showPass.confirm ? "🙈" : "👁️"}</button>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => setShowPasswordModal(false)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
+                <button onClick={handleChangePassword} disabled={pwSaving} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "8px", color: "#fff", cursor: pwSaving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "14px", opacity: pwSaving ? 0.7 : 1 }}>
+                  {pwSaving ? "Updating..." : "Update Password"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+
+      {show2FAModal && twoFAState.step === 'verify' && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', width: '100%', maxWidth: '400px', padding: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>Setup 2FA</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '16px' }}>Scan with authenticator app (Google Authenticator, Authy):</p>
+            {twoFAState.qrCode && <img src={twoFAState.qrCode} alt="2FA QR" style={{ width: '200px', height: '200px', margin: '0 auto', display: 'block', marginBottom: '16px' }} />}
+            <p style={{ fontSize: '12px', color: 'var(--text2)', marginBottom: '12px' }}>Or enter: <strong>{twoFAState.secret}</strong></p>
+            <input value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} onKeyDown={e => e.key === 'Enter' && handleEnable2FA()} placeholder="123456" maxLength={6} style={{ width: '100%', padding: '12px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '18px', textAlign: 'center', letterSpacing: '8px', marginBottom: '16px' }} />
+            <button onClick={handleEnable2FA} disabled={twoFAState.loading || twoFAToken.length !== 6} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#6c63ff,#ff6584)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Enable 2FA</button>
+            <button onClick={() => { setShow2FAModal(false); setTwoFAToken('') }} style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text2)', cursor: 'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       {show2FAModal && twoFAState.step === 'disable' && (
-        <div role="dialog" aria-modal="true" aria-labelledby="2fa-disable-title" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "400px" }}>
-            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 id="2fa-disable-title" style={{ fontSize: "20px", fontWeight: 800 }}>Disable 2FA</h2>
-              <button onClick={() => { setShow2FAModal(false); setTwoFAToken('') }} aria-label="Close" style={{ background: "transparent", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: "22px" }}>×</button>
-            </div>
-            <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "13px", color: "var(--text2)", textAlign: "center" }}>Enter a code from your authenticator app to disable 2FA</p>
-              <div>
-                <input id="2fa-disable-token" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6} value={twoFAToken} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 6); setTwoFAToken(v) }} onKeyDown={(e) => { if (e.key === 'Enter') handleDisable2FA() }} placeholder="000000" style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "18px", textAlign: "center", letterSpacing: "8px" }} />
-              </div>
-            </div>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', width: '100%', maxWidth: '400px', padding: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>Disable 2FA</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '16px' }}>Enter code from your authenticator app:</p>
+            <input value={twoFAToken} onChange={e => setTwoFAToken(e.target.value.replace(/\D/g, '').slice(0, 6))} onKeyDown={e => e.key === 'Enter' && handleDisable2FA()} placeholder="123456" maxLength={6} style={{ width: '100%', padding: '12px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '18px', textAlign: 'center', letterSpacing: '8px', marginBottom: '16px' }} />
+            <button onClick={handleDisable2FA} disabled={twoFAState.loading || twoFAToken.length !== 6} style={{ width: '100%', padding: '12px', background: '#ff5252', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Disable 2FA</button>
+            <button onClick={() => { setShow2FAModal(false); setTwoFAToken('') }} style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text2)', cursor: 'pointer' }}>Cancel</button>
           </div>
         </div>
       )}
