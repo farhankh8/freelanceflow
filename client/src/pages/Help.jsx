@@ -1,4 +1,5 @@
 import { useState } from "react"
+import api from "../lib/api"
 import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
 
@@ -101,10 +102,14 @@ export default function Help() {
       return
     }
     setSending(true)
-    await new Promise(r => setTimeout(r, 1500))
-    toast.success("Message sent! We'll get back to you within 24 hours 📧")
-    setContactForm({ name: "", email: "", subject: "", message: "" })
-    setShowContact(false)
+    try {
+      await api.post('/support', contactForm)
+      toast.success("Message sent! We'll get back to you within 24 hours 📧")
+      setContactForm({ name: "", email: "", subject: "", message: "" })
+      setShowContact(false)
+    } catch (err) {
+      toast.error("Failed to send message. Please try again.")
+    }
     setSending(false)
   }
 
