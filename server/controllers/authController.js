@@ -46,11 +46,10 @@ const register = [
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
     user.refreshToken = refreshToken
-    user.lastLoginAt = new Date()
-    user.lastLoginIp = req.ip
-    user.failedLoginAttempts = 0
-    user.lockUntil = undefined
     await user.save()
+    
+    // Record login attempt
+    await user.recordLoginAttempt(req.ip, req.get('user-agent'), true)
     
     // Log audit event
     await AuditLog.log({
@@ -117,11 +116,7 @@ const login = [
     const isMatch = await user.comparePassword(password)
     if (!isMatch) {
       // Record failed attempt
-      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1
-      if (user.failedLoginAttempts >= 5) {
-        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000)
-      }
-      await user.save()
+      await user.recordLoginAttempt(req.ip, req.get('user-agent'), false, 'Invalid password')
       
       // Log audit event
       await AuditLog.log({
@@ -348,55 +343,6 @@ const updateProfile = asyncHandler(async (req, res) => {
 })
 
 /**
- * Get user sessions
- */
-const getSessions = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select('refreshTokens')
-  
-  if (!user) {
-    return sendError(res, 'User not found', 404)
-  }
-  
-  const sessions = (user.refreshTokens || []).map((t, i) => ({
-    id: i,
-    userAgent: t.userAgent || 'Unknown',
-    ip: t.ip || 'Unknown',
-    createdAt: t.createdAt,
-    expiresAt: t.expiresAt,
-    isCurrent: t.createdAt && t.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  
-  return res.status(200).json({
-    success: true,
-    sessions,
-    timestamp: new Date().toISOString()
-  })
-})
-
-/**
- * Revoke a session
- */
-const revokeSession = asyncHandler(async (req, res) => {
-  const { sessionIndex } = req.body
-  const user = await User.findById(req.user.id)
-  
-  if (!user) {
-    return sendError(res, 'User not found', 404)
-  }
-  
-  if (sessionIndex !== undefined && user.refreshTokens && user.refreshTokens[sessionIndex]) {
-    user.refreshTokens.splice(sessionIndex, 1)
-    await user.save()
-  }
-  
-  return res.status(200).json({
-    success: true,
-    message: 'Session revoked',
-    timestamp: new Date().toISOString()
-  })
-})
-
-/**
  * Change password
  */
 const changePassword = asyncHandler(async (req, res) => {
@@ -519,7 +465,5 @@ module.exports = {
   updateProfile,
   changePassword,
   forgotPassword,
-  resetPassword,
-  getSessions,
-  revokeSession
+  resetPassword
 }
