@@ -158,7 +158,7 @@ userSchema.methods.toJSON = function() {
   return obj
 }
 
-userSchema.statics.getReferralCode = function() {
+userSchema.statics.getReferralCode = async function() {
   let code
   do {
     code = crypto.randomBytes(3).toString('hex').toUpperCase()
