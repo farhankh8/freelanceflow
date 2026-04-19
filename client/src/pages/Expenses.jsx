@@ -92,20 +92,27 @@ export default function Expenses() {
     } catch { toast.error("Failed to delete") }
   }
 
-  const filtered = expenses.filter(e => {
-    const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
+  const filtered = (Array.isArray(expenses) ? expenses : []).filter(e => {
+    if (!e) return false
+    const matchSearch = !search || (e.title || '').toLowerCase().includes(search.toLowerCase())
     const matchCat = filterCat === "all" || e.category === filterCat
     return matchSearch && matchCat
   })
 
-  const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0)
+  const safeExpenses = Array.isArray(expenses) ? expenses : []
+  const totalExpenses = safeExpenses.reduce((s, e) => s + ((e && e.amount) || 0), 0)
   const thisMonth = new Date().toISOString().substring(0, 7)
-  const thisMonthExpenses = expenses.filter(e => e.date?.substring(0, 7) === thisMonth || new Date(e.date).toISOString().substring(0, 7) === thisMonth).reduce((s, e) => s + (e.amount || 0), 0)
+  const thisMonthExpenses = safeExpenses.filter(e => {
+    if (!e || !e.date) return false
+    try {
+      return e.date.substring(0, 7) === thisMonth || new Date(e.date).toISOString().substring(0, 7) === thisMonth
+    } catch { return false }
+  }).reduce((s, e) => s + (e.amount || 0), 0)
 
   const catTotals = Object.entries(CATEGORIES).map(([k, v]) => ({
     ...v, key: k,
-    total: expenses.filter(e => e.category === k).reduce((s, e) => s + (e.amount || 0), 0),
-    count: expenses.filter(e => e.category === k).length
+    total: safeExpenses.filter(e => e && e.category === k).reduce((s, e) => s + (e.amount || 0), 0),
+    count: safeExpenses.filter(e => e && e.category === k).length
   })).filter(c => c.count > 0).sort((a, b) => b.total - a.total)
 
   const inp = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box" }
@@ -144,7 +151,7 @@ export default function Expenses() {
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             <button onClick={() => setFilterCat("all")} style={{ padding: "5px 12px", borderRadius: "99px", border: "1px solid var(--border)", background: filterCat === "all" ? "var(--accent)" : "transparent", color: filterCat === "all" ? "#fff" : "var(--text2)", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>All</button>
-            {Object.entries(CATEGORIES).map(([k, v]) => (
+            {(Object.entries(CATEGORIES) || []).map(([k, v]) => (
               <button key={k} onClick={() => setFilterCat(k)} style={{ padding: "5px 12px", borderRadius: "99px", border: "1px solid " + (filterCat === k ? v.color : "var(--border)"), background: filterCat === k ? v.color + "20" : "transparent", color: filterCat === k ? v.color : "var(--text2)", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
                 {v.icon} {v.label}
               </button>
@@ -152,7 +159,8 @@ export default function Expenses() {
           </div>
           {loading ? <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)" }}>Loading...</div> : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {(filtered || []).map(e => {
+              {(Array.isArray(filtered) ? filtered : []).map(e => {
+                if (!e) return null
                 const cat = CATEGORIES[e.category] || CATEGORIES.other
                 return (
                   <div key={e._id} onClick={() => setSelected(e)}
