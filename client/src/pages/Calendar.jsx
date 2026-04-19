@@ -43,7 +43,7 @@ export default function Calendar() {
       const today = new Date()
       const year = today.getFullYear()
       const month = today.getMonth()
-      const tasksRes = await api.get(`/tasks`)
+      const tasksRes = await api.get(`/tasks`).catch(() => ({ data: { data: [] } }))
       const tasks = tasksRes.data?.data || tasksRes.data || []
       const safeTasks = Array.isArray(tasks) ? tasks : []
       const mappedEvents = safeTasks.map(t => ({
@@ -302,8 +302,14 @@ export default function Calendar() {
                   onMouseEnter={e => { e.currentTarget.style.borderColor = evColor.border }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)" }}>
                   <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: evColor.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <div style={{ fontSize: "16px", fontWeight: 800, color: evColor.color, lineHeight: 1 }}>{new Date(ev.date).getDate()}</div>
-                    <div style={{ fontSize: "8px", fontWeight: 600, color: evColor.color, textTransform: "uppercase" }}>{MONTHS[new Date(ev.date).getMonth()].substring(0, 3)}</div>
+                    {(ev.date) ? (
+                      <>
+                        <div style={{ fontSize: "16px", fontWeight: 800, color: evColor.color, lineHeight: 1 }}>{new Date(ev.date).getDate()}</div>
+                        <div style={{ fontSize: "8px", fontWeight: 600, color: evColor.color, textTransform: "uppercase" }}>{(MONTHS[new Date(ev.date).getMonth()] || '').substring(0, 3)}</div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: "16px", fontWeight: 800, color: evColor.color }}>?</div>
+                    )}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "2px" }}>{ev.title}</div>
