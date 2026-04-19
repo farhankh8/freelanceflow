@@ -124,7 +124,7 @@ export default function Help() {
       // Send email via EmailJS
       await emailjs.send(
         'service_ks4ao1o',  // Your EmailJS Service ID
-        'template_contact',  // Your template ID from EmailJS
+        'template_s6gzrii',  // Your template ID from EmailJS
         {
           name: contactForm.name,
           email: contactForm.email,
