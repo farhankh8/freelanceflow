@@ -10,7 +10,7 @@ const STATUSES = {
   prospect: { label: "Prospect", color: "#ffb800", bg: "rgba(255,184,0,0.15)", border: "rgba(255,184,0,0.3)" },
 }
 const COLORS = ["#6c63ff","#ff6584","#00d97e","#ffb800","#2CA5E0","#ff4d6d","#a78bfa","#00c9a7"]
-const FREE_CLIENT_LIMIT = 2
+const FREE_CLIENT_LIMIT = 5
 const EMPTY_FORM = { name: "", email: "", phone: "", company: "", industry: "Technology", status: "active", hourlyRate: "", address: "", website: "", notes: "" }
 const INPUT_STYLE = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }
 
@@ -282,9 +282,7 @@ export default function Clients() {
             const st = STATUSES[c.status] || STATUSES.active
             return (
               <div key={c._id}
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", overflow: "hidden", cursor: "pointer", transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = color + "60"; e.currentTarget.style.transform = "translateY(-3px)" }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)" }}
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", overflow: "hidden", cursor: "pointer" }}
                 onClick={() => setShowDetail(c)}>
                 <div style={{ height: "6px", background: "linear-gradient(90deg," + color + "," + color + "88)" }} />
                 <div style={{ padding: "20px" }}>
@@ -318,9 +316,7 @@ export default function Clients() {
               const st = STATUSES[c.status] || STATUSES.active
               return (
                 <div key={c._id}
-                  style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", transition: "border-color 0.15s", cursor: "pointer" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+                  style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1fr 1fr 120px", gap: "12px", padding: "14px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", alignItems: "center", cursor: "pointer" }}
                   onClick={() => setShowDetail(c)}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg," + color + "," + color + "88)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>{c.name?.[0]?.toUpperCase()}</div>
