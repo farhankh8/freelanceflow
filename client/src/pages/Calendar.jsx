@@ -236,14 +236,14 @@ export default function Calendar() {
 
         {/* Day Headers */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", borderBottom: "1px solid var(--border)" }}>
-          {weekDays.map(d => (
+          {(Array.isArray(weekDays) ? weekDays : []).map(d => (
             <div key={d.key} style={{ padding: "10px", textAlign: "center", fontSize: "11px", fontWeight: 700, color: d.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{d.key}</div>
           ))}
         </div>
 
         {/* Calendar Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
-          {days.map((day, idx) => {
+          {(Array.isArray(days) ? days : []).map((day, idx) => {
             const dayEvents = getEventsForDate(day)
             const weekend = idx % 7 === 0 || idx % 7 === 6
             return (
@@ -263,7 +263,7 @@ export default function Calendar() {
                       color: isToday(day) ? "#fff" : weekend ? "var(--text2)" : "var(--text)"
                     }}>{day}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      {dayEvents.slice(0, 3).map(ev => {
+                      {(Array.isArray(dayEvents) ? dayEvents : []).slice(0, 3).map(ev => {
                         const evColor = EVENT_COLORS[ev.type] || EVENT_COLORS.other
                         return (
                           <div key={ev._id} onClick={e => { e.stopPropagation(); openModal(null, ev) }}
@@ -295,7 +295,7 @@ export default function Calendar() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {events.slice(0, 10).map(ev => {
+            {(Array.isArray(events) ? events : []).slice(0, 10).map(ev => {
               const evColor = EVENT_COLORS[ev.type] || EVENT_COLORS.other
               return (
                 <div key={ev._id} onClick={() => openModal(null, ev)} style={{ display: "flex", alignItems: "center", gap: "14px", padding: "12px 16px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "12px", cursor: "pointer", transition: "all 0.15s" }}

@@ -104,15 +104,15 @@ export default function Clients() {
   const activeCount = clients.filter(c => c.status === "active").length
   const totalRevenue = clients.reduce((s, c) => s + (c.totalBilled || 0), 0)
 
-  const handleFormChange = useCallback((field, value) => {
+  const handleFormChange = (field, value) => {
     setForm(f => ({ ...f, [field]: value }))
-  }, [])
+  }
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setShowModal(false)
     setEditMode(false)
     setForm(EMPTY_FORM)
-  }, [])
+  }
 
 const ModalContent = memo(({ isEdit }) => {
     const [tab, setTab] = useState("basic")
