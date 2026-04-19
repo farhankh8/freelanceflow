@@ -45,7 +45,8 @@ export default function Calendar() {
       const month = today.getMonth()
       const tasksRes = await api.get(`/tasks`)
       const tasks = tasksRes.data?.data || tasksRes.data || []
-      const mappedEvents = tasks.map(t => ({
+      const safeTasks = Array.isArray(tasks) ? tasks : []
+      const mappedEvents = safeTasks.map(t => ({
         _id: t._id,
         title: t.title,
         description: t.description || "",
@@ -77,8 +78,12 @@ export default function Calendar() {
   const getEventsForDate = (day) => {
     if (!day) return []
     return events.filter(e => {
-      const eDate = new Date(e.date)
-      return eDate.getDate() === day && eDate.getMonth() === month && eDate.getFullYear() === year
+      if (!e || !e.date) return false
+      try {
+        const eDate = new Date(e.date)
+        if (isNaN(eDate.getTime())) return false
+        return eDate.getDate() === day && eDate.getMonth() === month && eDate.getFullYear() === year
+      } catch { return false }
     })
   }
 
