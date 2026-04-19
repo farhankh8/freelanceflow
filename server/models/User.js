@@ -146,6 +146,23 @@ userSchema.methods.clearFailedAttempts = async function() {
   })
 }
 
+userSchema.methods.recordLoginAttempt = async function(ip, userAgent, success, reason) {
+  this.lastLoginAt = new Date()
+  this.lastLoginIp = ip
+  if (success) {
+    this.failedLoginAttempts = 0
+    if (this.lockUntil) {
+      this.lockUntil = undefined
+    }
+  } else {
+    this.failedLoginAttempts = (this.failedLoginAttempts || 0) + 1
+    if (this.failedLoginAttempts >= 5) {
+      this.lockUntil = new Date(Date.now() + 15 * 60 * 1000)
+    }
+  }
+  await this.save()
+}
+
 userSchema.methods.toJSON = function() {
   const obj = this.toObject()
   delete obj.password
