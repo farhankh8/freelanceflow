@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
-import { Suspense, lazy } from "react"
+import { Suspense, lazy, useEffect } from "react"
 import useAuthStore from "./store/authStore"
 import ErrorBoundary from "./components/ErrorBoundary"
 import Layout from "./components/Layout"
+import { requestNotificationPermission, onForegroundMessage } from "./lib/firebase"
+import toast from "react-hot-toast"
 
 const Landing = lazy(() => import("./pages/Landing"))
 const Login = lazy(() => import("./pages/Login"))
@@ -50,6 +52,26 @@ const ComingSoon = ({ title }) => (
 )
 
 export default function App() {
+  useEffect(() => {
+    const setupNotifications = async () => {
+      const token = await requestNotificationPermission()
+      if (token) {
+        console.log("FCM Token:", token)
+      }
+    }
+    setupNotifications()
+    
+    onForegroundMessage((payload) => {
+      const { notification } = payload
+      if (notification) {
+        toast(notification.body, {
+          icon: "🔔",
+          duration: 5000,
+        })
+      }
+    })
+  }, [])
+  
   return (
     <BrowserRouter>
       <Toaster 
