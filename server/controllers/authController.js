@@ -85,7 +85,7 @@ const register = [
       success: true,
       message: 'Registration successful',
       accessToken,
-      user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled },
       timestamp: new Date().toISOString()
     })
   })
@@ -175,7 +175,7 @@ const login = [
       success: true,
       message: 'Login successful',
       accessToken,
-      user: { id: user._id, name: user.name, email: user.email, plan: user.plan },
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled },
       timestamp: new Date().toISOString()
     })
   })

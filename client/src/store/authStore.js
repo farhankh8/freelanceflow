@@ -26,8 +26,7 @@ const useAuthStore = create(
 
     logout: () => {
       localStorage.removeItem("ff_token")
-      localStorage.removeItem("ff_user")
-      set({ user: null, isAuthenticated: false })
+      set({ user: get().user, isAuthenticated: false })
     },
 
     getUser: () => get().user,

@@ -120,14 +120,22 @@ export default function TimeLogs() {
         }
         if (elapsed > 0) {
           setSeconds(elapsed)
-          if (data.running) setRunning(true)
           setTimerProject(data.timerProject || "")
           setTimerTask(data.timerTask || "")
           setTimerRate(data.timerRate || 1500)
+          if (data.running) setRunning(true)
         }
       }
     } catch (_) {}
   }, [])
+
+  // ── Auto-start interval on mount if running ───────────────────────────────────
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
+    }
+    return () => clearInterval(intervalRef.current)
+  }, [running])
 
   const startTimer = () => {
     if (!timerTask.trim()) { toast.error("Enter a task name first"); return }
