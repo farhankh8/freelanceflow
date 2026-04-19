@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
 
+const LS_MEETINGS = "freelanceflow_meetings"
+
 const PLATFORM_ICONS = {
   zoom: "🎥",
   meet: "📹",
@@ -38,34 +40,24 @@ export default function Meetings() {
 
   useEffect(() => { fetchData() }, [])
 
+  useEffect(() => {
+    localStorage.setItem(LS_MEETINGS, JSON.stringify(meetings))
+  }, [meetings])
+
   const fetchData = async () => {
+    try {
+      const saved = localStorage.getItem(LS_MEETINGS)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.length > 0) setMeetings(parsed)
+      }
+    } catch {}
     try {
       const [cliRes] = await Promise.allSettled([api.get("/clients")])
       const clientList = cliRes.status === 'fulfilled' ? (cliRes.value?.data?.data || cliRes.value?.data || []) : []
       setClients(Array.isArray(clientList) ? clientList : [])
-      const sampleMeetings = [
-        {
-          _id: "1", title: "Project Kickoff Call", description: "Discuss project scope and timeline",
-          date: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
-          startTime: "10:00", duration: "60", platform: "zoom",
-          meetingLink: "https://zoom.us/j/123456789", clientId: "", status: "scheduled",
-        },
-        {
-          _id: "2", title: "Weekly Status Update", description: "Progress review and next steps",
-          date: new Date(Date.now() + 86400000 * 5).toISOString().split("T")[0],
-          startTime: "14:00", duration: "30", platform: "meet",
-          meetingLink: "https://meet.google.com/abc-defg-hij", clientId: "", status: "scheduled",
-        },
-        {
-          _id: "3", title: "Design Review", description: "Review mockups and get feedback",
-          date: new Date(Date.now() - 86400000 * 3).toISOString().split("T")[0],
-          startTime: "11:00", duration: "45", platform: "whatsapp",
-          meetingLink: "", clientId: "", status: "completed",
-        },
-      ]
-      setMeetings(sampleMeetings)
-    } catch { /* silent fail */ }
-    finally { setLoading(false) }
+    } catch {}
+    setLoading(false)
   }
 
   const openModal = (meeting = null) => {
