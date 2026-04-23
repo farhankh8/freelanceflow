@@ -4,14 +4,17 @@
  */
 
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const speakeasy = require('speakeasy')
 const QRCode = require('qrcode')
 const User = require('../models/User')
 const AuditLog = require('../models/AuditLog')
-const { sendWelcomeEmail, sendOwnerNotification } = require('../config/email')
+const { sendWelcomeEmail, sendOwnerNotification, sendPasswordResetEmail } = require('../config/email')
 const { ApiResponse, asyncHandler, sendSuccess, sendError } = require('../utils/apiResponse')
 const { logger, securityLog } = require('../config/logger')
 const { registerSchema, loginSchema, validate } = require('../utils/validators')
+
+const JWT_RESET_SECRET = process.env.JWT_RESET_SECRET || process.env.JWT_ACCESS_SECRET
 
 // JWT configuration
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '15m'
@@ -402,7 +405,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
   
   const user = await User.findOne({ email: email.toLowerCase() })
   
-  // Always return success to prevent enumeration
+  if (user) {
+    const resetToken = jwt.sign({ id: user._id }, JWT_RESET_SECRET, { expiresIn: '1h' })
+    await sendPasswordResetEmail(user.name, user.email, resetToken)
+  }
+  
   return res.status(200).json({
     success: true,
     message: 'If an account exists, a password reset link has been sent',
@@ -426,7 +433,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   
   let decoded
   try {
-    decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
+    decoded = jwt.verify(token, JWT_RESET_SECRET)
   } catch (error) {
     return sendError(res, 'Invalid or expired reset token', 400)
   }
@@ -630,6 +637,53 @@ const verify2FA = asyncHandler(async (req, res) => {
   })
 })
 
+const handleGoogleCallback = asyncHandler(async (req, res) => {
+  const { user, accessToken, refreshToken } = req.user
+  
+  await AuditLog.log({
+    userId: user._id,
+    action: 'GOOGLE_LOGIN',
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    endpoint: req.originalUrl,
+    method: 'GET'
+  })
+  
+  logger.info({ userId: user._id }, 'User logged in with Google')
+  
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  }
+  
+  res.cookie('refreshToken', refreshToken, cookieOptions)
+  
+  return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/google-auth?token=${accessToken}&userId=${user._id}`)
+})
+
+const googleAuthSuccess = asyncHandler(async (req, res) => {
+  const { token, userId } = req.body
+  
+  if (!token || !userId) {
+    return sendError(res, 'Token and userId required', 400)
+  }
+  
+  const user = await User.findById(userId)
+  if (!user) {
+    return sendError(res, 'User not found', 404)
+  }
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Google login successful',
+    accessToken: token,
+    user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled, source: user.source },
+    timestamp: new Date().toISOString()
+  })
+})
+
 module.exports = { 
   register, 
   login, 
@@ -643,5 +697,7 @@ module.exports = {
   setup2FA,
   enable2FA,
   disable2FA,
-  verify2FA
+  verify2FA,
+  handleGoogleCallback,
+  googleAuthSuccess
 }

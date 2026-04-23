@@ -12,6 +12,7 @@ const Login = lazy(() => import("./pages/Login"))
 const Register = lazy(() => import("./pages/Register"))
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
 const ResetPassword = lazy(() => import("./pages/ResetPassword"))
+const GoogleAuth = lazy(() => import("./pages/GoogleAuth"))
 const Dashboard = lazy(() => import("./pages/Dashboard"))
 const Clients = lazy(() => import("./pages/Clients"))
 const Invoices = lazy(() => import("./pages/Invoices"))
@@ -109,6 +110,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/google-auth" element={<GoogleAuth />} />
         <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />

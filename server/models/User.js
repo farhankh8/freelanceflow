@@ -17,11 +17,13 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [255, 'Email cannot exceed 255 characters']
   },
+  googleId: { type: String, default: null },
   password: { 
-    type: String, 
-    required: [true, 'Password is required'],
+    type: String,
+    select: false,
     minlength: [12, 'Password must be at least 12 characters']
   },
+  passwordRequired: { type: Boolean, default: true },
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
   planExpiry: { type: Date, default: null },
   paymentId: { type: String, default: null },
@@ -101,15 +103,14 @@ userSchema.index({ isActive: 1 })
 userSchema.pre('save', async function() {
   if (!this.isModified('password')) return
   
-  // Store password history (keep last 5)
-  if (this.isModified('password')) {
+  if (this.password && this.password.length >= 12) {
     const historyEntry = { password: this.password, changedAt: new Date() }
     this.passwordHistory = [historyEntry, ...(this.passwordHistory || []).slice(0, 4)]
     this.passwordChangedAt = new Date()
+    
+    const salt = await bcrypt.genSalt(12)
+    this.password = await bcrypt.hash(this.password, salt)
   }
-  
-  const salt = await bcrypt.genSalt(12)
-  this.password = await bcrypt.hash(this.password, salt)
 })
 
 // Compare password method

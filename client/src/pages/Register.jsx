@@ -63,44 +63,59 @@ export default function Register() {
     transition: "border-color 0.2s"
   }
 
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", background: "linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 50%,#0f3460 100%)" }}>
-      {showBranding && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px" }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>💼</div>
-        <h1 style={{ fontSize: "42px", fontWeight: 800, color: "#fff", marginBottom: "16px", letterSpacing: "-1px" }}>
-          Start your free<br />
-          <span style={{ background: "linear-gradient(135deg,#6c63ff,#ff6584)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>freelance journey</span>
-        </h1>
-        <p style={{ color: "#a8aec0", fontSize: "17px", lineHeight: "1.7", marginBottom: "40px" }}>Join thousands of freelancers who manage their business with FreelanceFlow.</p>
-        
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {[{ icon: "🧾", text: "Create and share professional invoices" },
-            { icon: "👥", text: "Manage all your clients in one place" },
-            { icon: "💰", text: "Get paid faster with INR support" },
-            { icon: "🤖", text: "AI assistant to help you grow" }
-          ].map(item => (
-            <div key={item.text} style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(108,99,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{item.icon}</div>
-              <span style={{ color: "#c4b5fd", fontSize: "14px" }}>{item.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      )}
+const handleGoogleRegister = () => {
+  window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/auth/google`
+}
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
-        <div style={{ width: "100%", maxWidth: "440px" }}>
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <div style={{ fontSize: "32px", marginBottom: "8px" }}>💼</div>
-            <div style={{ fontSize: "22px", fontWeight: 800, background: "linear-gradient(135deg,#6c63ff,#ff6584)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>FreelanceFlow</div>
+return (
+  <div style={{ minHeight: "100vh", display: "flex", background: "linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 50%,#0f3460 100%)" }}>
+    {showBranding && (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px" }}>
+      <div style={{ fontSize: "48px", marginBottom: "16px" }}>💼</div>
+      <h1 style={{ fontSize: "42px", fontWeight: 800, color: "#fff", marginBottom: "16px", letterSpacing: "-1px" }}>
+        Start your free<br />
+        <span style={{ background: "linear-gradient(135deg,#6c63ff,#ff6584)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>freelance journey</span>
+      </h1>
+      <p style={{ color: "#a8aec0", fontSize: "17px", lineHeight: "1.7", marginBottom: "40px" }}>Join thousands of freelancers who manage their business with FreelanceFlow.</p>
+      
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {[{ icon: "🧾", text: "Create and share professional invoices" },
+          { icon: "👥", text: "Manage all your clients in one place" },
+          { icon: "💰", text: "Get paid faster with INR support" },
+          { icon: "🤖", text: "AI assistant to help you grow" }
+        ].map(item => (
+          <div key={item.text} style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(108,99,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{item.icon}</div>
+            <span style={{ color: "#c4b5fd", fontSize: "14px" }}>{item.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    )}
+
+    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <div style={{ width: "100%", maxWidth: "440px" }}>
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>💼</div>
+          <div style={{ fontSize: "22px", fontWeight: 800, background: "linear-gradient(135deg,#6c63ff,#ff6584)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>FreelanceFlow</div>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px" }}>
+          <h1 style={{ fontSize: "26px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Create account</h1>
+          <p style={{ color: "#a8aec0", marginBottom: "28px", fontSize: "14px" }}>Free forever — no credit card required</p>
+
+          <button type="button" onClick={handleGoogleRegister} style={{ width: "100%", padding: "12px", background: "#fff", border: "none", borderRadius: "10px", color: "#333", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Continue with Google
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
+            <span style={{ padding: "0 12px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
           </div>
 
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px" }}>
-            <h1 style={{ fontSize: "26px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Create account</h1>
-            <p style={{ color: "#a8aec0", marginBottom: "28px", fontSize: "14px" }}>Free forever — no credit card required</p>
-
-            <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit} noValidate>
               <div style={{ marginBottom: "16px" }}>
                 <label style={{ display: "block", fontSize: "13px", color: "#a8aec0", marginBottom: "6px", fontWeight: 600 }}>Full Name</label>
                 <input
