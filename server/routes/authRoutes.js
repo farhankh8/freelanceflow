@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const passport = require('passport');
 const User = require('../models/User');
 const { sendPasswordResetEmail } = require('../config/email');
 const { register, login, refresh, logout, getMe, updateProfile, changePassword, forgotPassword, resetPassword, setup2FA, enable2FA, disable2FA, verify2FA, handleGoogleCallback, googleAuthSuccess } = require('../controllers/authController');
@@ -21,9 +20,14 @@ router.post('/2fa/verify', verify2FA);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' }));
-router.get('/google/callback', passport.authenticate('google', { session: false }), handleGoogleCallback);
-router.post('/google/success', googleAuthSuccess);
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  const passport = require('passport');
+  const googleStrategy = require('../config/passport');
+  passport.use('google', googleStrategy);
+  router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' }));
+  router.get('/google/callback', passport.authenticate('google', { session: false }), handleGoogleCallback);
+  router.post('/google/success', googleAuthSuccess);
+}
 
 router.post('/send-reset-email', async (req, res) => {
   const { email } = req.body

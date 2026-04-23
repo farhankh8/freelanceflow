@@ -3,14 +3,14 @@
  * Production-grade Express server with security, logging, and monitoring
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
-const passport = require('passport');
-require('dotenv').config();
 
 const connectDB = require('./config/db');
 const { logger, requestLogger, errorLogger } = require('./config/logger');
@@ -81,12 +81,6 @@ app.use(requestLogger);
 app.use(express.json({ limit: '1mb', strict: false }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
-
-// Passport initialization for Google OAuth
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use('google', googleStrategy);
-  app.use(passport.initialize());
-}
 
 // Rate limiting (enterprise - per IP)
 // Use default keyGenerator to avoid IPv6 issues
