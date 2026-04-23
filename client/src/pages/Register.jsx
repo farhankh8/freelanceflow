@@ -64,7 +64,8 @@ export default function Register() {
   }
 
 const handleGoogleRegister = () => {
-  window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/auth/google`
+  const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '')
+  window.location.href = `${baseUrl}/auth/google`
 }
 
 return (
