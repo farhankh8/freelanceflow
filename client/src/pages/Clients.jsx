@@ -197,8 +197,8 @@ const ModalContent = ({ isEdit }) => {
           </div>
         </div>
       </div>
-    )
-  })
+)
+  }
 
   return (
     <div style={{ maxWidth: "1300px" }}>
