@@ -122,9 +122,7 @@ export default function Login() {
             <Link to="/register" style={{ color: "#6c63ff", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Sign up free</Link>
           </div>
 
-          <div style={{ textAlign: "center", marginTop: "12px" }}>
-            <Link to="/forgot-password" style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", textDecoration: "none" }}>Forgot password?</Link>
-          </div>
+          
         </div>
       </div>
     </div>
