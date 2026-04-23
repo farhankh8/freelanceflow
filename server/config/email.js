@@ -9,6 +9,11 @@ const transporter = nodemailer.createTransport({
   }
 })
 
+console.log("Email transporter configured:", {
+  user: process.env.GMAIL_USER ? "set" : "not set",
+  pass: process.env.GMAIL_PASS ? "set" : "not set"
+})
+
 const sanitizeInput = (input) => {
   if (!input) return ""
   return sanitizeHtml(String(input), {
@@ -66,7 +71,10 @@ const sendPasswordResetEmail = async (userName, userEmail, resetToken) => {
   const resetLink = `https://freelanceflow-blue-delta.vercel.app/reset-password?token=${resetToken}`
   try {
     const safeName = sanitizeInput(userName)
-    await transporter.sendMail({
+    console.log("Attempting to send password reset email to:", userEmail)
+    console.log("Reset link:", resetLink)
+    
+    const result = await transporter.sendMail({
       from: `"FreelanceFlow" <${process.env.GMAIL_USER}>`,
       to: userEmail,
       subject: "Reset your FreelanceFlow password",
@@ -85,8 +93,12 @@ const sendPasswordResetEmail = async (userName, userEmail, resetToken) => {
         </div>
       </div>`
     })
+    console.log("Email sent successfully:", result.messageId)
+    return result
   } catch (e) {
     console.error("Password reset email error:", e.message)
+    console.error("Full error:", e)
+    throw e
   }
 }
 
