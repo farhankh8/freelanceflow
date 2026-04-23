@@ -114,7 +114,7 @@ export default function Clients() {
     setForm(EMPTY_FORM)
   }
 
-const ModalContent = memo(({ isEdit }) => {
+const ModalContent = ({ isEdit }) => {
     const [tab, setTab] = useState("basic")
     const LABEL = { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }
     const ERR = { border: "1px solid #ff4d6d !important", background: "rgba(255,77,109,0.1) !important" }
