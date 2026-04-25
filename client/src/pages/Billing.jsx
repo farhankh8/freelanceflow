@@ -8,7 +8,6 @@ const FREE_EMAIL = "25031@yenepoya.edu.in"
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
 
   const isPro = user?.plan === 'pro'
   const isFreeUser = user?.email?.toLowerCase() === FREE_EMAIL.toLowerCase()
@@ -23,11 +22,6 @@ export default function Billing() {
       navigate("/app")
     }
   }, [isPro, isFreeUser])
-
-  const handlePay = () => {
-    // Direct redirect to payment page
-    window.location.href = PAYMENT_LINK
-  }
 
   if (isFreeUser || isPro) return null
 
@@ -58,12 +52,29 @@ export default function Billing() {
           </div>
         </div>
 
-        <button onClick={handlePay} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "12px", color: "#fff", fontSize: "16px", fontWeight: 700, cursor: "pointer" }}>
-          Pay ₹1499 & Continue
-        </button>
+        <a 
+          href={PAYMENT_LINK} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ 
+            display: "block", 
+            width: "100%", 
+            padding: "16px", 
+            background: "linear-gradient(135deg,#6c63ff,#ff6584)", 
+            border: "none", 
+            borderRadius: "12px", 
+            color: "#fff", 
+            fontSize: "16px", 
+            fontWeight: 700, 
+            cursor: "pointer",
+            textDecoration: "none"
+          }}
+        >
+          Click to Pay ₹1499
+        </a>
 
         <p style={{ fontSize: "12px", color: "#52525b", marginTop: "16px" }}>
-          After payment, login again to access dashboard
+          Opens in new tab • Pay • Return to login
         </p>
       </div>
     </div>
