@@ -12,7 +12,7 @@ const razorpay = new Razorpay({
 const PLANS = {
   pro: {
     name: 'Pro',
-    amount: 99900, // ₹999 in paise
+    amount: 149900, // ₹1499 in paise
     currency: 'INR',
     features: ['unlimited_clients', 'unlimited_invoices', 'unlimited_projects', 'priority_support', 'custom_branding']
   }

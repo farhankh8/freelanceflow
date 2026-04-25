@@ -21,7 +21,7 @@ export default function UpgradeModal({ isOpen, onClose, currentResource }) {
   const [checkingLimits, setCheckingLimits] = useState(false);
 
   const isPro = user?.plan === 'pro' && user?.planExpiry && new Date(user.planExpiry) > new Date();
-  const proPrice = 999;
+  const proPrice = 1499;
 
   useEffect(() => {
     if (isOpen && !isPro) {
@@ -62,7 +62,7 @@ export default function UpgradeModal({ isOpen, onClose, currentResource }) {
         order_id: orderId,
         name: "FreelanceFlow",
         description: "Pro Plan - Monthly Subscription",
-        amount: 99900,
+        amount: 149900,
         currency: "INR",
         handler: async (response) => {
           try {

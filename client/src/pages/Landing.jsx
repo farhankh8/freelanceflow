@@ -41,17 +41,8 @@ const features = [
 
 const plans = [
   {
-    name: "Free",
-    price: "₹0",
-    period: "/month",
-    desc: "Perfect for freelancers just getting started.",
-    color: "#6c63ff",
-    popular: false,
-    features: ["Up to 5 clients", "Up to 10 invoices", "Up to 5 projects", "Basic invoicing", "Time tracking", "Expense tracking", "Email support"]
-  },
-  {
     name: "Pro",
-    price: "₹999",
+    price: "₹1499",
     period: "/month",
     desc: "Everything you need to run a serious business.",
     color: "#ff6584",
@@ -69,7 +60,6 @@ const testimonials = [
 const integrations = ["Gmail", "Google Calendar", "Zoom", "Stripe", "QuickBooks", "Zapier", "Slack", "Dropbox", "PayPal", "Calendly", "WhatsApp", "Notion"]
 
 export default function Landing() {
-  const [billing, setBilling] = useState("yearly")
   const [scrolled, setScrolled] = useState(false)
   const [activeFeature, setActiveFeature] = useState(0)
 
@@ -111,7 +101,7 @@ export default function Landing() {
           <Link to="/register" style={{ color: "#fff", textDecoration: "none", fontSize: "14px", fontWeight: 700, padding: "8px 20px", borderRadius: "8px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", boxShadow: "0 4px 20px rgba(108,99,255,0.4)", transition: "all 0.2s" }}
             onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
             onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
-            Start for free
+            Get Started
           </Link>
         </div>
       </nav>
@@ -130,7 +120,7 @@ export default function Landing() {
         <div style={{ position: "relative", maxWidth: "800px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(108,99,255,0.12)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "99px", padding: "6px 16px", marginBottom: "28px", fontSize: "13px", color: "rgba(255,255,255,0.7)" }}>
             <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00d97e" }} />
-            🎉 Now with AI-powered automation — Free forever plan
+            🎉 Now with AI-powered automation — Pro Plan at ₹1499/month
           </div>
 
           <h1 style={{ fontSize: "clamp(42px,6vw,72px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: "24px" }}>
@@ -144,10 +134,10 @@ export default function Landing() {
           </p>
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", marginBottom: "24px" }}>
-            <Link to="/register" style={{ textDecoration: "none", padding: "14px 32px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", borderRadius: "12px", color: "#fff", fontWeight: 700, fontSize: "16px", boxShadow: "0 8px 32px rgba(108,99,255,0.4)", transition: "all 0.3s" }}
+<Link to="/register" style={{ textDecoration: "none", padding: "14px 32px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", borderRadius: "12px", color: "#fff", fontWeight: 700, fontSize: "16px", boxShadow: "0 8px 32px rgba(108,99,255,0.4)", transition: "all 0.3s" }}
               onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(108,99,255,0.5)" }}
               onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(108,99,255,0.4)" }}>
-              Get started for free →
+              Get Started — ₹1499/month →
             </Link>
             <Link to="/login" style={{ textDecoration: "none", padding: "14px 32px", background: "rgba(255,255,255,0.05)", borderRadius: "12px", color: "rgba(255,255,255,0.8)", fontWeight: 600, fontSize: "16px", border: "1px solid rgba(255,255,255,0.12)", transition: "all 0.3s" }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
@@ -155,7 +145,7 @@ export default function Landing() {
               Sign in
             </Link>
           </div>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>No credit card required · Free forever plan available</p>
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>No credit card required · 14-day free trial</p>
 
           {/* Stats */}
           <div style={{ display: "flex", justifyContent: "center", gap: "48px", marginTop: "60px", paddingTop: "40px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
@@ -248,17 +238,10 @@ export default function Landing() {
           <div style={{ textAlign: "center", marginBottom: "48px" }}>
             <div style={{ fontSize: "13px", fontWeight: 600, color: "#00d97e", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "12px" }}>Pricing</div>
             <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, letterSpacing: "-1px", marginBottom: "16px" }}>Pick the right plan for you</h2>
-            <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>All plans start with a free trial. Cancel anytime.</p>
-            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", padding: "4px", gap: "4px" }}>
-              {["monthly", "yearly"].map(b => (
-                <button key={b} onClick={() => setBilling(b)} style={{ padding: "8px 20px", borderRadius: "7px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: billing === b ? "linear-gradient(135deg,#6c63ff,#ff6584)" : "transparent", color: billing === b ? "#fff" : "rgba(255,255,255,0.5)", transition: "all 0.2s" }}>
-                  {b.charAt(0).toUpperCase() + b.slice(1)} {b === "yearly" && <span style={{ fontSize: "11px", background: "#00d97e20", color: "#00d97e", padding: "1px 6px", borderRadius: "4px", marginLeft: "4px" }}>Save 25%</span>}
-                </button>
-              ))}
-            </div>
+            <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>All plans come with a 14-day free trial. Cancel anytime.</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "20px" }}>
+<div style={{ display: "grid", gridTemplateColumns: "repeat(1,1fr)", gap: "20px", maxWidth: "500px", margin: "0 auto" }}>
             {plans.map(p => (
               <div key={p.name} style={{ background: p.popular ? `linear-gradient(135deg,${p.color}15,rgba(17,17,24,0.9))` : "rgba(17,17,24,0.8)", border: `1px solid ${p.popular ? p.color + "50" : "rgba(255,255,255,0.08)"}`, borderRadius: "24px", padding: "32px", position: "relative", transition: "transform 0.3s" }}
                 onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
@@ -273,7 +256,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <Link to="/register" style={{ display: "block", textDecoration: "none", textAlign: "center", padding: "12px", borderRadius: "10px", background: p.popular ? "linear-gradient(135deg,#6c63ff,#ff6584)" : "rgba(255,255,255,0.06)", border: p.popular ? "none" : "1px solid rgba(255,255,255,0.12)", color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "24px", transition: "all 0.2s" }}>
-                  Start for free
+                  Get Started
                 </Link>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {p.features.map(f => (
@@ -294,13 +277,13 @@ export default function Landing() {
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center,rgba(108,99,255,0.12),transparent 60%)" }} />
         <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "clamp(32px,5vw,52px)", fontWeight: 900, letterSpacing: "-1px", marginBottom: "16px" }}>
-            Start your free trial today
+            Start your journey today
           </h2>
           <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.5)", marginBottom: "36px" }}>Join 100K+ freelancers who use FreelanceFlow to grow their business.</p>
           <Link to="/register" style={{ display: "inline-block", textDecoration: "none", padding: "16px 40px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", borderRadius: "12px", color: "#fff", fontWeight: 700, fontSize: "16px", boxShadow: "0 8px 40px rgba(108,99,255,0.4)", transition: "all 0.3s" }}
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 50px rgba(108,99,255,0.5)" }}
             onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 40px rgba(108,99,255,0.4)" }}>
-            Get started for free — No credit card required →
+            Get Started — ₹1499/month →
           </Link>
         </div>
       </section>
