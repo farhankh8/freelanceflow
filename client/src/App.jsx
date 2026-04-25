@@ -49,6 +49,12 @@ const PrivateRoute = ({ children }) => {
   return children
 }
 
+const AuthRoute = ({ children }) => {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn())
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  return children
+}
+
 const ComingSoon = ({ title }) => (
   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "400px", gap: "16px", color: "var(--text2)" }}>
     <div style={{ fontSize: "64px" }}>🚧</div>
@@ -116,7 +122,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/google-auth" element={<GoogleAuth />} />
-        <Route path="/billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
+        <Route path="/billing" element={<AuthRoute><Billing /></AuthRoute>} />
         <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />
