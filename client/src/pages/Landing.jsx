@@ -251,7 +251,7 @@ export default function Landing() {
                   <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>{p.name}</div>
                   <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginBottom: "16px" }}>{p.desc}</div>
                   <div style={{ display: "flex", alignItems: "flex-end", gap: "4px" }}>
-                    <span style={{ fontSize: "42px", fontWeight: 900, letterSpacing: "-2px" }}>{billing === "yearly" ? p.price : `$${parseInt(p.price.replace("$", "")) + 5}`}</span>
+                    <span style={{ fontSize: "42px", fontWeight: 900, letterSpacing: "-2px" }}>{p.price}</span>
                     <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", marginBottom: "8px" }}>{p.period}</span>
                   </div>
                 </div>
