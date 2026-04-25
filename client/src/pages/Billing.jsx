@@ -1,8 +1,31 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
-import api from "../lib/api"
+import axios from "axios"
 import useAuthStore from "../store/authStore"
+
+const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/billingApi/v1").replace(/\/$/, '')
+
+const billingApi = axios.create({
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+})
+
+billingApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem("ff_token")
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+billingApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = "/login"
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
@@ -21,7 +44,7 @@ export default function Billing() {
 
   const checkStatus = async () => {
     try {
-      const res = await api.get("/subscribe/status")
+      const res = await billingApi.get("/subscribe/status")
       setStatus(res.data?.data)
     } catch (err) {
       console.error("Failed to get status:", err)
@@ -31,7 +54,7 @@ export default function Billing() {
   const handlePay = async () => {
     setLoading(true)
     try {
-      const orderRes = await api.post("/subscribe/create-order")
+      const orderRes = await billingApi.post("/subscribe/create-order")
       const { orderId, keyId } = orderRes.data?.data || {}
 
       if (!orderId || !keyId) {
@@ -47,7 +70,7 @@ export default function Billing() {
         currency: "INR",
         handler: async (response) => {
           try {
-            const verifyRes = await api.post("/subscribe/verify", {
+            const verifyRes = await billingApi.post("/subscribe/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
@@ -55,7 +78,7 @@ export default function Billing() {
 
             if (verifyRes.data?.success) {
               toast.success("Payment successful!")
-              const meRes = await api.get("/auth/me")
+              const meRes = await billingApi.get("/auth/me")
               updateUser(meRes.data?.data)
               navigate("/app")
             }
