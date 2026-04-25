@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import useAuthStore from "../store/authStore"
+import axios from "axios"
 
-const PAYMENT_LINK = "https://rzp.io/rzp/YUrHJws"
+const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1").replace(/\/$/, '')
+
+const api = axios.create({ baseURL: BASE_URL })
+api.interceptors.request.use(cfg => {
+  const t = localStorage.getItem("ff_token")
+  if (t) cfg.headers.Authorization = `Bearer ${t}`
+  return cfg
+})
+
+const RAZORPAY_KEY = "rzp_test_ShkGw1YkLfgDvu"
 
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
@@ -12,15 +22,40 @@ export default function Billing() {
   const isPro = user?.plan === 'pro'
 
   useEffect(() => {
-    if (isPro) {
-      navigate("/app")
-    }
+    if (isPro) navigate("/app")
   }, [isPro])
 
   const handlePay = async () => {
     setLoading(true)
-    // Open payment link in new tab
-    window.open(PAYMENT_LINK, "_blank")
+    try {
+      const res = await api.post("/subscribe/create-order")
+      const { orderId } = res.data.data || {}
+      
+      if (!orderId) throw new Error("Failed to create order")
+
+      const options = {
+        key: RAZORPAY_KEY,
+        order_id: orderId,
+        name: "FreelanceFlow",
+        description: "Pro Plan - ₹1499/month",
+        amount: 149900,
+        currency: "INR",
+        handler: async (response) => {
+          await api.post("/subscribe/verify", {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          })
+          updateUser({ ...user, plan: 'pro', planExpiry: new Date(Date.now() + 30*24*60*60*1000) })
+          navigate("/app")
+        },
+        theme: { color: "#6c63ff" }
+      }
+      new window.Razorpay(options).open()
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || "Payment failed")
+    }
     setLoading(false)
   }
 
