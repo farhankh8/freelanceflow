@@ -346,13 +346,10 @@ export default function Settings() {
                   <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>Upgrade to Pro</h3>
                   <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "16px" }}>Get access to all features including GST invoices, AI insights, and more</p>
                   <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
-                    <span style={{ fontSize: "32px", fontWeight: 800 }}>₹999</span>
+                    <span style={{ fontSize: "32px", fontWeight: 800 }}>₹1499</span>
                     <span style={{ fontSize: "14px", color: "var(--text2)" }}>/month</span>
-                    <span style={{ fontSize: "12px", padding: "4px 10px", background: "#ff6584", borderRadius: "99px", color: "#fff", fontWeight: 700 }}>Save 20%</span>
                   </div>
-                  <button onClick={handleUpgrade} style={{ padding: "12px 32px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>
-                    Upgrade Now 🚀
-                  </button>
+                  <button onClick={handleUpgrade} style={{ padding: "12px 32px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>Pay ₹1499 & Start 🚀</button>
                 </div>
               )}
             </div>

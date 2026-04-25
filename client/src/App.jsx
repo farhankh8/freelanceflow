@@ -31,6 +31,7 @@ const Calendar = lazy(() => import("./pages/Calendar"))
 const Meetings = lazy(() => import("./pages/Meetings"))
 const ClientPortal = lazy(() => import("./pages/ClientPortal"))
 const Help = lazy(() => import("./pages/Help"))
+const Billing = lazy(() => import("./pages/Billing"))
 
 const PageLoader = () => (
   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", flexDirection: "column", gap: "16px", color: "var(--text2)" }}>
@@ -41,7 +42,11 @@ const PageLoader = () => (
 
 const PrivateRoute = ({ children }) => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn())
-  return isLoggedIn ? children : <Navigate to="/login" replace />
+  const user = useAuthStore((state) => state.user)
+  const isPro = user?.plan === 'pro'
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (!isPro) return <Navigate to="/billing" replace />
+  return children
 }
 
 const ComingSoon = ({ title }) => (
@@ -111,6 +116,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/google-auth" element={<GoogleAuth />} />
+        <Route path="/billing" element={<PrivateRoute><Billing /></PrivateRoute>} />
         <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />

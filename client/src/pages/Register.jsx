@@ -45,7 +45,7 @@ export default function Register() {
       localStorage.setItem("ff_user", JSON.stringify(response.data.user))
       addNotification({ type: "success", title: "Welcome to FreelanceFlow!", message: `Thanks for signing up, ${name}!` })
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
-      navigate("/app/settings?tab=billing")
+      navigate("/billing")
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message || "Registration failed"
       toast.error(errorMsg)

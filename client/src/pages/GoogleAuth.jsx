@@ -31,12 +31,7 @@ export default function GoogleAuth() {
           localStorage.setItem("ff_user", JSON.stringify(user))
           addNotification({ type: "success", title: "Welcome!", message: `Logged in with Google successfully` })
           toast.success("Welcome!")
-          
-          // New users (no plan or free plan created today) go to billing
-          const createdDate = new Date(user.createdAt)
-          const now = new Date()
-          const isNewUser = !user.plan || user.plan === 'free' || (now - createdDate) < 60000 // created < 1 min ago
-          navigate(isNewUser ? "/app/settings?tab=billing" : "/app")
+          navigate("/billing")
         }
       } catch (err) {
         toast.error("Google authentication failed")

@@ -30,12 +30,7 @@ export default function Login() {
       localStorage.setItem("ff_user", JSON.stringify(user))
       addNotification({ type: "success", title: "Welcome back!", message: `Good to see you again, ${data.user.name}` })
       toast.success("Welcome back!")
-      
-      // New users go to billing
-      const createdDate = new Date(user.createdAt)
-      const now = new Date()
-      const isNewUser = !user.plan || user.plan !== 'pro'
-      navigate(isNewUser ? "/app/settings?tab=billing" : "/app")
+      navigate("/billing")
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid email or password"
       toast.error(msg)
