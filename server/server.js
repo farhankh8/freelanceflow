@@ -139,6 +139,7 @@ app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/contracts', require('./routes/contractRoutes'));
 app.use('/api/v1/subscribe', require('./routes/subscribeRoutes'));
 app.use('/api/v1/support', require('./routes/supportRoutes'));
+app.use('/api/v1/admin', require('./routes/adminRoutes'));
 
 // API version info
 const API_VERSION = '3.0.0';
