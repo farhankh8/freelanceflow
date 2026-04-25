@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import useAuthStore from "../store/authStore"
 
 // Payment link for ₹1499 - create new one for real payments
-const PAYMENT_LINK = "https://rzp.io/rzp/YUrHJws"
+const PAYMENT_LINK = "https://rzp.io/rzp/GlZLfIMc"
 
 // Free for this specific email
 const FREE_EMAIL = "25031@yenepoya.edu.in"
