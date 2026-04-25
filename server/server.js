@@ -86,7 +86,7 @@ app.use(cookieParser());
 // Use default keyGenerator to avoid IPv6 issues
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 100 : 200,
+  max: isProduction ? 500 : 1000,
   message: { success: false, message: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false
@@ -94,7 +94,7 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: isProduction ? 5 : 10,
+  max: isProduction ? 20 : 100,
   message: { success: false, message: 'Too many login attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false
@@ -102,7 +102,7 @@ const authLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: isProduction ? 5 : 20,
+  max: isProduction ? 20 : 100,
   message: { success: false, message: 'Too many registration attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false
@@ -111,7 +111,7 @@ const registerLimiter = rateLimit({
 // Stricter limiter for sensitive endpoints
 const sensitiveLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 20 : 50,
+  max: isProduction ? 100 : 200,
   message: { success: false, message: 'Too many requests on this endpoint.' }
 });
 
