@@ -2,10 +2,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import useAuthStore from "../store/authStore"
 
-// Payment link for ₹1499 - create new one for real payments
 const PAYMENT_LINK = "https://rzp.io/rzp/GlZLfIMc"
-
-// Free for this specific email
 const FREE_EMAIL = "25031@yenepoya.edu.in"
 
 export default function Billing() {
@@ -17,7 +14,6 @@ export default function Billing() {
   const isFreeUser = user?.email?.toLowerCase() === FREE_EMAIL.toLowerCase()
 
   useEffect(() => {
-    // Grant free access for specific email
     if (isFreeUser) {
       const updatedUser = { ...user, plan: 'pro', planExpiry: new Date(Date.now() + 100*365*24*60*60*1000) }
       updateUser(updatedUser)
@@ -28,10 +24,9 @@ export default function Billing() {
     }
   }, [isPro, isFreeUser])
 
-  const handlePay = async () => {
-    setLoading(true)
-    window.open(PAYMENT_LINK, "_blank")
-    setLoading(false)
+  const handlePay = () => {
+    // Direct redirect to payment page
+    window.location.href = PAYMENT_LINK
   }
 
   if (isFreeUser || isPro) return null
@@ -44,7 +39,7 @@ export default function Billing() {
           Complete Payment
         </h1>
         <p style={{ color: "#71717a", fontSize: "15px", marginBottom: "32px" }}>
-          Pay once to unlock all features forever
+          Pay ₹1499 to unlock all features
         </p>
 
         <div style={{ background: "linear-gradient(135deg,rgba(108,99,255,0.12),rgba(255,101,132,0.12))", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "20px", padding: "32px", marginBottom: "24px" }}>
@@ -63,9 +58,13 @@ export default function Billing() {
           </div>
         </div>
 
-        <button onClick={handlePay} disabled={loading} style={{ width: "100%", padding: "16px", background: loading ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "12px", color: "#fff", fontSize: "16px", fontWeight: 700, cursor: "pointer", marginBottom: "16px" }}>
-          {loading ? "Processing..." : "Pay ₹1499 & Continue"}
+        <button onClick={handlePay} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "12px", color: "#fff", fontSize: "16px", fontWeight: 700, cursor: "pointer" }}>
+          Pay ₹1499 & Continue
         </button>
+
+        <p style={{ fontSize: "12px", color: "#52525b", marginTop: "16px" }}>
+          After payment, login again to access dashboard
+        </p>
       </div>
     </div>
   )
