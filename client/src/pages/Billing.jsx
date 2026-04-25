@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import toast from "react-hot-toast"
 import useAuthStore from "../store/authStore"
 
-const RAZORPAY_KEY = "rzp_test_SfH61mklxoBJWx"
+const PAYMENT_LINK = "https://rzp.io/rzp/YUrHJws"
 
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
@@ -20,34 +19,8 @@ export default function Billing() {
 
   const handlePay = async () => {
     setLoading(true)
-    
-    if (!window.Razorpay) {
-      toast.error("Razorpay not loaded. Refresh and try again.")
-      setLoading(false)
-      return
-    }
-
-    const options = {
-      key: RAZORPAY_KEY,
-      amount: 149900,
-      currency: "INR",
-      name: "FreelanceFlow",
-      description: "Pro Plan - Monthly Subscription",
-      image: "https://freelanceflow.app/favicon.svg",
-      handler: async (response) => {
-        toast.success("Payment successful! 🎉")
-        // Simulate successful payment - in real app, verify with server
-        const fakeUser = { ...user, plan: 'pro', planExpiry: new Date(Date.now() + 30*24*60*60*1000) }
-        updateUser(fakeUser)
-        localStorage.setItem("ff_user", JSON.stringify(fakeUser))
-        navigate("/app")
-      },
-      theme: { color: "#6c63ff" }
-    }
-
-    const rzp = new window.Razorpay(options)
-    rzp.open()
-    
+    // Open payment link in new tab
+    window.open(PAYMENT_LINK, "_blank")
     setLoading(false)
   }
 
