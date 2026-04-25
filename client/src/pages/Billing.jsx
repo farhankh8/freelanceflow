@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import useAuthStore from "../store/authStore"
-import axios from "axios"
 
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1").replace(/\/$/, '')
+// Payment link for ₹1499 - create new one for real payments
+const PAYMENT_LINK = "https://rzp.io/rzp/YUrHJws"
 
-const api = axios.create({ baseURL: BASE_URL })
-api.interceptors.request.use(cfg => {
-  const t = localStorage.getItem("ff_token")
-  if (t) cfg.headers.Authorization = `Bearer ${t}`
-  return cfg
-})
-
-const RAZORPAY_KEY = "rzp_test_ShkGw1YkLfgDvu"
+// Free for this specific email
+const FREE_EMAIL = "25031@yenepoya.edu.in"
 
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
@@ -20,46 +14,27 @@ export default function Billing() {
   const [loading, setLoading] = useState(false)
 
   const isPro = user?.plan === 'pro'
+  const isFreeUser = user?.email?.toLowerCase() === FREE_EMAIL.toLowerCase()
 
   useEffect(() => {
-    if (isPro) navigate("/app")
-  }, [isPro])
+    // Grant free access for specific email
+    if (isFreeUser) {
+      const updatedUser = { ...user, plan: 'pro', planExpiry: new Date(Date.now() + 100*365*24*60*60*1000) }
+      updateUser(updatedUser)
+      localStorage.setItem("ff_user", JSON.stringify(updatedUser))
+      navigate("/app")
+    } else if (isPro) {
+      navigate("/app")
+    }
+  }, [isPro, isFreeUser])
 
   const handlePay = async () => {
     setLoading(true)
-    try {
-      const res = await api.post("/subscribe/create-order")
-      const { orderId } = res.data.data || {}
-      
-      if (!orderId) throw new Error("Failed to create order")
-
-      const options = {
-        key: RAZORPAY_KEY,
-        order_id: orderId,
-        name: "FreelanceFlow",
-        description: "Pro Plan - ₹1499/month",
-        amount: 149900,
-        currency: "INR",
-        handler: async (response) => {
-          await api.post("/subscribe/verify", {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature
-          })
-          updateUser({ ...user, plan: 'pro', planExpiry: new Date(Date.now() + 30*24*60*60*1000) })
-          navigate("/app")
-        },
-        theme: { color: "#6c63ff" }
-      }
-      new window.Razorpay(options).open()
-    } catch (err) {
-      console.error(err)
-      alert(err.response?.data?.message || "Payment failed")
-    }
+    window.open(PAYMENT_LINK, "_blank")
     setLoading(false)
   }
 
-  if (isPro) return null
+  if (isFreeUser || isPro) return null
 
   return (
     <div style={{ minHeight: "100vh", background: "#09090b", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -91,10 +66,6 @@ export default function Billing() {
         <button onClick={handlePay} disabled={loading} style={{ width: "100%", padding: "16px", background: loading ? "rgba(108,99,255,0.5)" : "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "12px", color: "#fff", fontSize: "16px", fontWeight: 700, cursor: "pointer", marginBottom: "16px" }}>
           {loading ? "Processing..." : "Pay ₹1499 & Continue"}
         </button>
-
-        <p style={{ fontSize: "12px", color: "#52525b" }}>
-          Test card: 4111 1111 1111 1111 | any future date | any CVV
-        </p>
       </div>
     </div>
   )
