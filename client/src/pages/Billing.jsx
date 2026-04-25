@@ -1,37 +1,14 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
-import axios from "axios"
 import useAuthStore from "../store/authStore"
 
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/billingApi/v1").replace(/\/$/, '')
-
-const billingApi = axios.create({
-  baseURL: BASE_URL,
-  headers: { "Content-Type": "application/json" },
-})
-
-billingApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("ff_token")
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-billingApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = "/login"
-    }
-    return Promise.reject(error)
-  }
-)
+const RAZORPAY_KEY_ID = "rzp_test_SfH61mklxoBJWx"
 
 export default function Billing() {
   const { user, updateUser } = useAuthStore()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(null)
 
   const isPro = user?.plan === 'pro'
 
@@ -39,60 +16,47 @@ export default function Billing() {
     if (isPro) {
       navigate("/app")
     }
-    checkStatus()
   }, [isPro])
-
-  const checkStatus = async () => {
-    try {
-      const res = await billingApi.get("/subscribe/status")
-      setStatus(res.data?.data)
-    } catch (err) {
-      console.error("Failed to get status:", err)
-    }
-  }
 
   const handlePay = async () => {
     setLoading(true)
     try {
-      const orderRes = await billingApi.post("/subscribe/create-order")
-      const { orderId, keyId } = orderRes.data?.data || {}
-
-      if (!orderId || !keyId) {
-        throw new Error("Failed to create order")
-      }
-
-      const options = {
-        key: keyId,
-        order_id: orderId,
-        name: "FreelanceFlow",
-        description: "Pro Plan - Monthly Subscription",
-        amount: 149900,
-        currency: "INR",
-        handler: async (response) => {
-          try {
-            const verifyRes = await billingApi.post("/subscribe/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
-            })
-
-            if (verifyRes.data?.success) {
-              toast.success("Payment successful!")
-              const meRes = await billingApi.get("/auth/me")
-              updateUser(meRes.data?.data)
-              navigate("/app")
-            }
-          } catch (err) {
-            toast.error("Payment verification failed")
-          }
+      // Create payment link via Razorpay API
+      const response = await fetch("https://api.razorpay.com/v1/payment_links", {
+        method: "POST",
+        headers: {
+          "Authorization": btoa(`${RAZORPAY_KEY_ID}:8UBO39DQlrn23glGR7cuqlV8`),
+          "Content-Type": "application/json"
         },
-        theme: { color: "#6c63ff" }
+        body: JSON.stringify({
+          amount: 149900,
+          currency: "INR",
+          description: "FreelanceFlow Pro Plan",
+          customer: {
+            email: user?.email,
+            name: user?.name
+          },
+          notify: {
+            sms: true,
+            email: true
+          },
+          callback_url: window.location.origin + "/app?payment=done",
+          callback_method: "get"
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.short_url) {
+        // Open Razorpay payment page
+        window.open(data.short_url, "_blank")
+        toast.success("Payment page opened! Complete payment and come back.")
+      } else {
+        throw new Error(data.error?.description || "Failed to create payment link")
       }
-
-      const rzp = new window.Razorpay(options)
-      rzp.open()
     } catch (err) {
-      toast.error(err.message || "Failed to initiate payment")
+      console.error("Payment error:", err)
+      toast.error(err.message || "Failed to create payment")
     }
     setLoading(false)
   }
