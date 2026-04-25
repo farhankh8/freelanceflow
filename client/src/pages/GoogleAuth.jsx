@@ -32,8 +32,10 @@ export default function GoogleAuth() {
           addNotification({ type: "success", title: "Welcome!", message: `Logged in with Google successfully` })
           toast.success("Welcome!")
           
-          // New users (no plan) go to billing, existing users go to dashboard
-          const isNewUser = !user.plan && !user.planExpiry
+          // New users (no plan or free plan created today) go to billing
+          const createdDate = new Date(user.createdAt)
+          const now = new Date()
+          const isNewUser = !user.plan || user.plan === 'free' || (now - createdDate) < 60000 // created < 1 min ago
           navigate(isNewUser ? "/app/settings?tab=billing" : "/app")
         }
       } catch (err) {

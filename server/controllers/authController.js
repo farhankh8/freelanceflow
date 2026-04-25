@@ -679,7 +679,7 @@ const googleAuthSuccess = asyncHandler(async (req, res) => {
     success: true,
     message: 'Google login successful',
     accessToken: token,
-    user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled, source: user.source },
+    user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, planExpiry: user.planExpiry, twoFactorEnabled: user.twoFactorEnabled, source: user.source, createdAt: user.createdAt },
     timestamp: new Date().toISOString()
   })
 })
