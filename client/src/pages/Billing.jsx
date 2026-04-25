@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import useAuthStore from "../store/authStore"
 
-const PAYMENT_LINK = "https://rzp.io/rzp/GlZLfIMc"
 const FREE_EMAIL = "25031@yenepoya.edu.in"
 
 export default function Billing() {
@@ -52,8 +51,12 @@ export default function Billing() {
           </div>
         </div>
 
+        <p style={{ fontSize: "14px", color: "#fff", marginBottom: "12px" }}>
+          Click below to open Razorpay payment:
+        </p>
+
         <a 
-          href={PAYMENT_LINK} 
+          href="https://pages.razorpay.com/pl_GlZLfIMc"
           target="_blank" 
           rel="noopener noreferrer"
           style={{ 
@@ -74,7 +77,7 @@ export default function Billing() {
         </a>
 
         <p style={{ fontSize: "12px", color: "#52525b", marginTop: "16px" }}>
-          Opens in new tab • Pay • Return to login
+          Opens in new tab • Pay • Come back & login again
         </p>
       </div>
     </div>
