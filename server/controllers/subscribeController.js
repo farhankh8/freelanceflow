@@ -1,89 +1,62 @@
-const Razorpay = require('razorpay');
-const crypto = require('crypto');
-const Order = require('../models/Order');
-const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-
-const PLANS = {
-  pro: {
-    name: 'Pro',
-    amount: 149900, // ₹1499 in paise
-    currency: 'INR',
-    features: ['unlimited_clients', 'unlimited_invoices', 'unlimited_projects', 'priority_support', 'custom_branding']
-  }
-};
-
-const FREE_LIMITS = {
-  clients: 5,
-  invoices: 10,
-  projects: 5,
-  leads: 20,
-  tasks: 20,
-  contacts: 20,
-  contracts: 5,
-  expenses: 10
-};
 
 const createOrder = asyncHandler(async (req, res) => {
   console.log("Creating order for user:", req.user.id);
   const user = await User.findById(req.user.id);
-  console.log("User plan:", user.plan, "expiry:", user.planExpiry, "key:", process.env.RAZORPAY_KEY_ID);
+  console.log("User plan:", user.plan, "expiry:", user.planExpiry);
   
-  const isProActive = user.plan === 'pro' && user.planExpiry && new Date(user.planExpiry) > new Date();
-  
-  if (isProActive || user.plan === 'pro') {
+  if (user.plan === 'pro') {
     return res.status(400).json({
       success: false,
-      message: 'Already on Pro - contact support to renew'
+      message: 'Already on Pro - contact support'
     });
   }
 
-  const plan = 'pro';
-  const planDetails = PLANS[plan];
+  const amount = 149900;
+  const currency = 'INR';
 
   try {
-    const order = await razorpay.orders.create({
-      amount: planDetails.amount,
-      currency: planDetails.currency,
-      receipt: `ff_${user.id}_${Date.now()}`,
-      notes: {
-        userId: user.id.toString(),
-        email: user.email,
-        plan: plan
-      }
+    // Create Razorpay Payment Link directly via API
+    const auth = Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64');
+    
+    const razorpayRes = await fetch('https://api.razorpay.com/v1/payment_links', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: amount,
+        currency: currency,
+        description: 'FreelanceFlow Pro Plan - Monthly',
+        customer: {
+          email: user.email,
+          name: user.name
+        },
+        notify: {
+          sms: false,
+          email: false
+        },
+        callback_url: `${process.env.CLIENT_URL}/app?payment=success`,
+        callback_method: 'get'
+      })
     });
-    console.log("Order created:", order.id);
 
-    await Order.create({
-      orderId: order.id,
-      userId: user.id,
-      plan: plan,
-      amount: order.amount,
-      currency: order.currency,
-      status: 'pending',
-      notes: {
-        email: user.email
-      }
-    });
+    const paymentLink = await razorpayRes.json();
+    console.log("Payment link created:", paymentLink.id);
 
     res.status(201).json({
       success: true,
-      message: 'Order created',
+      message: 'Payment link created',
       data: {
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
+        url: paymentLink.short_url,
+        paymentLinkId: paymentLink.id,
         keyId: process.env.RAZORPAY_KEY_ID
       }
     });
   } catch (razorpayErr) {
     console.error("Razorpay error:", razorpayErr);
-    res.status(500).json({ success: false, message: razorpayErr.message });
+    res.status(500).json({ success: false, message: razorpayErr.message || 'Payment failed' });
   }
 });
 
