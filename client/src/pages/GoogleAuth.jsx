@@ -26,11 +26,15 @@ export default function GoogleAuth() {
         const response = await api.post("/auth/google/success", { token, userId })
         if (response.data.accessToken) {
           localStorage.setItem("ff_token", response.data.accessToken)
-          setAuth(response.data.user)
-          localStorage.setItem("ff_user", JSON.stringify(response.data.user))
+          const user = response.data.user
+          setAuth(user)
+          localStorage.setItem("ff_user", JSON.stringify(user))
           addNotification({ type: "success", title: "Welcome!", message: `Logged in with Google successfully` })
           toast.success("Welcome!")
-          navigate("/app/settings?tab=billing")
+          
+          // New users (no plan) go to billing, existing users go to dashboard
+          const isNewUser = !user.plan && !user.planExpiry
+          navigate(isNewUser ? "/app/settings?tab=billing" : "/app")
         }
       } catch (err) {
         toast.error("Google authentication failed")

@@ -25,11 +25,15 @@ export default function Login() {
     try {
       const { data } = await api.post("/auth/login", form)
       if (data.accessToken) localStorage.setItem("ff_token", data.accessToken)
-      setAuth(data.user)
-      localStorage.setItem("ff_user", JSON.stringify(data.user))
+      const user = data.user
+      setAuth(user)
+      localStorage.setItem("ff_user", JSON.stringify(user))
       addNotification({ type: "success", title: "Welcome back!", message: `Good to see you again, ${data.user.name}` })
       toast.success("Welcome back!")
-      navigate("/app")
+      
+      // New users (no plan) go to billing, existing users go to dashboard
+      const isNewUser = !user.plan && !user.planExpiry
+      navigate(isNewUser ? "/app/settings?tab=billing" : "/app")
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid email or password"
       toast.error(msg)
