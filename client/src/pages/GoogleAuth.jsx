@@ -30,7 +30,7 @@ export default function GoogleAuth() {
           localStorage.setItem("ff_user", JSON.stringify(response.data.user))
           addNotification({ type: "success", title: "Welcome!", message: `Logged in with Google successfully` })
           toast.success("Welcome!")
-          navigate("/app")
+          navigate("/app/settings?tab=billing")
         }
       } catch (err) {
         toast.error("Google authentication failed")
