@@ -32,53 +32,59 @@ const FREE_LIMITS = {
 const createOrder = asyncHandler(async (req, res) => {
   console.log("Creating order for user:", req.user.id);
   const user = await User.findById(req.user.id);
-  console.log("User plan:", user.plan, "expiry:", user.planExpiry);
+  console.log("User plan:", user.plan, "expiry:", user.planExpiry, "key:", process.env.RAZORPAY_KEY_ID);
   
   const isProActive = user.plan === 'pro' && user.planExpiry && new Date(user.planExpiry) > new Date();
   
-  if (isProActive) {
+  if (isProActive || user.plan === 'pro') {
     return res.status(400).json({
       success: false,
-      message: 'You are already on Pro plan'
+      message: 'Already on Pro - contact support to renew'
     });
   }
 
   const plan = 'pro';
   const planDetails = PLANS[plan];
 
-  const order = await razorpay.orders.create({
-    amount: planDetails.amount,
-    currency: planDetails.currency,
-    receipt: `ff_${user.id}_${Date.now()}`,
-    notes: {
-      userId: user.id.toString(),
-      email: user.email,
-      plan: plan
-    }
-  });
+  try {
+    const order = await razorpay.orders.create({
+      amount: planDetails.amount,
+      currency: planDetails.currency,
+      receipt: `ff_${user.id}_${Date.now()}`,
+      notes: {
+        userId: user.id.toString(),
+        email: user.email,
+        plan: plan
+      }
+    });
+    console.log("Order created:", order.id);
 
-  await Order.create({
-    orderId: order.id,
-    userId: user.id,
-    plan: plan,
-    amount: order.amount,
-    currency: order.currency,
-    status: 'pending',
-    notes: {
-      email: user.email
-    }
-  });
-
-  res.status(201).json({
-    success: true,
-    message: 'Order created',
-    data: {
+    await Order.create({
       orderId: order.id,
+      userId: user.id,
+      plan: plan,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID
-    }
-  });
+      status: 'pending',
+      notes: {
+        email: user.email
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Order created',
+      data: {
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        keyId: process.env.RAZORPAY_KEY_ID
+      }
+    });
+  } catch (razorpayErr) {
+    console.error("Razorpay error:", razorpayErr);
+    res.status(500).json({ success: false, message: razorpayErr.message });
+  }
 });
 
 const verifyPayment = asyncHandler(async (req, res) => {
