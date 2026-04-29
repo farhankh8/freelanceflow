@@ -5,7 +5,6 @@ import useAuthStore from "../store/authStore"
 import useTimerStore from "../store/timerStore"
 
 const LS_KEY = "freelanceflow_timelogs"
-const LS_TIMER = "freelanceflow_timer"
 const EMPTY_FORM = { project: "", task: "", duration: "", date: new Date().toISOString().split("T")[0], rate: 1500, notes: "" }
 
 function formatTime(seconds) {
@@ -44,60 +43,30 @@ export default function TimeLogs() {
   const [logs, setLogs] = useState(() => loadLogs())
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const { running, seconds, timerProject, timerTask, timerRate, startTimer: startTimerFn, stopTimer: stopTimerFn, reset } = useTimerStore()
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState("")
   const [filterProject, setFilterProject] = useState("all")
   const [filterBilled, setFilterBilled] = useState("all")
-  const intervalRef = useRef(null)
   const [form, setForm] = useState(EMPTY_FORM)
-  const setSeconds = (s) => useTimerStore.setState({ seconds: s })
-  const setTimerProject = (v) => useTimerStore.getState().setProject(v)
-  const setTimerTask = (v) => useTimerStore.getState().setTask(v)
-  const setTimerRate = (v) => useTimerStore.getState().setRate(v)
-  const setRunning = (v) => v ? startTimerFn(timerProject, timerTask, timerRate) : stopTimerFn()
-
   const [activeSession, setActiveSession] = useState(null)
   const [sessionSeconds, setSessionSeconds] = useState(0)
   const [sessionTask, setSessionTask] = useState("")
   const [workerTasks, setWorkerTasks] = useState([])
   const sessionIntervalRef = useRef(null)
 
-  // ── Fetch projects from API for dropdown ────────────────────────────────
-  useEffect(() => {
-    api.get("/projects")
-      .then(res => {
-        const list = (res.data?.data || res.data || []).map(p => ({ id: p._id, name: p.title }))
-        setProjects(Array.isArray(list) ? list : [])
-        if (list.length > 0 && !timerProject) setTimerProject(list[0].name)
-      })
-      .catch(() => {})
+  // Use timerStore directly
+  const { running, seconds, timerProject, timerTask, timerRate, tick, stopTimer, reset, setProject, setTask, setRate } = useTimerStore()
 
-    if (isWorker) {
-      api.get("/tasks").then(({ data }) => {
-        setWorkerTasks((data?.tasks || []).map(t => ({ id: t._id, name: t.title })))
-      }).catch(() => {})
-      api.get("/work-sessions/my").then(({ data }) => {
-        const sessions = data?.data || []
-        const active = sessions.find(s => s.isActive)
-        if (active) {
-          setActiveSession(active)
-          const elapsed = Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000)
-          setSessionSeconds(elapsed)
-        }
-      }).catch(() => {})
-    }
-  }, [])
-
-  // ── Timer interval ────────────────────────────────────────────────────────
+  // Timer interval managed by App.jsx via useTimerStore tick, but we still need to call tick here for standalone
+  const tickRef = useRef(null)
   useEffect(() => {
     if (running) {
-      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
+      tickRef.current = setInterval(() => tick(), 1000)
     } else {
-      clearInterval(intervalRef.current)
+      clearInterval(tickRef.current)
     }
-    return () => clearInterval(intervalRef.current)
-  }, [running])
+    return () => clearInterval(tickRef.current)
+  }, [running, tick])
 
   useEffect(() => {
     if (activeSession) {
@@ -108,39 +77,36 @@ export default function TimeLogs() {
     return () => clearInterval(sessionIntervalRef.current)
   }, [activeSession])
 
-  // ── Persist timer state (survives page nav) ───────────────────────────────
+  // Fetch projects and tasks
   useEffect(() => {
-    if (running) {
-      localStorage.setItem(LS_TIMER, JSON.stringify({ running, seconds, timerProject, timerTask, timerRate, startTime: Date.now() - seconds * 1000 }))
-    } else {
-      localStorage.removeItem(LS_TIMER)
-    }
-  }, [running, seconds])
+    api.get("/projects")
+      .then(res => {
+        const list = ((res.data?.data || []) || []).map(p => ({ id: p._id, name: p.title }))
+        setProjects(Array.isArray(list) ? list : [])
+      })
+      .catch(() => {})
 
-  // ── Restore timer on mount ────────────────────────────────────────────────
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_TIMER)
-      if (saved) {
-        const data = JSON.parse(saved)
-        if (data.running && data.startTime) {
-          const elapsed = Math.floor((Date.now() - data.startTime) / 1000)
-          setSeconds(elapsed)
-          setRunning(true)
-          setTimerProject(data.timerProject || "")
-          setTimerTask(data.timerTask || "")
-          setTimerRate(data.timerRate || 1500)
+    if (isWorker) {
+      api.get("/tasks").then(({ data }) => {
+        setWorkerTasks(((data?.tasks || []) || []).map(t => ({ id: t._id, name: t.title })))
+      }).catch(() => {})
+      api.get("/work-sessions/my").then(({ data }) => {
+        const sessions = data?.data || []
+        const active = sessions.find(s => s.isActive)
+        if (active) {
+          setActiveSession(active)
+          setSessionSeconds(Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000))
         }
-      }
-    } catch (_) {}
+      }).catch(() => {})
+    }
   }, [])
 
-  // ── Fetch logs from API, merge with local ─────────────────────────────────
+  // Fetch logs from API
   useEffect(() => {
     api.get("/timelogs")
       .then(res => {
-        const apiList = res.data?.data || res.data || []
-        if (apiList.length > 0) {
+        const apiList = res.data?.data || []
+        if (Array.isArray(apiList) && apiList.length > 0) {
           setLogs(prev => {
             const localOnly = prev.filter(l => String(l._id).startsWith("local_"))
             const apiIds = new Set(apiList.map(l => l._id))
@@ -155,7 +121,6 @@ export default function TimeLogs() {
       .finally(() => setLoading(false))
   }, [])
 
-  // ── Persist logs on every change ─────────────────────────────────────────
   const updateLogs = (fn) => {
     setLogs(prev => {
       const next = typeof fn === "function" ? fn(prev || []) : fn
@@ -166,38 +131,38 @@ export default function TimeLogs() {
 
   const startTimer = () => {
     if (!timerTask.trim()) { toast.error("Enter a task name first"); return }
-    startTimerFn(timerProject, timerTask, timerRate)
+    useTimerStore.getState().startTimer(timerProject, timerTask, timerRate)
     toast.success("Timer started! ⏱️")
   }
 
   const handleStopTimer = async () => {
-    setRunning(false)
-    const mins = Math.max(1, Math.round(seconds / 60))
-    const amount = parseFloat(((mins / 60) * timerRate).toFixed(2))
+    const state = useTimerStore.getState()
+    const mins = Math.max(1, Math.round(state.seconds / 60))
+    const amount = parseFloat(((mins / 60) * state.timerRate).toFixed(2))
     const tempId = "local_" + Date.now()
     const newLog = {
       _id: tempId,
-      project: timerProject,
-      task: timerTask,
+      project: state.timerProject,
+      task: state.timerTask,
       duration: mins,
       date: new Date().toISOString().split("T")[0],
-      rate: timerRate,
+      rate: state.timerRate,
       billed: false,
       notes: "",
       amount,
       createdAt: new Date().toISOString(),
     }
-    // ✅ Save locally immediately
     updateLogs(prev => [newLog, ...prev])
     toast.success(`Logged ${formatDuration(mins)}! 🎉`)
-    setSeconds(0)
-    setTimerTask("")
 
-    // Then try API
+    useTimerStore.getState().stopTimer()
+    useTimerStore.getState().setSeconds(0)
+    useTimerStore.getState().setTask("")
+
     try {
       const { data } = await api.post("/timelogs", {
-        project: timerProject, task: timerTask, duration: mins,
-        date: newLog.date, rate: timerRate, notes: "", billed: false,
+        project: state.timerProject, task: state.timerTask, duration: mins,
+        date: newLog.date, rate: state.timerRate, notes: "", billed: false,
       })
       const saved = data?.data
       if (saved?._id) {
@@ -240,13 +205,10 @@ export default function TimeLogs() {
     const amount = parseFloat(((mins / 60) * Number(form.rate)).toFixed(2))
     const tempId = "local_" + Date.now()
     const newLog = { _id: tempId, ...form, duration: mins, rate: Number(form.rate), billed: false, amount, createdAt: new Date().toISOString() }
-
-    // ✅ Optimistic save
     updateLogs(prev => [newLog, ...prev])
     toast.success("Time log added!")
     setShowModal(false)
     setForm(EMPTY_FORM)
-
     try {
       const { data } = await api.post("/timelogs", { ...form, duration: mins, rate: Number(form.rate), billed: false })
       const saved = data?.data
@@ -271,20 +233,18 @@ export default function TimeLogs() {
     try { await api.put(`/timelogs/${id}`, { billed: newVal }) } catch (_) {}
   }
 
-  const filtered = logs.filter(l => {
+  const filtered = (logs || []).filter(l => {
     const matchSearch = !search || l.project?.toLowerCase().includes(search.toLowerCase()) || l.task?.toLowerCase().includes(search.toLowerCase())
     const matchProject = filterProject === "all" || l.project === filterProject
     const matchBilled = filterBilled === "all" || (filterBilled === "billed" ? l.billed : !l.billed)
     return matchSearch && matchProject && matchBilled
   })
 
-  const totalMins = logs.reduce((s, l) => s + (l.duration || 0), 0)
-  const unbilledMins = logs.filter(l => !l.billed).reduce((s, l) => s + (l.duration || 0), 0)
-  const totalEarnings = logs.reduce((s, l) => s + ((l.duration / 60) * (l.rate || 0)), 0)
-  const unbilledEarnings = logs.filter(l => !l.billed).reduce((s, l) => s + ((l.duration / 60) * (l.rate || 0)), 0)
-
-  // Unique projects from logs for filter
-  const logProjects = [...new Set(logs.map(l => l.project).filter(Boolean))]
+  const totalMins = (logs || []).reduce((s, l) => s + (l.duration || 0), 0)
+  const unbilledMins = (logs || []).filter(l => !l.billed).reduce((s, l) => s + (l.duration || 0), 0)
+  const totalEarnings = (logs || []).reduce((s, l) => s + ((l.duration / 60) * (l.rate || 0)), 0)
+  const unbilledEarnings = (logs || []).filter(l => !l.billed).reduce((s, l) => s + ((l.duration / 60) * (l.rate || 0)), 0)
+  const logProjects = [...new Set((logs || []).map(l => l.project).filter(Boolean))]
 
   const progress = Math.min((seconds % 3600) / 3600, 1)
   const circumference = 2 * Math.PI * 80
@@ -294,16 +254,14 @@ export default function TimeLogs() {
 
   return (
     <div style={{ maxWidth: "1200px" }}>
-      {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "4px" }}>Time Logs</h1>
-          <p style={{ color: "var(--text2)", fontSize: "14px" }}>{logs.length} entries · {formatDuration(totalMins)} total</p>
+          <p style={{ color: "var(--text2)", fontSize: "14px" }}>{(logs || []).length} entries · {formatDuration(totalMins)} total</p>
         </div>
         <button onClick={() => setShowModal(true)} style={{ padding: "10px 20px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>+ Manual Entry</button>
       </div>
 
-      {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "14px", marginBottom: "24px" }}>
         {[
           { label: "Total Time",      value: formatDuration(totalMins),                          icon: "⏱️", color: "#6c63ff" },
@@ -325,8 +283,6 @@ export default function TimeLogs() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(300px, 340px)", gap: "20px", alignItems: "start" }}>
-
-        {/* ── Left: Log List ─────────────────────────────────────────────── */}
         <div>
           <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
@@ -344,7 +300,7 @@ export default function TimeLogs() {
             </select>
           </div>
 
-          {loading && logs.length === 0 ? (
+          {loading && (logs || []).length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)" }}>Loading...</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -391,25 +347,20 @@ export default function TimeLogs() {
               })}
               {filtered.length === 0 && (
                 <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)", background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: "40px", marginBottom: "12px" }}>⏱️</div>
-                    <p style={{ fontWeight: 600 }}>{logs.length === 0 ? "No time logs yet" : "No logs match your filters"}</p>
-                    <p style={{ fontSize: "13px", marginTop: "6px", color: "var(--text2)" }}>Start the timer or add a manual entry</p>
-                  </div>
+                  <div style={{ fontSize: "40px", marginBottom: "12px" }}>⏱️</div>
+                  <p style={{ fontWeight: 600 }}>{(logs || []).length === 0 ? "No time logs yet" : "No logs match your filters"}</p>
+                  <p style={{ fontSize: "13px", marginTop: "6px", color: "var(--text2)" }}>Start the timer or add a manual entry</p>
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* ── Right: Stopwatch + Summaries ───────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-
-          {/* Stopwatch */}
           <div style={{ background: "var(--surface)", border: "1px solid " + (running ? "rgba(108,99,255,0.5)" : "var(--border)"), borderRadius: "20px", padding: "28px 24px", textAlign: "center", transition: "border-color 0.3s", boxShadow: running ? "0 0 30px rgba(108,99,255,0.1)" : "none" }}>
             <p style={{ fontSize: "12px", fontWeight: 700, color: running ? "#6c63ff" : "var(--text2)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "20px" }}>
               {running ? "🔴 RECORDING..." : "⏱️ STOPWATCH"}
             </p>
-
-            {/* Ring */}
             <div style={{ position: "relative", width: "180px", height: "180px", margin: "0 auto 20px" }}>
               <svg width="180" height="180" style={{ transform: "rotate(-90deg)" }}>
                 <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surface2)" strokeWidth="8" />
@@ -428,21 +379,17 @@ export default function TimeLogs() {
                 </div>
               </div>
             </div>
-
-            {/* Inputs */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px", textAlign: "left" }}>
-              <select value={timerProject} onChange={e => setTimerProject(e.target.value)} disabled={running} style={{ ...inp, fontSize: "12px", padding: "8px 12px" }}>
+              <select value={timerProject} onChange={e => setProject(e.target.value)} disabled={running} style={{ ...inp, fontSize: "12px", padding: "8px 12px" }}>
                 <option value="">No project</option>
                 {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
-              <input value={timerTask} onChange={e => setTimerTask(e.target.value)} disabled={running} placeholder="What are you working on?" style={{ ...inp, fontSize: "12px", padding: "8px 12px" }} />
+              <input value={timerTask} onChange={e => setTask(e.target.value)} disabled={running} placeholder="What are you working on?" style={{ ...inp, fontSize: "12px", padding: "8px 12px" }} />
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <label style={{ fontSize: "11px", color: "var(--text2)", whiteSpace: "nowrap" }}>Rate ₹/hr:</label>
-                <input type="number" value={timerRate} onChange={e => setTimerRate(Number(e.target.value))} disabled={running} style={{ ...inp, fontSize: "12px", padding: "8px 12px" }} />
+                <input type="number" value={timerRate} onChange={e => setRate(Number(e.target.value))} disabled={running} style={{ ...inp, fontSize: "12px", padding: "8px 12px" }} />
               </div>
             </div>
-
-            {/* Controls */}
             <div style={{ display: "flex", gap: "8px" }}>
               {!running ? (
                 <button onClick={startTimer} style={{ flex: 1, padding: "13px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "15px" }}>▶ Start</button>
@@ -475,12 +422,11 @@ export default function TimeLogs() {
             </div>
           )}
 
-          {/* Today's Summary */}
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "20px" }}>
             <h3 style={{ fontSize: "14px", fontWeight: 700, marginBottom: "14px" }}>📅 Today's Summary</h3>
             {(() => {
               const today = new Date().toISOString().split("T")[0]
-              const todayLogs = logs.filter(l => l.date === today)
+              const todayLogs = (logs || []).filter(l => l.date === today)
               const todayMins = todayLogs.reduce((s, l) => s + l.duration, 0)
               const todayEarnings = todayLogs.reduce((s, l) => s + (l.duration / 60) * (l.rate || 0), 0)
               return todayLogs.length === 0 ? (
@@ -508,12 +454,11 @@ export default function TimeLogs() {
             })()}
           </div>
 
-          {/* Project Breakdown */}
           {logProjects.length > 0 && (
             <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "20px" }}>
               <h3 style={{ fontSize: "14px", fontWeight: 700, marginBottom: "14px" }}>🚀 By Project</h3>
               {logProjects.map(proj => {
-                const projLogs = logs.filter(l => l.project === proj)
+                const projLogs = (logs || []).filter(l => l.project === proj)
                 const mins = projLogs.reduce((s, l) => s + l.duration, 0)
                 const pct = totalMins > 0 ? Math.round((mins / totalMins) * 100) : 0
                 return (
@@ -533,7 +478,6 @@ export default function TimeLogs() {
         </div>
       </div>
 
-      {/* MANUAL ENTRY MODAL */}
       {showModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "500px" }}>

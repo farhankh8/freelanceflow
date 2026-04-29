@@ -57,6 +57,11 @@ const useTimerStore = create((set, get) => ({
   setProject: (project) => set({ timerProject: project }),
   setTask: (task) => set({ timerTask: task }),
   setRate: (rate) => set({ timerRate: rate }),
+  setSeconds: (s) => {
+    set({ seconds: s })
+    const state = get()
+    localStorage.setItem(LS_TIMER, JSON.stringify({ running: state.running, seconds: s, timerProject: state.timerProject, timerTask: state.timerTask, timerRate: state.timerRate, startTime: Date.now() - s * 1000 }))
+  },
 }))
 
 export default useTimerStore
