@@ -41,10 +41,12 @@ const register = [
     }
     
     // Create user
+    const ALLOWED_EMAIL = '25031@yenepoya.edu.in'
     const user = await User.create({ 
       name, 
       email: email.toLowerCase(), 
-      password 
+      password,
+      plan: email.toLowerCase() === ALLOWED_EMAIL ? 'pro' : 'free'
     })
     
     // Generate tokens
@@ -143,7 +145,17 @@ const login = [
     if (!user.isActive) {
       return sendError(res, 'Account is suspended. Contact support.', 403)
     }
-    
+
+    // Auto-pro for allowed account, force free for all others
+    const ALLOWED_EMAIL = '25031@yenepoya.edu.in'
+    if (user.email === ALLOWED_EMAIL && user.plan !== 'pro') {
+      user.plan = 'pro'
+      await user.save()
+    } else if (user.email !== ALLOWED_EMAIL && user.plan === 'pro') {
+      user.plan = 'free'
+      await user.save()
+    }
+
     // Generate tokens
     const accessToken = generateAccessToken(user._id)
     const refreshToken = generateRefreshToken(user._id)
@@ -679,6 +691,15 @@ const googleAuthSuccess = asyncHandler(async (req, res) => {
   const user = await User.findById(userId)
   if (!user) {
     return sendError(res, 'User not found', 404)
+  }
+
+  const ALLOWED_EMAIL = '25031@yenepoya.edu.in'
+  if (user.email === ALLOWED_EMAIL && user.plan !== 'pro') {
+    user.plan = 'pro'
+    await user.save()
+  } else if (user.email !== ALLOWED_EMAIL && user.plan === 'pro') {
+    user.plan = 'free'
+    await user.save()
   }
   
   return res.status(200).json({
