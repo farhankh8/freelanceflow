@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
   planExpiry: { type: Date, default: null },
   paymentId: { type: String, default: null },
-  role: { type: String, enum: ['manager', 'worker'], default: 'manager' },
+  role: { type: String, enum: ['manager', 'worker', 'user', 'admin', 'viewer'], default: 'manager' },
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   isWorkerAccount: { type: Boolean, default: false },
   phone: { type: String, default: '', maxlength: 20 },
