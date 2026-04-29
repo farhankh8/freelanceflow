@@ -27,11 +27,11 @@ export default function GoogleAuth() {
         if (response.data.accessToken) {
           localStorage.setItem("ff_token", response.data.accessToken)
           const user = response.data.user
-          setAuth(user)
+          setAuth(user, response.data.accessToken, response.data.refreshToken)
           localStorage.setItem("ff_user", JSON.stringify(user))
           addNotification({ type: "success", title: "Welcome!", message: `Logged in with Google successfully` })
           toast.success("Welcome!")
-          navigate("/billing")
+          navigate(user?.plan === "pro" ? "/app" : "/billing")
         }
       } catch (err) {
         toast.error("Google authentication failed")

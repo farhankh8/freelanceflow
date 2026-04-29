@@ -41,7 +41,7 @@ export default function Register() {
     try {
       const response = await api.post("/auth/register", { name, email, password })
       if (response.data.accessToken) localStorage.setItem("ff_token", response.data.accessToken)
-      setAuth(response.data.user)
+      setAuth(response.data.user, response.data.accessToken, response.data.refreshToken)
       localStorage.setItem("ff_user", JSON.stringify(response.data.user))
       addNotification({ type: "success", title: "Welcome to FreelanceFlow!", message: `Thanks for signing up, ${name}!` })
       toast.success(`Welcome to FreelanceFlow, ${name}!`)
