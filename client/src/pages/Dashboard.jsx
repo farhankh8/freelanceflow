@@ -35,20 +35,6 @@ export default function Dashboard() {
   const [time, setTime] = useState(new Date())
   const [seeding, setSeeding] = useState(false)
 
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  useEffect(() => { fetchAll() }, [])
-
-  useEffect(() => {
-    const handler = () => fetchAll()
-    window.addEventListener('focus', handler)
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchAll() })
-    return () => { window.removeEventListener('focus', handler); document.removeEventListener('visibilitychange', handler) }
-  }, [fetchAll])
-
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
@@ -120,6 +106,20 @@ export default function Dashboard() {
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }, [isWorker])
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  useEffect(() => {
+    const handler = () => fetchAll()
+    window.addEventListener('focus', handler)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchAll() })
+    return () => { window.removeEventListener('focus', handler); document.removeEventListener('visibilitychange', handler) }
+  }, [fetchAll])
 
   const loadSampleData = useCallback(async () => {
     if (!window.confirm("This will add sample data (clients, projects, invoices). Continue?")) return
