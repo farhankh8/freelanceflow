@@ -85,16 +85,18 @@ export default function Tasks() {
 
   const fetchAll = async () => {
     try {
-      const promises = [
+      const [taskRes, projRes] = await Promise.allSettled([
         api.get("/tasks"),
         api.get("/projects"),
-      ]
-      if (isManager) promises.push(api.get("/workers/assignable"))
-      const [taskRes, projRes, cliRes, workerRes] = await Promise.allSettled(promises)
-      setTasks(taskRes.status === "fulfilled" ? taskRes.value.data.tasks || [] : [])
-      setProjects(projRes.status === "fulfilled" ? projRes.value.data.projects || [] : [])
-      setClients(cliRes?.status === "fulfilled" ? cliRes.value.data.clients || [] : [])
-      if (workerRes?.status === "fulfilled") setWorkers(workerRes.value.data.data || [])
+      ])
+      setTasks(taskRes.status === "fulfilled" ? (taskRes.value.data.tasks || taskRes.value.data.data || []) : [])
+      setProjects(projRes.status === "fulfilled" ? (projRes.value.data.data || projRes.value.data.projects || []) : [])
+      if (isManager) {
+        try {
+          const { data } = await api.get("/workers/assignable")
+          setWorkers(data?.data || [])
+        } catch {}
+      }
     } catch { toast.error("Failed to load tasks") }
     finally { setLoading(false) }
   }
@@ -113,7 +115,7 @@ export default function Tasks() {
         estimatedHours: Number(form.estimatedHours) || 0,
         assignedTo: form.assignedTo || undefined,
       })
-      setTasks(prev => [data.data, ...(Array.isArray(prev) ? prev : [])])
+      setTasks(prev => [data.data || data.task, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Task created! ✅")
       setShowModal(false)
       setForm({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "", assignedTo: "" })
@@ -150,7 +152,8 @@ export default function Tasks() {
     } catch { toast.error("Failed to delete") }
   }
 
-  const filtered = tasks.filter(t => {
+  const safeTasks = Array.isArray(tasks) ? tasks : []
+  const filtered = safeTasks.filter(t => {
     if (search && !t.title?.toLowerCase().includes(search.toLowerCase())) return false
     if (filterProject && t.project?._id !== filterProject) return false
     if (filterPriority && t.priority !== filterPriority) return false
@@ -158,11 +161,11 @@ export default function Tasks() {
   })
 
   const taskStats = {
-    total: tasks.length,
-    todo: tasks.filter(t => t.status === "todo").length,
-    inProgress: tasks.filter(t => t.status === "in_progress").length,
-    done: tasks.filter(t => t.status === "done").length,
-    overdue: tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "done").length
+    total: safeTasks.length,
+    todo: safeTasks.filter(t => t.status === "todo").length,
+    inProgress: safeTasks.filter(t => t.status === "in_progress").length,
+    done: safeTasks.filter(t => t.status === "done").length,
+    overdue: safeTasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "done").length
   }
 
   const inp = { width: "100%", padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "13px", outline: "none", boxSizing: "border-box" }
