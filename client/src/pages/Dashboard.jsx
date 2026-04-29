@@ -21,7 +21,8 @@ const SkeletonCard = () => (
 
 export default function Dashboard() {
   const { user } = useAuthStore()
-  const [stats, setStats] = useState({ clients: 0, projects: 0, invoices: 0, revenue: 0, leads: 0, expenses: 0, payments: 0, timelogs: 0 })
+  const isWorker = user?.role === "worker"
+  const [stats, setStats] = useState({ clients: 0, projects: 0, invoices: 0, revenue: 0, leads: 0, expenses: 0, payments: 0, timelogs: 0, tasks: 0, tasksDone: 0 })
   const [recentClients, setRecentClients] = useState([])
   const [recentInvoices, setRecentInvoices] = useState([])
   const [projects, setProjects] = useState([])
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const [payments, setPayments] = useState([])
   const [expenses, setExpenses] = useState([])
   const [timelogs, setTimelogs] = useState([])
+  const [workerTasks, setWorkerTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [time, setTime] = useState(new Date())
   const [seeding, setSeeding] = useState(false)
@@ -43,50 +45,72 @@ export default function Dashboard() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const results = await Promise.all([
-        api.get("/clients?limit=10"),
-        api.get("/projects?limit=10"),
-        api.get("/invoices?limit=10"),
-        api.get("/leads?limit=10"),
-        api.get("/payments?limit=10"),
-        api.get("/expenses?limit=10"),
-        api.get("/timelogs?limit=10"),
-      ])
-      
-      const clientsData = results[0]?.data?.data || []
-      const projectsData = results[1]?.data?.data || []
-      const invoicesData = results[2]?.data?.data || []
-      const leadsData = results[3]?.data?.data || []
-      const paymentsData = results[4]?.data?.data || []
-      const expensesData = results[5]?.data?.data || []
-      const timelogsData = results[6]?.data?.data || []
+      if (isWorker) {
+        const [tl, tasks, pay] = await Promise.allSettled([
+          api.get("/timelogs"),
+          api.get("/tasks"),
+          api.get("/worker-payments"),
+        ])
+        const timelogsRaw = tl.value?.data
+        const timelogsData = timelogsRaw?.timelogs || timelogsRaw?.data || []
+        const tasksData = tasks.value?.data?.tasks || []
+        const payData = pay.value?.data?.data || []
+        const totalEarned = payData.filter(p => p.status === "paid").reduce((s, p) => s + (p.amount || 0), 0)
 
-      const revenue = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
-      const totalExpenses = expensesData.reduce((s, e) => s + (e.amount || 0), 0)
+        setStats({
+          tasks: tasksData.length,
+          tasksDone: tasksData.filter(t => t.status === "done").length,
+          timelogs: timelogsData.reduce((s, t) => s + (t.duration || 0), 0),
+          revenue: totalEarned,
+          clients: 0, projects: 0, invoices: 0, leads: 0, expenses: 0, payments: payData.length,
+        })
+        setWorkerTasks(tasksData)
+        setTimelogs(timelogsData)
+      } else {
+        const [c, p, inv, l, pay, exp, tl] = await Promise.allSettled([
+          api.get("/clients"),
+          api.get("/projects"),
+          api.get("/invoices"),
+          api.get("/leads"),
+          api.get("/payments"),
+          api.get("/expenses"),
+          api.get("/timelogs"),
+        ])
+        const clients      = c.value?.data?.clients   || []
+        const projs        = p.value?.data?.projects  || []
+        const invoices     = inv.value?.data?.invoices || []
+        const leadsData    = l.value?.data?.data       || []
+        const paymentsRaw  = pay.value?.data
+        const paymentsData = paymentsRaw?.payments || paymentsRaw?.data || []
+        const expensesRaw  = exp.value?.data
+        const expensesData = expensesRaw?.expenses || expensesRaw?.data || []
+        const timelogsRaw  = tl.value?.data
+        const timelogsData = timelogsRaw?.timelogs || timelogsRaw?.data || []
 
-      setStats({
-        clients: clientsData.length,
-        projects: projectsData.filter(p => p.status === "active").length,
-        invoices: invoicesData.length,
-        revenue,
-        leads: leadsData.length,
-        expenses: totalExpenses,
-        payments: paymentsData.length,
-        timelogs: timelogsData.reduce((s, t) => s + (t.duration || 0), 0),
-      })
-      setRecentClients(clientsData.slice(0, 5))
-      setRecentInvoices(invoicesData.slice(0, 4))
-      setProjects(projectsData.slice(0, 4))
-      setLeads(leadsData.slice(0, 5))
-      setPayments(paymentsData.slice(0, 5))
-      setExpenses(expensesData)
-      setTimelogs(timelogsData)
-    } catch {
-      toast.error("Failed to load dashboard data")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+        const revenue      = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
+        const totalExpenses = expensesData.reduce((s, e) => s + (e.amount || 0), 0)
+
+        setStats({
+          clients:  clients.length,
+          projects: projs.filter(p => p.status === "active").length,
+          invoices: invoices.length,
+          revenue,
+          leads:    leadsData.length,
+          expenses: totalExpenses,
+          payments: paymentsData.length,
+          timelogs: timelogsData.reduce((s, t) => s + (t.duration || 0), 0),
+        })
+        setRecentClients(clients.slice(0, 5))
+        setRecentInvoices(invoices.slice(0, 4))
+        setProjects(projs.slice(0, 4))
+        setLeads(leadsData.slice(0, 5))
+        setPayments(paymentsData.slice(0, 5))
+        setExpenses(expensesData)
+        setTimelogs(timelogsData)
+      }
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }, [isWorker])
 
   const loadSampleData = useCallback(async () => {
     if (!window.confirm("This will add sample data (clients, projects, invoices). Continue?")) return
@@ -137,7 +161,12 @@ export default function Dashboard() {
     return expenses.filter(e => new Date(e.date).toISOString().substring(0, 7) === key).reduce((s, e) => s + (e.amount || 0), 0)
   }), [expenses])
 
-  const statCards = useMemo(() => [
+  const statCards = isWorker ? [
+    { label: "My Tasks",       value: stats.tasks,         icon: "✅", color: "#6c63ff", link: "/app/tasks"  },
+    { label: "Tasks Done",     value: stats.tasksDone,     icon: "🎉", color: "#00d97e", link: "/app/tasks"  },
+    { label: "Time Logged",    value: Math.floor(stats.timelogs / 60) + "h", icon: "⏱️", color: "#a78bfa", link: "/app/time" },
+    { label: "Earned",         value: "₹" + stats.revenue.toLocaleString(), icon: "💰", color: "#ffb800", link: "/app/worker-payments" },
+  ] : [
     { label: "Total Clients",   value: stats.clients,  icon: "👥", color: "#6c63ff", link: "/app/clients"  },
     { label: "Active Projects", value: stats.projects, icon: "🚀", color: "#ffb800", link: "/app/projects" },
     { label: "Total Revenue",   value: "₹" + stats.revenue.toLocaleString(), icon: "💰", color: "#00d97e", link: "/app/payments" },
@@ -146,9 +175,13 @@ export default function Dashboard() {
     { label: "Expenses",        value: "₹" + stats.expenses.toLocaleString(), icon: "💸", color: "#ff4d6d", link: "/app/expenses" },
     { label: "Time Logged",     value: Math.floor(stats.timelogs / 60) + "h", icon: "⏱️", color: "#a78bfa", link: "/app/time" },
     { label: "Payments",        value: stats.payments, icon: "💳", color: "#00c9a7", link: "/app/payments" },
-  ], [stats])
+  ]
 
-  const quickActions = useMemo(() => [
+  const quickActions = isWorker ? [
+    { label: "My Tasks",     icon: "✅", link: "/app/tasks",      color: "#6c63ff" },
+    { label: "Log Time",     icon: "⏱️", link: "/app/time",       color: "#a78bfa" },
+    { label: "My Payments",  icon: "💳", link: "/app/worker-payments", color: "#00c9a7" },
+  ] : [
     { label: "New Client",      icon: "👥", link: "/app/clients",   color: "#6c63ff" },
     { label: "New Project",     icon: "🚀", link: "/app/projects",  color: "#ffb800" },
     { label: "New Invoice",     icon: "🧾", link: "/app/invoices",  color: "#00d97e" },
@@ -157,7 +190,7 @@ export default function Dashboard() {
     { label: "Add Expense",     icon: "💸", link: "/app/expenses",  color: "#ff4d6d" },
     { label: "New Proposal",    icon: "📝", link: "/app/proposals", color: "#2CA5E0" },
     { label: "Record Payment",  icon: "💳", link: "/app/payments",  color: "#00c9a7" },
-  ], [])
+  ]
 
   if (loading) return (
     <div style={{ maxWidth: "1300px" }}>
@@ -192,14 +225,16 @@ export default function Dashboard() {
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           <button onClick={fetchAll} style={{ padding: "9px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text2)", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>🔄 Refresh</button>
-          <button onClick={loadSampleData} disabled={seeding} style={{ padding: "9px 18px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "10px", color: "#6c63ff", cursor: seeding ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: seeding ? 0.7 : 1 }}>
-            {seeding ? "⏳ Loading..." : "📊 Load Sample Data"}
-          </button>
-          {stats.clients > 0 && (
-            <button onClick={clearAllData} style={{ padding: "9px 18px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
-              🗑️ Clear Data
+          {!isWorker && <>
+            <button onClick={loadSampleData} disabled={seeding} style={{ padding: "9px 18px", background: "rgba(108,99,255,0.1)", border: "1px solid rgba(108,99,255,0.3)", borderRadius: "10px", color: "#6c63ff", cursor: seeding ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, opacity: seeding ? 0.7 : 1 }}>
+              {seeding ? "⏳ Loading..." : "📊 Load Sample Data"}
             </button>
-          )}
+            {stats.clients > 0 && (
+              <button onClick={clearAllData} style={{ padding: "9px 18px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
+                🗑️ Clear Data
+              </button>
+            )}
+          </>}
         </div>
       </div>
 
@@ -244,6 +279,8 @@ export default function Dashboard() {
       </div>
 
       {/* Charts */}
+      {!isWorker && (
+      <>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
@@ -403,6 +440,8 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+      </>
+      )}
 
       {/* Quick Actions */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "22px", marginBottom: "20px" }}>
@@ -422,6 +461,7 @@ export default function Dashboard() {
       </div>
 
       {/* P&L Summary */}
+      {!isWorker && (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "14px" }}>
         <div style={{ background: "linear-gradient(135deg,rgba(0,217,126,0.15),rgba(0,217,126,0.05))", border: "1px solid rgba(0,217,126,0.3)", borderRadius: "16px", padding: "20px" }}>
           <div style={{ fontSize: "12px", color: "#00d97e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>💰 Total Revenue</div>
@@ -439,6 +479,7 @@ export default function Dashboard() {
           <div style={{ fontSize: "12px", color: "var(--text2)", marginTop: "4px" }}>Revenue minus expenses</div>
         </div>
       </div>
+      )}
     </div>
   )
 }

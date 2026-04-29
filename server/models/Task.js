@@ -20,6 +20,7 @@ const taskSchema = new mongoose.Schema({
   estimatedHours: { type: Number, default: 0 },
   actualHours: { type: Number, default: 0 },
   order: { type: Number, default: 0 },
+  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   assignee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   labels: [{ type: String }],
 }, { timestamps: true })

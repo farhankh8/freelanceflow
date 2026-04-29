@@ -32,6 +32,8 @@ const Meetings = lazy(() => import("./pages/Meetings"))
 const ClientPortal = lazy(() => import("./pages/ClientPortal"))
 const Help = lazy(() => import("./pages/Help"))
 const Billing = lazy(() => import("./pages/Billing"))
+const Workers = lazy(() => import("./pages/Workers"))
+const WorkerPayments = lazy(() => import("./pages/WorkerPayments"))
 
 const PageLoader = () => (
   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", flexDirection: "column", gap: "16px", color: "var(--text2)" }}>
@@ -143,6 +145,8 @@ export default function App() {
           <Route path="clients-portal" element={<ClientPortal />} />
           <Route path="settings" element={<Settings />} />
           <Route path="help" element={<Help />} />
+          <Route path="workers" element={<Workers />} />
+          <Route path="worker-payments" element={<WorkerPayments />} />
           <Route path="marketplace" element={<ComingSoon title="Find Projects" />} />
           <Route path="documents" element={<ComingSoon title="Documents" />} />
           <Route path="templates" element={<ComingSoon title="Templates" />} />

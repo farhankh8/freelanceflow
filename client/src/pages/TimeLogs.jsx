@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
+import useAuthStore from "../store/authStore"
 import useTimerStore from "../store/timerStore"
 
 const LS_KEY = "freelanceflow_timelogs"
@@ -38,6 +39,8 @@ function saveLogs(logs) {
 }
 
 export default function TimeLogs() {
+  const { user } = useAuthStore()
+  const isWorker = user?.role === "worker"
   const [logs, setLogs] = useState(() => loadLogs())
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
@@ -54,7 +57,13 @@ export default function TimeLogs() {
   const setTimerRate = (v) => useTimerStore.getState().setRate(v)
   const setRunning = (v) => v ? startTimerFn(timerProject, timerTask, timerRate) : stopTimerFn()
 
-  // ── Fetch projects from API for dropdown ─────────────────────────────────
+  const [activeSession, setActiveSession] = useState(null)
+  const [sessionSeconds, setSessionSeconds] = useState(0)
+  const [sessionTask, setSessionTask] = useState("")
+  const [workerTasks, setWorkerTasks] = useState([])
+  const sessionIntervalRef = useRef(null)
+
+  // ── Fetch projects from API for dropdown ────────────────────────────────
   useEffect(() => {
     api.get("/projects")
       .then(res => {
@@ -63,6 +72,67 @@ export default function TimeLogs() {
         if (list.length > 0 && !timerProject) setTimerProject(list[0].name)
       })
       .catch(() => {})
+
+    if (isWorker) {
+      api.get("/tasks").then(({ data }) => {
+        setWorkerTasks((data?.tasks || []).map(t => ({ id: t._id, name: t.title })))
+      }).catch(() => {})
+      api.get("/work-sessions/my").then(({ data }) => {
+        const sessions = data?.data || []
+        const active = sessions.find(s => s.isActive)
+        if (active) {
+          setActiveSession(active)
+          const elapsed = Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000)
+          setSessionSeconds(elapsed)
+        }
+      }).catch(() => {})
+    }
+  }, [])
+
+  // ── Timer interval ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
+    } else {
+      clearInterval(intervalRef.current)
+    }
+    return () => clearInterval(intervalRef.current)
+  }, [running])
+
+  useEffect(() => {
+    if (activeSession) {
+      sessionIntervalRef.current = setInterval(() => setSessionSeconds(s => s + 1), 1000)
+    } else {
+      clearInterval(sessionIntervalRef.current)
+    }
+    return () => clearInterval(sessionIntervalRef.current)
+  }, [activeSession])
+
+  // ── Persist timer state (survives page nav) ───────────────────────────────
+  useEffect(() => {
+    if (running) {
+      localStorage.setItem(LS_TIMER, JSON.stringify({ running, seconds, timerProject, timerTask, timerRate, startTime: Date.now() - seconds * 1000 }))
+    } else {
+      localStorage.removeItem(LS_TIMER)
+    }
+  }, [running, seconds])
+
+  // ── Restore timer on mount ────────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LS_TIMER)
+      if (saved) {
+        const data = JSON.parse(saved)
+        if (data.running && data.startTime) {
+          const elapsed = Math.floor((Date.now() - data.startTime) / 1000)
+          setSeconds(elapsed)
+          setRunning(true)
+          setTimerProject(data.timerProject || "")
+          setTimerTask(data.timerTask || "")
+          setTimerRate(data.timerRate || 1500)
+        }
+      }
+    } catch (_) {}
   }, [])
 
   // ── Fetch logs from API, merge with local ─────────────────────────────────
@@ -94,7 +164,7 @@ export default function TimeLogs() {
     })
   }
 
-  const handleStartTimer = () => {
+  const startTimer = () => {
     if (!timerTask.trim()) { toast.error("Enter a task name first"); return }
     startTimerFn(timerProject, timerTask, timerRate)
     toast.success("Timer started! ⏱️")
@@ -139,6 +209,29 @@ export default function TimeLogs() {
   const resetTimer = () => {
     reset()
     toast("Timer reset")
+  }
+
+  const startSession = async () => {
+    try {
+      const { data } = await api.post("/work-sessions/start", { taskId: sessionTask || undefined, description: "" })
+      setActiveSession(data.data)
+      setSessionSeconds(0)
+      toast.success("Session started! ⏱️")
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to start session")
+    }
+  }
+
+  const stopSession = async () => {
+    try {
+      const { data } = await api.post(`/work-sessions/${activeSession._id}/stop`)
+      setActiveSession(null)
+      setSessionSeconds(0)
+      const mins = Math.max(1, Math.round(data.data.duration / 60))
+      toast.success(`Session saved: ${formatDuration(mins)} ⏱️`)
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to stop session")
+    }
   }
 
   const handleAddManual = async () => {
@@ -233,7 +326,7 @@ export default function TimeLogs() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(300px, 340px)", gap: "20px", alignItems: "start" }}>
 
-        {/* ── Left: Log List ──────────────────────────────────────────────── */}
+        {/* ── Left: Log List ─────────────────────────────────────────────── */}
         <div>
           <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
@@ -298,10 +391,10 @@ export default function TimeLogs() {
               })}
               {filtered.length === 0 && (
                 <div style={{ textAlign: "center", padding: "60px", color: "var(--text2)", background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "40px", marginBottom: "12px" }}>⏱️</div>
-                  <p style={{ fontWeight: 600 }}>{logs.length === 0 ? "No time logs yet" : "No logs match your filters"}</p>
-                  <p style={{ fontSize: "13px", marginTop: "6px", color: "var(--text2)" }}>Start the timer or add a manual entry</p>
-                </div>
+                    <div style={{ fontSize: "40px", marginBottom: "12px" }}>⏱️</div>
+                    <p style={{ fontWeight: 600 }}>{logs.length === 0 ? "No time logs yet" : "No logs match your filters"}</p>
+                    <p style={{ fontSize: "13px", marginTop: "6px", color: "var(--text2)" }}>Start the timer or add a manual entry</p>
+                  </div>
               )}
             </div>
           )}
@@ -352,7 +445,7 @@ export default function TimeLogs() {
             {/* Controls */}
             <div style={{ display: "flex", gap: "8px" }}>
               {!running ? (
-                <button onClick={handleStartTimer} style={{ flex: 1, padding: "13px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "15px" }}>▶ Start</button>
+                <button onClick={startTimer} style={{ flex: 1, padding: "13px", background: "linear-gradient(135deg,#6c63ff,#ff6584)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "15px" }}>▶ Start</button>
               ) : (
                 <>
                   <button onClick={handleStopTimer} style={{ flex: 2, padding: "13px", background: "linear-gradient(135deg,#00d97e,#00c9a7)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>⏹ Stop & Save</button>
@@ -361,6 +454,26 @@ export default function TimeLogs() {
               )}
             </div>
           </div>
+
+          {isWorker && (
+            <div style={{ background: "var(--surface)", border: "1px solid " + (activeSession ? "rgba(0,217,126,0.5)" : "var(--border)"), borderRadius: "20px", padding: "24px", textAlign: "center" }}>
+              <p style={{ fontSize: "12px", fontWeight: 700, color: activeSession ? "#00d97e" : "var(--text2)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "16px" }}>
+                {activeSession ? "🟢 SESSION ACTIVE" : "👷 WORK SESSION"}
+              </p>
+              <div style={{ fontSize: "28px", fontWeight: 800, fontFamily: "monospace", letterSpacing: "2px", color: activeSession ? "#00d97e" : "var(--text)", marginBottom: "16px" }}>
+                {formatTime(sessionSeconds)}
+              </div>
+              <select value={sessionTask} onChange={e => setSessionTask(e.target.value)} disabled={!!activeSession} style={{ ...inp, fontSize: "12px", padding: "8px 12px", marginBottom: "12px" }}>
+                <option value="">Select a task (optional)</option>
+                {workerTasks.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              {!activeSession ? (
+                <button onClick={startSession} style={{ width: "100%", padding: "12px", background: "linear-gradient(135deg,#00d97e,#00c9a7)", border: "none", borderRadius: "10px", color: "#fff", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>▶ Start Session</button>
+              ) : (
+                <button onClick={stopSession} style={{ width: "100%", padding: "12px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "10px", color: "#ff4d6d", fontWeight: 800, cursor: "pointer", fontSize: "14px" }}>⏹ Stop Session</button>
+              )}
+            </div>
+          )}
 
           {/* Today's Summary */}
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "20px" }}>

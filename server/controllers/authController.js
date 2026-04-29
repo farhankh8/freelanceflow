@@ -88,7 +88,8 @@ const register = [
       success: true,
       message: 'Registration successful',
       accessToken,
-      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled },
+      refreshToken,
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled, role: user.role || 'manager' },
       timestamp: new Date().toISOString()
     })
   })
@@ -178,7 +179,8 @@ const login = [
       success: true,
       message: 'Login successful',
       accessToken,
-      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled },
+      refreshToken,
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, twoFactorEnabled: user.twoFactorEnabled, role: user.role || 'manager' },
       timestamp: new Date().toISOString()
     })
   })
@@ -189,7 +191,7 @@ const login = [
  */
 const refresh = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken
-   
+    
   if (!refreshToken) {
     return sendError(res, 'Refresh token required', 401)
   }
@@ -299,6 +301,10 @@ const getMe = asyncHandler(async (req, res) => {
  * Update profile
  */
 const updateProfile = asyncHandler(async (req, res) => {
+  if (req.user.role === 'worker') {
+    return sendError(res, 'Workers cannot update profile information. Contact your manager.', 403)
+  }
+  
   const allowedFields = ['name', 'phone', 'settings', 'avatar', 'bio']
   const updates = {}
   
@@ -679,7 +685,7 @@ const googleAuthSuccess = asyncHandler(async (req, res) => {
     success: true,
     message: 'Google login successful',
     accessToken: token,
-    user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, planExpiry: user.planExpiry, twoFactorEnabled: user.twoFactorEnabled, source: user.source, createdAt: user.createdAt },
+    user: { id: user._id, name: user.name, email: user.email, phone: user.phone, settings: user.settings, plan: user.plan, planExpiry: user.planExpiry, twoFactorEnabled: user.twoFactorEnabled, source: user.source, createdAt: user.createdAt, role: user.role || 'manager' },
     timestamp: new Date().toISOString()
   })
 })

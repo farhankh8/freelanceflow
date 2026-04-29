@@ -36,6 +36,42 @@ const navGroups = [
   ]}
 ]
 
+const workerNavGroups = [
+  { label: "Work", items: [
+    { to: "/app", icon: "⬡", label: "Dashboard" },
+    { to: "/app/tasks", icon: "✅", label: "Tasks" },
+    { to: "/app/time", icon: "⏱️", label: "Time Logs" },
+    { to: "/app/worker-payments", icon: "💳", label: "Payments" },
+  ]},
+]
+
+const managerNavGroups = [
+  ...navGroups.slice(0, 2),
+  { label: "Finance", items: [
+    { to: "/app/payments", icon: "💳", label: "Payments" },
+    { to: "/app/time", icon: "⏱️", label: "Time Logs" },
+    { to: "/app/proposals", icon: "📝", label: "Proposals" },
+    { to: "/app/contracts", icon: "📜", label: "Contracts" },
+  ]},
+  { label: "Work", items: [
+    { to: "/app/tasks", icon: "✅", label: "Tasks" },
+    { to: "/app/calendar", icon: "📅", label: "Calendar" },
+    { to: "/app/kanban", icon: "📌", label: "Kanban" },
+    { to: "/app/meetings", icon: "🎥", label: "Meetings" },
+  ]},
+  { label: "Team", items: [
+    { to: "/app/workers", icon: "👥", label: "Workers" },
+  ]},
+  { label: "Growth", items: [
+    { to: "/app/reports", icon: "📊", label: "Reports" },
+    { to: "/app/clients-portal", icon: "🏠", label: "Client Portal" },
+  ]},
+  { label: "Tools", items: [
+    { to: "/app/settings", icon: "⚙️", label: "Settings" },
+    { to: "/app/help", icon: "❓", label: "Help" },
+  ]}
+]
+
 const badgeColors = { "New": { bg: "rgba(0,217,126,0.15)", color: "#00d97e", border: "rgba(0,217,126,0.3)" } }
 
 export default memo(function Layout() {
@@ -53,6 +89,9 @@ export default memo(function Layout() {
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
   }, [showNotif])
+
+  const isWorker = user?.role === "worker"
+  const groups = isWorker ? workerNavGroups : managerNavGroups
 
   const handleLogout = useCallback(() => { logout(); toast.success("Logged out!"); navigate("/") }, [logout, navigate])
 
@@ -85,7 +124,7 @@ export default memo(function Layout() {
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: collapsed ? "8px 6px" : "10px 8px" }}>
-          {navGroups.map(group => (
+          {groups.map(group => (
             <div key={group.label} style={{ marginBottom: "16px" }}>
               {!collapsed && <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.12em", padding: "0 6px", marginBottom: "4px" }}>{group.label}</div>}
               {group.items.map(({ to, icon, label, badge }) => {

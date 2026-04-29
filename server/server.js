@@ -15,6 +15,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const { logger, requestLogger, errorLogger } = require('./config/logger');
 const googleStrategy = require('./config/passport');
+const { blockWorker } = require('./middleware/roleAuth');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -32,6 +33,9 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const seedRoutes = require('./routes/seedRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const workerRoutes = require('./routes/workerRoutes');
+const workSessionRoutes = require('./routes/workSessionRoutes');
+const workerPaymentRoutes = require('./routes/workerPaymentRoutes');
 
 const app = express();
 
@@ -122,21 +126,24 @@ app.use('/api/v1/auth/register', registerLimiter);
 
 // Mount API routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/clients', clientRoutes);
+app.use('/api/v1/clients', blockWorker, clientRoutes);
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/timelogs', timeLogRoutes);
-app.use('/api/v1/invoices', invoiceRoutes);
-app.use('/api/v1/leads', leadRoutes);
-app.use('/api/v1/contacts', contactRoutes);
-app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/invoices', blockWorker, invoiceRoutes);
+app.use('/api/v1/leads', blockWorker, leadRoutes);
+app.use('/api/v1/contacts', blockWorker, contactRoutes);
+app.use('/api/v1/expenses', blockWorker, expenseRoutes);
 app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/proposals', proposalRoutes);
-app.use('/api/v1/dashboard', sensitiveLimiter, dashboardRoutes);
-app.use('/api/v1/seed', seedRoutes);
+app.use('/api/v1/proposals', blockWorker, proposalRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/seed', blockWorker, seedRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/ai', aiRoutes);
-app.use('/api/v1/contracts', require('./routes/contractRoutes'));
+app.use('/api/v1/contracts', blockWorker, require('./routes/contractRoutes'));
+app.use('/api/v1/workers', workerRoutes);
+app.use('/api/v1/work-sessions', workSessionRoutes);
+app.use('/api/v1/worker-payments', workerPaymentRoutes);
 app.use('/api/v1/subscribe', require('./routes/subscribeRoutes'));
 app.use('/api/v1/support', require('./routes/supportRoutes'));
 app.use('/api/v1/admin', require('./routes/adminRoutes'));

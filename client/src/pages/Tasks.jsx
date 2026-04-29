@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import api from "../lib/api"
 import toast from "react-hot-toast"
+import useAuthStore from "../store/authStore"
 
 const STATUS = {
   todo: { label: "To Do", color: "#6c63ff", bg: "rgba(108,99,255,0.15)", border: "rgba(108,99,255,0.3)" },
@@ -41,6 +42,12 @@ function TaskCard({ task, onClick, onDragStart }) {
         <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "8px", fontWeight: 800, color: "#fff" }}>{task.project?.title?.[0] || "P"}</div>
         <span style={{ fontSize: "10px", color: "var(--text2)" }}>{task.project?.title || "Project"}</span>
       </div>
+      {task.assignedTo && (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+          <div style={{ width: "16px", height: "16px", borderRadius: "50%", background: "linear-gradient(135deg,#00d97e,#2CA5E0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "7px", fontWeight: 800, color: "#fff" }}>{task.assignedTo.name?.charAt(0).toUpperCase()}</div>
+          <span style={{ fontSize: "10px", color: "#94a3b8" }}>{task.assignedTo.name}</span>
+        </div>
+      )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {task.estimatedHours > 0 && (
           <span style={{ fontSize: "11px", color: "var(--text2)" }}>{task.actualHours || 0}/{task.estimatedHours}h</span>
@@ -56,9 +63,12 @@ function TaskCard({ task, onClick, onDragStart }) {
 }
 
 export default function Tasks() {
+  const { user } = useAuthStore()
+  const isManager = user?.role !== "worker"
   const [tasks, setTasks] = useState([])
   const [projects, setProjects] = useState([])
   const [clients, setClients] = useState([])
+  const [workers, setWorkers] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState("kanban")
   const [showModal, setShowModal] = useState(false)
@@ -69,20 +79,22 @@ export default function Tasks() {
   const [dragId, setDragId] = useState(null)
   const [dragOver, setDragOver] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "" })
+  const [form, setForm] = useState({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "", assignedTo: "" })
 
   useEffect(() => { fetchAll() }, [])
 
   const fetchAll = async () => {
     try {
-      const [taskRes, projRes, cliRes] = await Promise.all([
+      const promises = [
         api.get("/tasks"),
         api.get("/projects"),
-        api.get("/clients")
-      ])
-      setTasks(taskRes.data.data || [])
-      setProjects(projRes.data.data || [])
-      setClients(cliRes.data.data || [])
+      ]
+      if (isManager) promises.push(api.get("/workers/assignable"))
+      const [taskRes, projRes, cliRes, workerRes] = await Promise.allSettled(promises)
+      setTasks(taskRes.status === "fulfilled" ? taskRes.value.data.tasks || [] : [])
+      setProjects(projRes.status === "fulfilled" ? projRes.value.data.projects || [] : [])
+      setClients(cliRes?.status === "fulfilled" ? cliRes.value.data.clients || [] : [])
+      if (workerRes?.status === "fulfilled") setWorkers(workerRes.value.data.data || [])
     } catch { toast.error("Failed to load tasks") }
     finally { setLoading(false) }
   }
@@ -98,13 +110,14 @@ export default function Tasks() {
         projectId: form.projectId,
         priority: form.priority,
         dueDate: form.dueDate || undefined,
-        estimatedHours: Number(form.estimatedHours) || 0
+        estimatedHours: Number(form.estimatedHours) || 0,
+        assignedTo: form.assignedTo || undefined,
       })
       setTasks(prev => [data.data, ...(Array.isArray(prev) ? prev : [])])
       toast.success("Task created! ✅")
       setShowModal(false)
-      setForm({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "" })
-    } catch (err) { toast.error(err?.response?.data?.message || "Failed to create task") }
+      setForm({ title: "", description: "", projectId: "", priority: "medium", dueDate: "", estimatedHours: "", assignedTo: "" })
+    } catch (err) { toast.error(err?.response?.data?.error || "Failed to create task") }
     finally { setSaving(false) }
   }
 
@@ -260,7 +273,7 @@ export default function Tasks() {
               </div>
             )
           })}
-        </div>
+          </div>
         </div>
       )}
 
@@ -302,6 +315,15 @@ export default function Tasks() {
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Estimated Hours</label>
                   <input type="number" value={form.estimatedHours} onChange={e => setForm(f => ({ ...f, estimatedHours: e.target.value }))} placeholder="0" style={inp} />
                 </div>
+                {isManager && workers.length > 0 && (
+                  <div>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--text2)", marginBottom: "6px", textTransform: "uppercase" }}>Assign to Worker</label>
+                    <select value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))} style={inp}>
+                      <option value="">Unassigned</option>
+                      {workers.map(w => <option key={w._id} value={w._id}>{w.name}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
               <div style={{ display: "flex", gap: "10px", paddingTop: "8px" }}>
                 <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
@@ -343,6 +365,15 @@ export default function Tasks() {
                   <div style={{ fontSize: "11px", color: "var(--text2)", textTransform: "uppercase", marginBottom: "4px" }}>Estimated</div>
                   <div style={{ fontSize: "14px", fontWeight: 700 }}>{selected.estimatedHours || 0}h</div>
                 </div>
+                {isManager && selected.assignedTo && (
+                  <div style={{ background: "var(--surface2)", borderRadius: "10px", padding: "12px 16px", gridColumn: "1 / -1" }}>
+                    <div style={{ fontSize: "11px", color: "var(--text2)", textTransform: "uppercase", marginBottom: "4px" }}>Assigned To</div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "linear-gradient(135deg,#6c63ff,#ff6584)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 800, color: "#fff" }}>{selected.assignedTo?.name?.charAt(0).toUpperCase()}</div>
+                      {selected.assignedTo?.name || "Worker"}
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", marginBottom: "10px" }}>Update Status</div>
@@ -353,6 +384,19 @@ export default function Tasks() {
                   ))}
                 </div>
               </div>
+              {isManager && workers.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", marginBottom: "10px" }}>Assign to Worker</div>
+                  <select value={selected.assignedTo?._id || ""} onChange={e => {
+                    const worker = workers.find(w => w._id === e.target.value)
+                    updateTask(selected._id, { assignedTo: e.target.value || null })
+                    setSelected(prev => ({ ...prev, assignedTo: worker || null }))
+                  }} style={{ ...inp, maxWidth: "260px" }}>
+                    <option value="">Unassigned</option>
+                    {workers.map(w => <option key={w._id} value={w._id}>{w.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={() => setSelected(null)} style={{ flex: 1, padding: "11px", background: "transparent", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text2)", cursor: "pointer", fontWeight: 600 }}>Close</button>
                 <button onClick={() => deleteTask(selected._id)} style={{ flex: 1, padding: "11px", background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", borderRadius: "8px", color: "#ff4d6d", cursor: "pointer", fontWeight: 700 }} aria-label="Delete task">🗑️ Delete</button>

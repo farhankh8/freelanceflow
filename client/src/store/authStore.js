@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { createJSONStorage } from "zustand/middleware"
 
 const getStoredUser = () => {
   try {
@@ -12,10 +13,14 @@ const getStoredUser = () => {
 const useAuthStore = create(
   (set, get) => ({
     user: getStoredUser(),
+    accessToken: localStorage.getItem("ff_token") || null,
+    refreshToken: localStorage.getItem("ff_refresh_token") || null,
     isAuthenticated: !!localStorage.getItem("ff_token"),
 
-    setAuth: (user) => {
-      set({ user, isAuthenticated: true })
+    setAuth: (user, accessToken, refreshToken) => {
+      if (accessToken) localStorage.setItem("ff_token", accessToken)
+      if (refreshToken) localStorage.setItem("ff_refresh_token", refreshToken)
+      set({ user, accessToken, refreshToken, isAuthenticated: true })
     },
 
     updateUser: (userData) => {
@@ -24,14 +29,31 @@ const useAuthStore = create(
       set({ user: updated })
     },
 
-    logout: () => {
-      localStorage.removeItem("ff_token")
-      set({ user: get().user, isAuthenticated: false })
-    },
+    logout: () => set({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+    }),
 
+    // Getters
+    getToken: () => get().accessToken,
     getUser: () => get().user,
-    isLoggedIn: () => !!localStorage.getItem("ff_token"),
-  })
+    getRole: () => get().user?.role || 'manager',
+    isLoggedIn: () => !!get().accessToken,
+    isManager: () => get().user?.role !== 'worker',
+    isWorker: () => get().user?.role === 'worker',
+  }),
+  {
+    name: "freelanceflow-auth",
+    storage: createJSONStorage(() => localStorage),
+    partialize: (state) => ({
+      user: state.user,
+      accessToken: state.accessToken,
+      refreshToken: state.refreshToken,
+      isAuthenticated: state.isAuthenticated,
+    }),
+  }
 )
 
 export default useAuthStore
