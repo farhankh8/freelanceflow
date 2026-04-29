@@ -14,6 +14,7 @@ export default function Login() {
   const [show, setShow] = useState(false)
   const [emailError, setEmailError] = useState("")
   const [passwordError, setPasswordError] = useState("")
+  const [isWorker, setIsWorker] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -30,7 +31,7 @@ export default function Login() {
       localStorage.setItem("ff_user", JSON.stringify(user))
       addNotification({ type: "success", title: "Welcome back!", message: `Good to see you again, ${data.user.name}` })
       toast.success("Welcome back!")
-      navigate(user?.plan === "pro" ? "/app" : "/billing")
+      navigate(isWorker || user?.plan === "pro" ? "/app" : "/billing")
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid email or password"
       toast.error(msg)
@@ -78,8 +79,13 @@ export default function Login() {
             <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
           </div>
 
-          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Welcome back</h1>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "28px" }}>Enter your credentials to continue</p>
+          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>{isWorker ? "Worker Login" : "Welcome back"}</h1>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "16px" }}>{isWorker ? "Enter the credentials provided by your manager" : "Enter your credentials to continue"}</p>
+
+          <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+            <button type="button" onClick={() => setIsWorker(false)} style={{ flex: 1, padding: "10px", background: !isWorker ? "linear-gradient(135deg,#6c63ff,#ff6584)" : "transparent", border: `1px solid ${!isWorker ? "transparent" : "rgba(255,255,255,0.15)"}`, borderRadius: "10px", color: !isWorker ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: 700, cursor: "pointer", fontSize: "13px" }}>Manager</button>
+            <button type="button" onClick={() => setIsWorker(true)} style={{ flex: 1, padding: "10px", background: isWorker ? "linear-gradient(135deg,#00d97e,#00c9a7)" : "transparent", border: `1px solid ${isWorker ? "transparent" : "rgba(255,255,255,0.15)"}`, borderRadius: "10px", color: isWorker ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: 700, cursor: "pointer", fontSize: "13px" }}>Worker</button>
+          </div>
 
           <form onSubmit={handleLogin} noValidate>
             <div style={{ marginBottom: "16px" }}>

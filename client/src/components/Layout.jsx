@@ -46,8 +46,16 @@ const workerNavGroups = [
 ]
 
 const managerNavGroups = [
-  ...navGroups.slice(0, 2),
+  { label: "Main", items: [
+    { to: "/app", icon: "⬡", label: "Dashboard" },
+    { to: "/app/clients", icon: "👥", label: "Clients" },
+    { to: "/app/projects", icon: "🚀", label: "Projects" },
+    { to: "/app/leads", icon: "🎯", label: "Leads" },
+    { to: "/app/contacts", icon: "📇", label: "Contacts" },
+  ]},
   { label: "Finance", items: [
+    { to: "/app/invoices", icon: "🧾", label: "Invoices" },
+    { to: "/app/expenses", icon: "💸", label: "Expenses" },
     { to: "/app/payments", icon: "💳", label: "Payments" },
     { to: "/app/time", icon: "⏱️", label: "Time Logs" },
     { to: "/app/proposals", icon: "📝", label: "Proposals" },

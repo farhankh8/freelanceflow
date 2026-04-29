@@ -42,6 +42,13 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAll() }, [])
 
+  useEffect(() => {
+    const handler = () => fetchAll()
+    window.addEventListener('focus', handler)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchAll() })
+    return () => { window.removeEventListener('focus', handler); document.removeEventListener('visibilitychange', handler) }
+  }, [fetchAll])
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
@@ -67,7 +74,7 @@ export default function Dashboard() {
         setWorkerTasks(tasksData)
         setTimelogs(timelogsData)
       } else {
-        const [c, p, inv, l, pay, exp, tl] = await Promise.allSettled([
+        const [c, p, inv, l, pay, exp, tl, tasks] = await Promise.allSettled([
           api.get("/clients"),
           api.get("/projects"),
           api.get("/invoices"),
@@ -75,38 +82,40 @@ export default function Dashboard() {
           api.get("/payments"),
           api.get("/expenses"),
           api.get("/timelogs"),
+          api.get("/tasks"),
         ])
-        const clients      = c.value?.data?.clients   || []
-        const projs        = p.value?.data?.projects  || []
-        const invoices     = inv.value?.data?.invoices || []
-        const leadsData    = l.value?.data?.data       || []
+        const clients      = c.value?.data?.data || c.value?.data?.clients || []
+        const projs        = p.value?.data?.data || p.value?.data?.projects || []
+        const invoices     = inv.value?.data?.data || inv.value?.data?.invoices || []
+        const leadsData    = l.value?.data?.data || l.value?.data?.leads || []
         const paymentsRaw  = pay.value?.data
-        const paymentsData = paymentsRaw?.payments || paymentsRaw?.data || []
+        const paymentsData = paymentsRaw?.data || paymentsRaw?.payments || []
         const expensesRaw  = exp.value?.data
-        const expensesData = expensesRaw?.expenses || expensesRaw?.data || []
+        const expensesData = expensesRaw?.data || expensesRaw?.expenses || []
         const timelogsRaw  = tl.value?.data
-        const timelogsData = timelogsRaw?.timelogs || timelogsRaw?.data || []
+        const timelogsData = timelogsRaw?.data || timelogsRaw?.timelogs || []
+        const tasksData    = tasks.value?.data?.tasks || []
 
         const revenue      = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
         const totalExpenses = expensesData.reduce((s, e) => s + (e.amount || 0), 0)
 
         setStats({
-          clients:  clients.length,
-          projects: projs.filter(p => p.status === "active").length,
-          invoices: invoices.length,
+          clients:  Array.isArray(clients) ? clients.length : 0,
+          projects: Array.isArray(projs) ? projs.filter(pp => pp.status === "active").length : 0,
+          invoices: Array.isArray(invoices) ? invoices.length : 0,
           revenue,
-          leads:    leadsData.length,
+          leads:    Array.isArray(leadsData) ? leadsData.length : 0,
           expenses: totalExpenses,
-          payments: paymentsData.length,
-          timelogs: timelogsData.reduce((s, t) => s + (t.duration || 0), 0),
+          payments: Array.isArray(paymentsData) ? paymentsData.length : 0,
+          timelogs: Array.isArray(timelogsData) ? timelogsData.reduce((s, t) => s + (t.duration || 0), 0) : 0,
         })
-        setRecentClients(clients.slice(0, 5))
-        setRecentInvoices(invoices.slice(0, 4))
-        setProjects(projs.slice(0, 4))
-        setLeads(leadsData.slice(0, 5))
-        setPayments(paymentsData.slice(0, 5))
-        setExpenses(expensesData)
-        setTimelogs(timelogsData)
+        setRecentClients(Array.isArray(clients) ? clients.slice(0, 5) : [])
+        setRecentInvoices(Array.isArray(invoices) ? invoices.slice(0, 4) : [])
+        setProjects(Array.isArray(projs) ? projs.slice(0, 4) : [])
+        setLeads(Array.isArray(leadsData) ? leadsData.slice(0, 5) : [])
+        setPayments(Array.isArray(paymentsData) ? paymentsData.slice(0, 5) : [])
+        setExpenses(Array.isArray(expensesData) ? expensesData : [])
+        setTimelogs(Array.isArray(timelogsData) ? timelogsData : [])
       }
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
