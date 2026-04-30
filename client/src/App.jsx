@@ -46,8 +46,9 @@ const PrivateRoute = ({ children }) => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn())
   const user = useAuthStore((state) => state.user)
   const isPro = user?.plan === 'pro'
+  const isWorker = user?.role === 'worker'
   if (!isLoggedIn) return <Navigate to="/login" replace />
-  if (!isPro) return <Navigate to="/billing" replace />
+  if (!isPro && !isWorker) return <Navigate to="/billing" replace />
   return children
 }
 
