@@ -6,6 +6,14 @@ import useAuthStore from "../store/authStore"
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}
+
 const SkeletonCard = () => (
   <div style={{
     background: "var(--surface)",
@@ -78,9 +86,8 @@ export default function Dashboard() {
         const paymentsData = paymentsRaw?.data || paymentsRaw?.payments || []
         const expensesRaw  = exp.value?.data
         const expensesData = expensesRaw?.data || expensesRaw?.expenses || []
-        const timelogsRaw  = tl.value?.data
+        const timelogsRaw = tl.value?.data
         const timelogsData = timelogsRaw?.data || timelogsRaw?.timelogs || []
-        const tasksData    = tasks.value?.data?.tasks || []
 
         const revenue      = paymentsData.filter(p => p.status === "completed").reduce((s, p) => s + (p.amount || 0), 0)
         const totalExpenses = expensesData.reduce((s, e) => s + (e.amount || 0), 0)
@@ -113,6 +120,12 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
+
+  useEffect(() => {
+    const handler = () => fetchAll()
+    window.addEventListener("timelogs:updated", handler)
+    return () => window.removeEventListener("timelogs:updated", handler)
+  }, [fetchAll])
 
   useEffect(() => {
     const handler = () => fetchAll()
@@ -173,7 +186,7 @@ export default function Dashboard() {
   const statCards = isWorker ? [
     { label: "My Tasks",       value: stats.tasks,         icon: "✅", color: "#6c63ff", link: "/app/tasks"  },
     { label: "Tasks Done",     value: stats.tasksDone,     icon: "🎉", color: "#00d97e", link: "/app/tasks"  },
-    { label: "Time Logged",    value: Math.floor(stats.timelogs / 60) + "h", icon: "⏱️", color: "#a78bfa", link: "/app/time" },
+    { label: "Time Logged",    value: formatDuration(stats.timelogs), icon: "⏱️", color: "#a78bfa", link: "/app/time" },
     { label: "Earned",         value: "₹" + stats.revenue.toLocaleString(), icon: "💰", color: "#ffb800", link: "/app/worker-payments" },
   ] : [
     { label: "Total Clients",   value: stats.clients,  icon: "👥", color: "#6c63ff", link: "/app/clients"  },
@@ -182,7 +195,7 @@ export default function Dashboard() {
     { label: "Total Leads",     value: stats.leads,    icon: "🎯", color: "#ff6584", link: "/app/leads"    },
     { label: "Invoices",        value: stats.invoices, icon: "🧾", color: "#2CA5E0", link: "/app/invoices" },
     { label: "Expenses",        value: "₹" + stats.expenses.toLocaleString(), icon: "💸", color: "#ff4d6d", link: "/app/expenses" },
-    { label: "Time Logged",     value: Math.floor(stats.timelogs / 60) + "h", icon: "⏱️", color: "#a78bfa", link: "/app/time" },
+    { label: "Time Logged",     value: formatDuration(stats.timelogs), icon: "⏱️", color: "#a78bfa", link: "/app/time" },
     { label: "Payments",        value: stats.payments, icon: "💳", color: "#00c9a7", link: "/app/payments" },
   ]
 

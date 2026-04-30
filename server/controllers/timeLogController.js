@@ -4,21 +4,26 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { z } = require('zod');
 
 const timeLogCreateSchema = z.object({
-  description: z.string().min(1, 'Description is required').max(500),
+  description: z.string().min(1).max(500).optional(),
+  task: z.string().min(1).max(500).optional(),
   project: z.string().min(1, 'Project is required'),
   client: z.string().optional(),
-  task: z.string().optional(),
   duration: z.number().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours'),
   rate: z.number().min(0).optional(),
   date: z.string().optional(),
   notes: z.string().max(500).optional(),
+}).refine(data => {
+  if (!data.description && !data.task) {
+    return { success: false, error: { message: 'Description or task is required' } }
+  }
+  return { success: true }
 });
 
 const timeLogUpdateSchema = z.object({
   description: z.string().min(1).max(500).optional(),
+  task: z.string().optional(),
   project: z.string().optional(),
   client: z.string().optional(),
-  task: z.string().optional(),
   duration: z.number().min(1).max(1440).optional(),
   rate: z.number().min(0).optional(),
   date: z.string().optional(),
@@ -27,8 +32,13 @@ const timeLogUpdateSchema = z.object({
 });
 
 const getAll = asyncHandler(async (req, res) => {
-  const items = await TimeLog.find({ user: req.user.id }).sort({ createdAt: -1 });
-  res.json({ success: true, count: items.length, data: items });
+  const items = await TimeLog.find({ user: req.user.id }).populate('project', 'title').sort({ createdAt: -1 }).lean();
+  const normalized = items.map(item => ({
+    ...item,
+    _id: item._id.toString(),
+    project: item.project ? item.project.title : '',
+  }));
+  res.json({ success: true, count: normalized.length, data: normalized });
 });
 
 const create = asyncHandler(async (req, res) => {
@@ -40,19 +50,22 @@ const create = asyncHandler(async (req, res) => {
       errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
   }
-  const { description, project: projectId, client: clientId, task: taskId, duration, rate, date, notes } = parsed.data;
+  const { description, project: projectIdOrName, client: clientId, task: taskId, duration, rate, date, notes } = parsed.data;
 
-  const project = await Project.findOne({ _id: projectId, user: req.user.id });
+  let project = await Project.findOne({ _id: projectIdOrName, user: req.user.id });
+  if (!project) {
+    project = await Project.findOne({ title: projectIdOrName, user: req.user.id });
+  }
   if (!project) {
     return res.status(403).json({ success: false, message: 'Project not found or access denied' });
   }
 
   const item = await TimeLog.create({
     user: req.user.id,
-    project: projectId,
+    project: project._id,
     client: clientId || project.client,
-    task: taskId || undefined,
-    description,
+    task: taskId || description || undefined,
+    description: description || taskId || '',
     duration,
     rate: rate || 0,
     date: date ? new Date(date) : undefined,
@@ -71,18 +84,24 @@ const update = asyncHandler(async (req, res) => {
       errors: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
     });
   }
-  const { description, project: projectId, client: clientId, task: taskId, duration, rate, date, notes, billed } = parsed.data;
+  const { description, project: projectIdOrName, client: clientId, task: taskId, duration, rate, date, notes, billed } = parsed.data;
 
-  if (projectId) {
-    const project = await Project.findOne({ _id: projectId, user: req.user.id });
-    if (!project) {
+  let resolvedProject = undefined;
+  let resolvedProjectId = undefined;
+  if (projectIdOrName) {
+    resolvedProject = await Project.findOne({ _id: projectIdOrName, user: req.user.id });
+    if (!resolvedProject) {
+      resolvedProject = await Project.findOne({ title: projectIdOrName, user: req.user.id });
+    }
+    if (!resolvedProject) {
       return res.status(403).json({ success: false, message: 'Project not found or access denied' });
     }
+    resolvedProjectId = resolvedProject._id;
   }
 
   const item = await TimeLog.findOneAndUpdate(
     { _id: req.params.id, user: req.user.id },
-    { $set: { description, project: projectId, client: clientId, task: taskId, duration, rate, date: date ? new Date(date) : undefined, notes, billed } },
+    { $set: { description, task: taskId, project: resolvedProjectId, client: clientId, duration, rate, date: date ? new Date(date) : undefined, notes, billed } },
     { new: true }
   );
 

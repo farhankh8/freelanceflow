@@ -1,5 +1,4 @@
 const User = require('../models/User')
-const bcrypt = require('bcryptjs')
 const AuditLog = require('../models/AuditLog')
 
 const createWorker = async (req, res) => {
@@ -21,12 +20,10 @@ const createWorker = async (req, res) => {
       return res.status(409).json({ success: false, message: 'Email already exists' })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12)
-
     const worker = await User.create({
       name: name.trim(),
       email: email.toLowerCase(),
-      password: hashedPassword,
+      password,
       role: 'worker',
       managerId: req.user.id,
       isWorkerAccount: true,

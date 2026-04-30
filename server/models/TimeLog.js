@@ -4,7 +4,7 @@ const timeLogSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
-  task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+  task: { type: mongoose.Schema.Types.Mixed },
   description: { type: String, default: '' },
   duration: { type: Number, required: true },
   rate: { type: Number, default: 0 },

@@ -57,16 +57,7 @@ export default function TimeLogs() {
   // Use timerStore directly
   const { running, seconds, timerProject, timerTask, timerRate, tick, stopTimer, reset, setProject, setTask, setRate } = useTimerStore()
 
-  // Timer interval managed by App.jsx via useTimerStore tick, but we still need to call tick here for standalone
-  const tickRef = useRef(null)
-  useEffect(() => {
-    if (running) {
-      tickRef.current = setInterval(() => tick(), 1000)
-    } else {
-      clearInterval(tickRef.current)
-    }
-    return () => clearInterval(tickRef.current)
-  }, [running, tick])
+  // Timer interval is managed globally by App.jsx via useTimerStore.tick
 
   useEffect(() => {
     if (activeSession) {
@@ -105,7 +96,12 @@ export default function TimeLogs() {
   useEffect(() => {
     api.get("/timelogs")
       .then(res => {
-        const apiList = res.data?.data || []
+        const apiList = (res.data?.data || []).map(l => ({
+          ...l,
+          date: l.date ? (l.date.includes("T") ? new Date(l.date).toISOString().split("T")[0] : l.date) : new Date().toISOString().split("T")[0],
+          project: l.project || "",
+          task: l.task || l.description || "",
+        }))
         if (Array.isArray(apiList) && apiList.length > 0) {
           setLogs(prev => {
             const localOnly = prev.filter(l => String(l._id).startsWith("local_"))
@@ -127,6 +123,7 @@ export default function TimeLogs() {
       saveLogs(next)
       return next
     })
+    window.dispatchEvent(new CustomEvent("timelogs:updated"))
   }
 
   const startTimer = () => {
@@ -166,9 +163,17 @@ export default function TimeLogs() {
       })
       const saved = data?.data
       if (saved?._id) {
-        updateLogs(prev => prev.map(l => l._id === tempId ? saved : l))
+        const normalized = {
+          ...saved,
+          date: saved.date ? (String(saved.date).includes("T") ? new Date(saved.date).toISOString().split("T")[0] : String(saved.date)) : newLog.date,
+          project: saved.project || state.timerProject,
+          task: saved.task || state.timerTask,
+        }
+        updateLogs(prev => prev.map(l => l._id === tempId ? normalized : l))
       }
-    } catch (_) {}
+    } catch (e) {
+      toast.error("Failed to save to server, kept locally")
+    }
   }
 
   const resetTimer = () => {
@@ -213,15 +218,23 @@ export default function TimeLogs() {
       const { data } = await api.post("/timelogs", { ...form, duration: mins, rate: Number(form.rate), billed: false })
       const saved = data?.data
       if (saved?._id) {
-        updateLogs(prev => prev.map(l => l._id === tempId ? saved : l))
+        const normalized = {
+          ...saved,
+          date: saved.date ? (String(saved.date).includes("T") ? new Date(saved.date).toISOString().split("T")[0] : String(saved.date)) : form.date,
+          project: saved.project || form.project,
+          task: saved.task || form.task,
+        }
+        updateLogs(prev => prev.map(l => l._id === tempId ? normalized : l))
       }
-    } catch (_) {}
+    } catch (e) {
+      toast.error("Failed to save to server, kept locally")
+    }
   }
 
   const deleteLog = async (id) => {
     updateLogs(prev => prev.filter(l => l._id !== id))
     toast.success("Deleted")
-    try { await api.delete(`/timelogs/${id}`) } catch (_) {}
+    try { await api.delete(`/timelogs/${id}`) } catch (e) { toast.error("Failed to delete from server") }
   }
 
   const toggleBilled = async (id) => {
@@ -230,7 +243,7 @@ export default function TimeLogs() {
       if (l._id === id) { newVal = !l.billed; return { ...l, billed: newVal } }
       return l
     }))
-    try { await api.put(`/timelogs/${id}`, { billed: newVal }) } catch (_) {}
+    try { await api.put(`/timelogs/${id}`, { billed: newVal }) } catch (e) { toast.error("Failed to update on server") }
   }
 
   const filtered = (logs || []).filter(l => {
@@ -426,7 +439,11 @@ export default function TimeLogs() {
             <h3 style={{ fontSize: "14px", fontWeight: 700, marginBottom: "14px" }}>📅 Today's Summary</h3>
             {(() => {
               const today = new Date().toISOString().split("T")[0]
-              const todayLogs = (logs || []).filter(l => l.date === today)
+              const todayLogs = (logs || []).filter(l => {
+                if (!l.date) return false
+                const logDate = l.date.includes("T") ? new Date(l.date).toISOString().split("T")[0] : l.date
+                return logDate === today
+              })
               const todayMins = todayLogs.reduce((s, l) => s + l.duration, 0)
               const todayEarnings = todayLogs.reduce((s, l) => s + (l.duration / 60) * (l.rate || 0), 0)
               return todayLogs.length === 0 ? (
