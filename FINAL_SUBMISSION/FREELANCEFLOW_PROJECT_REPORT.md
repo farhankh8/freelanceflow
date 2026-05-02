@@ -108,13 +108,11 @@ I sincerely express my gratitude to Yenepoya Institute of Arts, Science, Commerc
 
 I extend my heartfelt thanks to Dr. Jeevan Raj, Principal, for his continuous support and guidance in facilitating this learning opportunity. I also express my sincere appreciation to Dr. Rathnakara Shetty P, Head of Department (Computer Science), for his encouragement and academic support throughout my internship journey.   
 
-I am deeply grateful to Ms. Aysha Dilshad, Internal Guide, for her visionary leadership and for fostering a dynamic learning environment in Persevex Education Consultancy LLP. A special note of appreciation goes to the team at Persevex Education Consultancy LLP, for their invaluable mentorship, expert guidance, and for sharing their vast experience in the field.   
+I am deeply grateful to Ms. Aysha Dilshad, Internal Guide, Department of Computer Science, Yenepoya Institute, for her visionary leadership and for fostering a dynamic learning environment. A special note of appreciation goes to the team at Persevex Education Consultancy LLP, for their invaluable mentorship, expert guidance, and for sharing their vast experience in the field.   
 
 I also extend my sincere gratitude to the Persevex Education Consultancy LLP, for their technical insights, hands-on training, and unwavering support during my internship. Their guidance has been instrumental in enhancing my practical understanding of full-stack web development and application development methodologies.   
 
-I am also thankful to my internal guide, Ms. Aysha Dilshad, for her academic mentorship and for providing valuable insights that helped bridge the gap between theoretical learning and practical application.   
-
-Lastly, I am grateful to my faculty mentors, family, and peers for their encouragement and motivation throughout this journey.   
+Lastly, I am grateful to my faculty mentors, family, and peers for their encouragement and motivation throughout this journey.
 
 Name/Reg No: K H Mohammad Farhan / 23BCAICD182  
 Date:   April 2026   
@@ -144,7 +142,7 @@ This is to certify that K H Mohammad Farhan (Reg. No. 23BCAICD182), a student of
 
 The project was undertaken from February 2026 to April 2026.
 
-Place: Mangalore
+Place:Bangalore
 Date: April 2026
   
   
@@ -290,77 +288,84 @@ Table of contents
 
 Sl.no  Topic                                               Page No.
 1.     CHAPTER 1: INTRODUCTION                               1
-1.1    Background                                          2
-1.2    Objectives                                          4
-1.3    Purpose                                             5
-1.4    Scope                                               6
-1.5    Data Sources                                        8
-1.6    Problem Definition                                   9
+1.1    Background                                            2
+1.2    Objectives                                            4
+1.3    Purpose                                               5
+1.4    Scope                                                 6
+1.5    Data Sources                                          8
+1.6    Problem Definition                                    9
         
 2.     CHAPTER 2: TOOLS AND TECHNOLOGY USED                 11
+
 3.     CHAPTER 3: DATA COLLECTION AND ANALYSIS              15
 3.1    Data Collection                                      16
 3.2    Data Preprocessing                                   18
 3.3    Feature Engineering                                  19
 3.4    Exploratory Data Analysis                            20
-4.     CHAPTER 4: SYSTEM REQUIREMENTS AND ANALYSIS         23
-4.1    System Requirements Specification                   24
-4.1.1  Functional Requirements                            25
-4.1.2  Non-Functional Requirements                         28
+
+4.     CHAPTER 4: SYSTEM REQUIREMENTS AND ANALYSIS          23
+4.1    System Requirements Specification                    24
+4.1.1  Functional Requirements                              25
+4.1.2  Non-Functional Requirements                          28
 4.2    Hardware and Software Requirements                   30
 4.3    System Overview                                      32
-5.     CHAPTER 5: IMPLEMENTATION                           35
+
+5.     CHAPTER 5: IMPLEMENTATION                            35
 5.1    System Design/Algorithms                             36
 5.2    Workflow/Process Diagrams                            39
 5.3    Module Description                                   42
+
 6.     CHAPTER 6: FUTURE SCOPE AND CONCLUSION               47
-7.     CHAPTER 7: TESTING AND RESULTS                     51
-7.1    Testing Strategy                                      52
-7.2    Test Cases and Results                                53
+
+7.     CHAPTER 7: TESTING AND RESULTS                       51
+7.1    Testing Strategy                                     52
+7.2    Test Cases and Results                               53
 7.3    Performance Testing                                  55
 7.4    Security Testing                                     56
 7.5    User Acceptance Testing                              57
-7.6    Test Summary                                          58
-8.     CONCLUSION AND RECOMMENDATIONS                     59
-8.1    Project Summary                                       59
-8.2    Learning Outcomes                                     59
-8.3    Challenges Encountered                                60
-8.4    Recommendations for Future Enhancement                 60
+7.6    Test Summary                                         58
+
+8.     CONCLUSION AND RECOMMENDATIONS                       59
+8.1    Project Summary                                      59
+8.2    Learning Outcomes                                    59
+8.3    Challenges Encountered                               60
+8.4    Recommendations for Future Enhancement               60
+
 9.     BIBLIOGRAPHY                                         61
 10.    APPENDIX A: USER MANUAL                              62
 11.    APPENDIX B: SOURCE CODE DOCUMENTATION                63
-12.    APPENDIX C: API DOCUMENTATION                     64
+12.    APPENDIX C: API DOCUMENTATION                        64
 
 
          List of Tables:
-Table No.  Description                                           Page No.
+Table No.  Description                                        Page No.
 1          List of Tools and Technologies Used                 11
-2          Functional Requirements Specification              25
+2          Functional Requirements Specification               25
 3          Non-Functional Requirements Specification           28
-4          Hardware and Software Requirements                 30
+4          Hardware and Software Requirements                  30
 5          Module Description                                  42
 6          Testing Levels                                      52
 7          Authentication Module Test Cases                    53
-8          Freelancer Management Test Cases                 53
-9          Payment Processing Test Cases                     54
-10         Dashboard Analytics Test Cases                   54
-11         Response Time Measurements                       55
-12         Load Testing Results                             55
-13         Security Test Results                          56
-14         UAT Feedback Summary                         57
-15         Test Summary                                58
-16         System Requirements (User Manual)             62
+8          Freelancer Management Test Cases                    53
+9          Payment Processing Test Cases                       54
+10         Dashboard Analytics Test Cases                      54
+11         Response Time Measurements                          55
+12         Load Testing Results                                55
+13         Security Test Results                               56
+14         UAT Feedback Summary                                57
+15         Test Summary                                        58
+16         System Requirements (User Manual)                   62
 
 
 List of Figures:
-Fig no.  Description                                           Page No.
-1        System Architecture Diagram                          32
+Fig no.  Description                                          Page No.
+1        System Architecture Diagram                           32
 2        Database Schema                                       33
 3        Data Flow Diagram                                     39
 4        ER Diagram                                            34
 5        Component Hierarchy                                   40
-6        Project Structure                                63
-7        Component Hierarchy (Code)                      64
+6        Project Structure                                     63
+7        Component Hierarchy (Code)                            64
 
 
 CHAPTER 1: INTRODUCTION
