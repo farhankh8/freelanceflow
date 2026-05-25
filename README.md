@@ -60,10 +60,6 @@ FreelanceFlow/
 │   ├── routes/
 │   ├── services/
 │   └── utils/
-└── FINAL_SUBMISSION/    # Academic Reports
-    ├── FREELANCEFLOW_PROJECT_REPORT.md
-    ├── FREELANCEFLOW_SYNOPSIS.md
-    └── FREELANCEFLOW_PRESENTATION.md
 ```
 
 ---
